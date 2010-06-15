@@ -1,0 +1,7 @@
+
+* General concepts
+
+* First meeting
+  - ask for motes available
+    At least two motes to attach to the usb ports and two virtual machines are needed (or one with two modules)
+  - ask for what code is already available in the testbed
