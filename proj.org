@@ -1,7 +1,9 @@
-
-* General concepts
-
 * First meeting
   - ask for motes available
     At least two motes to attach to the usb ports and two virtual machines are needed (or one with two modules)
   - ask for what code is already available in the testbed
+
+* Hints
+  - try to use TUN/TAP drivers
+  - see how to send packets over the network, see 6lowpan for examples
+  - check the routing protocols already present in tinyos evaluating what's best to do
