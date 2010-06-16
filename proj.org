@@ -3,7 +3,41 @@
     At least two motes to attach to the usb ports and two virtual machines are needed (or one with two modules)
   - ask for what code is already available in the testbed
 
+* Links
+  - [[http://tools.ietf.org/html/draft-daniel-6lowpan-hilow-hierarchical-routing-01][hierarchical routing over lowipv6]]
+  - [[http://tools.ietf.org/html/draft-chakrabarti-6lowpan-ipv6-nd-05][neighbour discovery over low6pan]]
+  - [[http://docs.tinyos.net/index.php/BLIP_Tutorial][Blip tutorial]]
+  - [[http://en.wikipedia.org/wiki/IEEE_802.15.4-2006][protocol 802.15.4 from IEEE]]
+
 * Hints
   - try to use TUN/TAP drivers
   - see how to send packets over the network, see 6lowpan for examples
   - check the routing protocols already present in tinyos evaluating what's best to do
+  - try out the *IPBaseStation* and see how it's implemented
+
+
+* Tun/Tap
+  We can use those interfaces in user-land mode also.
+
+  Userland application can write IP frame to /dev/tunX and kernel will
+  receive this frame from tunX interface.  In the same time every
+  frame that kernel writes to tunX interface can be read by userland
+  application from /dev/tunX device.
+
+  Main purpose of TUN/TAP driver is *tunneling*. 
+
+** Tun
+   The TUN is Virtual Point-to-Point network device.
+   TUN driver was designed as low level kernel support for
+   IP tunneling. It provides to userland application
+   two interfaces:
+   - /dev/tunX	- character device;
+   - tunX	- virtual Point-to-Point interface.
+
+** Tap
+   The TAP is a Virtual Ethernet network device.
+   TAP driver was designed as low level kernel support for
+   Ethernet tunneling. It provides to userland application
+   two interfaces:
+   - /dev/tapX	- character device;
+   - tapX	- virtual Ethernet interface.
