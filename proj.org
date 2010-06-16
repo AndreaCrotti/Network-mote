@@ -8,6 +8,9 @@
   - [[http://tools.ietf.org/html/draft-chakrabarti-6lowpan-ipv6-nd-05][neighbour discovery over low6pan]]
   - [[http://docs.tinyos.net/index.php/BLIP_Tutorial][Blip tutorial]]
   - [[http://en.wikipedia.org/wiki/IEEE_802.15.4-2006][protocol 802.15.4 from IEEE]]
+  - [[http://www.tinyos.net/tinyos-2.x/doc/html/tep119.html][tep 119 on collections in tinyos]]
+  - [[http://www.tinyos.net/tinyos-2.x/doc/nesdoc/telosb/index.html][tinyos documentation for telosb]]
+  - [[https://lists.eecs.berkeley.edu/sympa/info/blip-users][mailing list of blip users]]
 
 * Hints
   - try to use TUN/TAP drivers
@@ -15,6 +18,9 @@
   - check the routing protocols already present in tinyos evaluating what's best to do
   - try out the *IPBaseStation* and see how it's implemented
 
+
+* Routing
+  Routing must be done bidirectionally, in tinyos is already present *CTP*, one idea is to use it twice in both directions.
 
 * Tun/Tap
   We can use those interfaces in user-land mode also.
