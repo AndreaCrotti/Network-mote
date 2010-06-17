@@ -11,6 +11,24 @@
   - [[http://www.tinyos.net/tinyos-2.x/doc/html/tep119.html][tep 119 on collections in tinyos]]
   - [[http://www.tinyos.net/tinyos-2.x/doc/nesdoc/telosb/index.html][tinyos documentation for telosb]]
   - [[https://lists.eecs.berkeley.edu/sympa/info/blip-users][mailing list of blip users]]
+  - [[http://www.linux.com/news/hardware/peripherals/180950-udev][how to write udev rules]]
+
+* Creating TUN device to communicate
+  One way is to create a rule with udev, like here:
+  
+#+begin_src sh
+  I have this in my /etc/udev/rules.d/10-udev-rules 
+  
+  # N.B.: Using := prevents later rules modifying parameters, 
+  # 50-dev-rules will reset device permissions to 600. 
+  
+  KERNEL=="tun", NAME="net/%k",MODE:="666" 
+#+end_src
+
+  Another way is to use openvpn to generate it
+#+begin_src sh
+  openvpn --mktun --dev tunX
+#+end_src
 
 * Hints
   - try to use TUN/TAP drivers
