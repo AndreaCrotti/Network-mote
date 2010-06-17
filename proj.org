@@ -22,6 +22,33 @@
 * Routing
   Routing must be done bidirectionally, in tinyos is already present *CTP*, one idea is to use it twice in both directions.
 
+* Implementation
+  - Using TUN to send messsages to the application instead of the 
+  - change the routing table
+  - enable the low-power mode for the mote in cc2420
+
+** Instructions to create a simple network with a base station and a UDP echo mote
+#+begin_src sh
+  # On one mote we have to program the IPBaseStation
+  # After having compiled the necessary
+  cd $TOSROOT/apps/IPBaseStation
+  make telosb blip install /dev/ttyUSB0 # for example
+  # then we need to start the ip-driver
+  sudo driver/ip-driver /dev/ttyUSB0 telosb
+  
+  # on the other mote we program the UDP server
+  cd $TOSROOT/apps/UDPEcho
+  make telosb  blip install.ID
+    
+  # where the ID will be the address of the client
+  
+  # to check that everything is working just
+  ping6 fec0::<ID>
+  
+  # and as soon as there is communication it should work fine
+#+end_src
+   
+   
 * Tun/Tap
   We can use those interfaces in user-land mode also.
 
@@ -30,7 +57,8 @@
   frame that kernel writes to tunX interface can be read by userland
   application from /dev/tunX device.
 
-  Main purpose of TUN/TAP driver is *tunneling*. 
+  Main purpose of TUN/TAP driver is *tunneling*.
+  Here is the [[http://tuntaposx.sourceforge.net/development.xhtml][tun tap driver for OSX]] for example.
 
 ** Tun
    The TUN is Virtual Point-to-Point network device.
