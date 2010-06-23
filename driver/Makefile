@@ -10,6 +10,6 @@ tun_dev.o: tun_dev.c
 	gcc $(FLAGS) -c tun_dev.c $(CFLAGS) $(INCLUDE) -o tun_dev.o
 
 clean:
-	rm *.o tuntest
+	rm -f *.o tuntest
 
 .PHONY: clean
