@@ -10,13 +10,13 @@
 #include <syslog.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/sockio.h>
+/* #include <sys/sockio.h> */
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <signal.h>
 #include <stropts.h>
 #include <net/if.h>
-#include <net/if_tun.h>
+#include <linux/if_tun.h>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
