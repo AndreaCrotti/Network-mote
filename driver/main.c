@@ -1,6 +1,6 @@
-#include <sys/socket.h>
-#include <tun.h>
+//include <sys/socket.h>
 #include <linux/if.h>
+#include "tun_dev.h"
 
 #include <stdlib.h>
 #include <string.h>

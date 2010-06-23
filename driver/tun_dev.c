@@ -81,6 +81,10 @@ struct in6_ifreq {
 };
 
 
+void log_fatal_perror(const char* string){
+    printf("%s", string);
+}
+
 int tun_open(char *dev)
 {
     struct ifreq ifr;
