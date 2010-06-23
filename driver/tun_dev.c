@@ -65,9 +65,9 @@
 
 #include <netinet/in.h>
 #include <lib6lowpan/lib6lowpan.h>
+#include <driver/logging.h>
 
 #include "tun_dev.h"
-#include "logging.h"
 
 
 /*
