@@ -55,6 +55,8 @@
 
 #include <lib6lowpan/ip.h>
 
+// redefinition of all the functions to manipulate TUN device
+
 int tun_open(char *dev);
 int tun_close(int fd, char *dev);
 int tun_setup(char *dev, struct in6_addr *addr);
