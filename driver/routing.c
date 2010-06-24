@@ -16,6 +16,7 @@
 int routing_init(struct config *c, char *tun_name) {
     FILE *fd;
     char buf[256];
+    // from network byte order to host byte order
     my_short_addr = ntohs(__my_address.s6_addr16[7]);
     strncpy(proxy_dev, c->proxy_dev, IFNAMSIZ);
     strncpy(tun_dev, tun_name, IFNAMSIZ);
