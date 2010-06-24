@@ -16,14 +16,34 @@
 // For adding an entry to the routing tables
 #include "routing.h"
 
+extern struct in6_addr __my_address;
+
+// The IP address for our tunnel device
+struct in6_addr __my_address       = {{{0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x65}}};
+
 int main(int args, char** arg) {
     char dev[IFNAMSIZ];
     char input[20];
 
     // a new device should be opened!
     dev[0] = 0;    
+    // create the tunnel
     int fd = tun_open(dev);
-    
+    if (fd < 1) {
+      printf("Could not create tunnel device. Fatal.\n");
+      return 1;
+    } else {
+      printf("created tun device: %s\n", dev);
+    }
+
+    // Setup the tunnel
+    //NOTE: Does this set the IP-address?
+    if (tun_setup(dev, &__my_address) < 0) {
+      printf("configuring the tun failed; aborting\n");
+      return 1;
+    }
+
     // Testing...
     printf("IPV6_VERSION is: %d", IPV6_VERSION);
     fflush(stdout);
@@ -36,8 +56,6 @@ int main(int args, char** arg) {
         len = tun_read(fd, (void *)(&msg->pi), INET_MTU + sizeof(struct ip6_hdr));
         //if(len != -5)
             //printf("%d", len);
-
-        printf
 
         if (len > 0) {
             printf("tun_read: read 0x%x bytes\n", len);

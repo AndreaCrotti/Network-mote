@@ -153,16 +153,18 @@ int tun_setup(char *dev, struct in6_addr *addr) {
 
     ifr6.ifr6_ifindex = ifr.ifr_ifindex;
     ifr6.ifr6_prefixlen = 128;
-    if (ioctl(fd, SIOCSIFADDR, &ifr6) < 0) {
-        log_fatal_perror("SIOCSIFADDR (global)");
-        return -1;
-    }
+
+    // Commented out, since this seems to give an error if called twice 
+    /* if (ioctl(fd, SIOCSIFADDR, &ifr6) < 0) { */
+    /*     log_fatal_perror("SIOCSIFADDR (global)"); */
+    /*     return -1; */
+    /* } */
 
     memset(&ifr6.ifr6_addr.s6_addr[0], 0, 16);
     ifr6.ifr6_addr.s6_addr16[0] = htons(0xfe80);
     ifr6.ifr6_addr.s6_addr16[7] = addr->s6_addr16[7];
   
-    if (ioctl(fd, SIOCSIFADDR, &ifr6) < 0) {
+    if (ioctl(fd, SIOCSIFADDR, &ifr6) == -1) {
         log_fatal_perror("SIOCSIFADDR (local)");
         return -1;
     }

@@ -4,7 +4,7 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types
 CFLAGS = -D_GNU_SOURCE -DPC
 FLAGS = -Wall
 
-OBJECTS = tun_dev.o
+OBJECTS = tun_dev.o routing.o #config.o
 #OBJECTS = 
 
 tuntest: $(OBJECTS) main.c
@@ -15,6 +15,12 @@ tuntest.pre: $(OBJECTS) main.c
 
 tun_dev.o: tun_dev.c
 	gcc $(FLAGS) -c tun_dev.c $(CFLAGS) $(INCLUDE) -o tun_dev.o
+
+routing.o: routing.c
+	gcc $(FLAGS) -c routing.c $(CFLAGS) $(INCLUDE) -o routing.o
+
+#config.o: config.c
+#	gcc $(FLAGS) -c config.c $(CFLAGS) $(INCLUDE) -o config.o
 
 clean:
 	rm -f *.o tuntest

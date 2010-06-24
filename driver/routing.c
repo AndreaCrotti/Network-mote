@@ -11,6 +11,16 @@
 #include <lib6lowpan/6lowpan.h>
 #include <lib6lowpan/lib6lowpan.h>
 #include "routing.h"
+#include "config.h"
+
+// Some definitions
+static ieee154_saddr_t my_short_addr;
+static uint16_t current_seqno;
+extern struct in6_addr  __my_address;
+
+// Global variables
+char proxy_dev[IFNAMSIZ], tun_dev[IFNAMSIZ];
+int mcast_sock;
 
 // initialize the routing structure to do it directly from here
 int routing_init(struct config *c, char *tun_name) {
@@ -21,16 +31,16 @@ int routing_init(struct config *c, char *tun_name) {
     strncpy(tun_dev, tun_name, IFNAMSIZ);
 
     // set up the network state data structures
-    nw_init();
+    //nw_init();
 
     // start a netlink session to the kernel
-    nl_init();
+    //nl_init();
 
-    mcast_sock = mcast_start(proxy_dev);;
+    //mcast_sock = mcast_start(proxy_dev);;
 
     // 
     if ((fd = fopen("/proc/sys/net/ipv6/conf/all/forwarding", "w")) == NULL) {
-        log_fatal_perror("enable forwarding");
+        //log_fatal_perror("enable forwarding");
         return -1;
     }
     fprintf(fd, "1");
@@ -38,7 +48,7 @@ int routing_init(struct config *c, char *tun_name) {
 
     snprintf(buf, sizeof(buf), "/proc/sys/net/ipv6/conf/%s/proxy_ndp", proxy_dev);
     if ((fd = fopen(buf, "w")) == NULL) {
-        warn("unable to enable IPv6 ND proxy on %s\n", proxy_dev);
+        //warn("unable to enable IPv6 ND proxy on %s\n", proxy_dev);
     } else {
         fprintf(fd, "1");
         fclose(fd);
