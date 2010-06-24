@@ -6,7 +6,7 @@
 #include <linux/if.h>
 #include <linux/if_tun.h>
 
-// Standart libraries
+// Standard libraries
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -32,7 +32,7 @@ int main(int args, char** arg) {
     struct split_ip_msg *msg = (struct split_ip_msg *)buf;
     int len;
 
-    while(1){
+    while (1) {
         len = tun_read(fd, (void *)(&msg->pi), INET_MTU + sizeof(struct ip6_hdr));
         //if(len != -5)
             //printf("%d", len);

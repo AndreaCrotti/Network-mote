@@ -10,7 +10,7 @@
 #include <syslog.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-/* #include <sys/sockio.h> */
+#include <sys/sockio.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <signal.h>
@@ -129,3 +129,4 @@ int tun_read(int fd, char *buf, int len)
     sbuf.buf = buf;      
     return getmsg(fd, NULL, &sbuf, &f) >=0 ? sbuf.len : -1;
 }
+
