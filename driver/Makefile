@@ -1,14 +1,17 @@
 BLIP = $(TOSROOT)/support/sdk/c/blip
+SF = $(TOSROOT)/support/sdk/c/sf
 
-INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types
+INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 CFLAGS = -D_GNU_SOURCE -DPC
 FLAGS = -Wall
 
 OBJECTS = tun_dev.o routing.o #config.o
 #OBJECTS = 
+#For external libraries
+EXTERNALS = $(SF)/sfsource.o
 
 tuntest: $(OBJECTS) main.c
-	gcc $(FLAGS) $(OBJECTS) main.c $(CFLAGS) $(INCLUDE) -o tuntest
+	gcc $(FLAGS) $(OBJECTS) $(EXTERNALS)  main.c $(CFLAGS) $(INCLUDE) -o tuntest
 
 tuntest.pre: $(OBJECTS) main.c
 	gcc $(FLAGS) $(OBJECTS) main.c $(CFLAGS) $(INCLUDE) -E -o tuntest.pre
