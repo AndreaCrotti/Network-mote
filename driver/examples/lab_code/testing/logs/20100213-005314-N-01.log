@@ -1,0 +1,56 @@
+Starting run 0. mode=N, associations=x:0:0 x=1, treedepth=nil
+alpha daemon started (process id: 31125)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 0 received, 100% packet loss, time 4004ms
+
+
+Starting run 1. mode=N, associations=x:0:0 x=1, treedepth=nil
+alpha daemon started (process id: 31216)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 0 received, 100% packet loss, time 4005ms
+
+
+Starting run 2. mode=N, associations=x:0:0 x=1, treedepth=nil
+alpha daemon started (process id: 31368)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 0 received, 100% packet loss, time 4001ms
+
+
+Starting run 3. mode=N, associations=x:0:0 x=1, treedepth=nil
+alpha daemon started (process id: 31444)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 0 received, 100% packet loss, time 4002ms
+
+
+Starting run 4. mode=N, associations=x:0:0 x=1, treedepth=nil
+alpha daemon started (process id: 31517)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 0 received, 100% packet loss, time 4002ms
+
+
+Starting run 5. mode=N, associations=x:0:0 x=1, treedepth=nil
+alpha daemon started (process id: 31669)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 0 received, 100% packet loss, time 4003ms
+
+
+Starting run 6. mode=N, associations=x:0:0 x=1, treedepth=nil
+alpha daemon started (process id: 31745)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 0 received, 100% packet loss, time 4002ms
+
+

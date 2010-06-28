@@ -1,0 +1,61 @@
+# vim:ft=text:textwidth=120:et:ts=2:
+########
+# TODO #
+########
+
+Messungen für Paper
+-------------------
+ => Submission-Deadline irgendwann im Mai
+
+* Messungen: EME, EMME, EE (M = Alix, evtl Ubuntu neu installieren)
+* Alpha-M: Andere Baumtiefen ausprobieren
+  * durch minimale Anzahl Elemente oder
+  * durch maximale Wartezeit
+* Alpha-Z messen
+* Gesamtlatenz messen (Plain/Alpha)
+* UDP Jitter messen
+* TCP-Congestion umstellen
+* CPU-Benutzung messen (aus /proc)
+* iperf: 1 Minute messen (mindestens)
+* Messungen mit unterschiedlichen MTUs
+* Code auf Veröffentlichung vorbereiten
+
+* Scheduler mit simpler Klassifizierung (Paketgröße)
+* Filter fixen und automatischen restart einbauen
+
+Wichtig
+-------
+* flo: ppc clean compile
+* Korrektes Byte-Alignment sicherstellen
+* (check) Signale sollten bestehenden Zustand nicht beeinflussen (z.B. bei Neulesen der Config)
+
+* Hashchains:
+** hchain_verify mit fuzz-factor benutzen um robust gegen Paket-loss zu werden
+*** Doppelberechnung um verlorene Pakete zu kompensieren darf NUR fuer S2 Verlust geschehen.
+*** Wichtig: S1/A1/S1/A1... muss IMMER ankommen
+*** Nur gerade hashes (h_(n-2i)) dürfen zur signierung in S1 Paketen verwendet werden.
+
+BUGS:
+-----
+* ACK Chains laufen wohl doch leer:
+ => Passiert weil unterschiedliche Hosts unterschiedliche lange Ketten haben... Damn
+* Compile warnings bei "make final"
+* Segfault falls keyfile nicht an der angegebenen adresse existiert
+  (z.B. wenn alpha in testing/ aufgerufen wird ohne -c)
+
+###########
+# Zukunft #
+###########
+
+Organisatorisch
+---------------
+- MTU:
+-- Wie bringt man alle Hosts auf einen gemeinsamen Nenner was die MTU angeht?
+- State-machine zeichnen (womit am besten?)
+
+Technisch
+---------
+- Anzahl Assoziationen / Hash-Chain-Laenge beim Start ausgeben
+- Alphacontrol erweitern, z.B.:
+-- Ausgabe aller offenen Assoziationen mit Richtung / Typ / verbleibenden Hchain-Elementen
+- _Alle_ Default-Werte für den iniparser per define in der define.h in Extra-Abschnitt

@@ -1,0 +1,138 @@
+Starting run 0. mode=C, associations=0:x:0 x=10, treedepth=nil
+alpha daemon started (process id: 7861)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+64 bytes from 192.168.1.3: icmp_seq=1 ttl=64 time=2268 ms
+64 bytes from 192.168.1.3: icmp_seq=2 ttl=64 time=1264 ms
+64 bytes from 192.168.1.3: icmp_seq=3 ttl=64 time=265 ms
+64 bytes from 192.168.1.3: icmp_seq=4 ttl=64 time=3.96 ms
+64 bytes from 192.168.1.3: icmp_seq=5 ttl=64 time=3.88 ms
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4008ms
+rtt min/avg/max/mdev = 3.885/761.390/2268.843/885.395 ms, pipe 3
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5001
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.1 port 40762 connected with 192.168.1.3 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-30.0 sec  457456 KBytes  124881 Kbits/sec
+
+Starting run 1. mode=C, associations=0:x:0 x=10, treedepth=nil
+alpha daemon started (process id: 7916)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+64 bytes from 192.168.1.3: icmp_seq=2 ttl=64 time=1077 ms
+64 bytes from 192.168.1.3: icmp_seq=3 ttl=64 time=76.5 ms
+64 bytes from 192.168.1.3: icmp_seq=4 ttl=64 time=3.90 ms
+64 bytes from 192.168.1.3: icmp_seq=5 ttl=64 time=3.88 ms
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 4 received, 20% packet loss, time 4004ms
+rtt min/avg/max/mdev = 3.885/290.462/1077.475/455.350 ms, pipe 2
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5001
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.1 port 40763 connected with 192.168.1.3 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-30.0 sec  463344 KBytes  126366 Kbits/sec
+
+Starting run 2. mode=C, associations=0:x:0 x=10, treedepth=nil
+alpha daemon started (process id: 8047)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+64 bytes from 192.168.1.3: icmp_seq=1 ttl=64 time=429 ms
+64 bytes from 192.168.1.3: icmp_seq=2 ttl=64 time=3.72 ms
+64 bytes from 192.168.1.3: icmp_seq=3 ttl=64 time=3.83 ms
+64 bytes from 192.168.1.3: icmp_seq=4 ttl=64 time=3.85 ms
+64 bytes from 192.168.1.3: icmp_seq=5 ttl=64 time=3.90 ms
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4007ms
+rtt min/avg/max/mdev = 3.720/89.030/429.833/170.401 ms
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5001
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.1 port 40764 connected with 192.168.1.3 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-30.0 sec  446208 KBytes  121761 Kbits/sec
+
+Starting run 3. mode=C, associations=0:x:0 x=10, treedepth=nil
+alpha daemon started (process id: 8102)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+64 bytes from 192.168.1.3: icmp_seq=1 ttl=64 time=452 ms
+64 bytes from 192.168.1.3: icmp_seq=2 ttl=64 time=3.66 ms
+64 bytes from 192.168.1.3: icmp_seq=3 ttl=64 time=3.90 ms
+64 bytes from 192.168.1.3: icmp_seq=4 ttl=64 time=3.88 ms
+64 bytes from 192.168.1.3: icmp_seq=5 ttl=64 time=3.91 ms
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4005ms
+rtt min/avg/max/mdev = 3.669/93.563/452.451/179.444 ms
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5001
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.1 port 40765 connected with 192.168.1.3 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-30.0 sec  415216 KBytes  113265 Kbits/sec
+
+Starting run 4. mode=C, associations=0:x:0 x=10, treedepth=nil
+alpha daemon started (process id: 8157)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+64 bytes from 192.168.1.3: icmp_seq=2 ttl=64 time=1182 ms
+64 bytes from 192.168.1.3: icmp_seq=3 ttl=64 time=182 ms
+64 bytes from 192.168.1.3: icmp_seq=4 ttl=64 time=3.87 ms
+64 bytes from 192.168.1.3: icmp_seq=5 ttl=64 time=3.90 ms
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 4 received, 20% packet loss, time 4010ms
+rtt min/avg/max/mdev = 3.876/343.219/1182.941/490.245 ms, pipe 2
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5001
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.1 port 40766 connected with 192.168.1.3 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-30.0 sec  463184 KBytes  126380 Kbits/sec
+
+Starting run 5. mode=C, associations=0:x:0 x=10, treedepth=nil
+alpha daemon started (process id: 8212)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+64 bytes from 192.168.1.3: icmp_seq=1 ttl=64 time=2080 ms
+64 bytes from 192.168.1.3: icmp_seq=2 ttl=64 time=1075 ms
+64 bytes from 192.168.1.3: icmp_seq=3 ttl=64 time=65.6 ms
+64 bytes from 192.168.1.3: icmp_seq=4 ttl=64 time=3.84 ms
+64 bytes from 192.168.1.3: icmp_seq=5 ttl=64 time=3.89 ms
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4021ms
+rtt min/avg/max/mdev = 3.847/645.885/2080.762/825.142 ms, pipe 3
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5001
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.1 port 40767 connected with 192.168.1.3 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-30.0 sec  448376 KBytes  122251 Kbits/sec
+
+Starting run 6. mode=C, associations=0:x:0 x=10, treedepth=nil
+alpha daemon started (process id: 8267)
+PING 192.168.1.3 (192.168.1.3) 56(84) bytes of data.
+64 bytes from 192.168.1.3: icmp_seq=1 ttl=64 time=451 ms
+64 bytes from 192.168.1.3: icmp_seq=2 ttl=64 time=3.69 ms
+64 bytes from 192.168.1.3: icmp_seq=3 ttl=64 time=3.81 ms
+64 bytes from 192.168.1.3: icmp_seq=4 ttl=64 time=3.79 ms
+64 bytes from 192.168.1.3: icmp_seq=5 ttl=64 time=3.77 ms
+
+--- 192.168.1.3 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4006ms
+rtt min/avg/max/mdev = 3.696/93.373/451.789/179.208 ms
+------------------------------------------------------------
+Client connecting to 192.168.1.3, TCP port 5001
+TCP window size: 16.0 KByte (default)
+------------------------------------------------------------
+[  3] local 192.168.1.1 port 35573 connected with 192.168.1.3 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[  3]  0.0-30.0 sec  438784 KBytes  119736 Kbits/sec
+

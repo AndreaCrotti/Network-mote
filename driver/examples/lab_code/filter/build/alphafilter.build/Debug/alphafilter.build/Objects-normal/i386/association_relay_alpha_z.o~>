@@ -1,0 +1,17 @@
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:8: warning: type defaults to 'int' in declaration of 'alpha_mode_t'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:8: error: syntax error before 'mode'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c: In function 'association_relay_init_alpha_z_association':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:9: warning: implicit declaration of function 'assert'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:9: error: 'ass' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:9: error: (Each undeclared identifier is reported only once
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:9: error: for each function it appears in.)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:9: error: 'NULL' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:10: error: 'id' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:11: error: 'mode' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:12: warning: implicit declaration of function 'ring_buffer_new'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:12: error: 'STORE_SIGN_ANCHORS' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:12: error: 'HASHSIZE' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:13: error: 'STORE_ACK_ANCHORS' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c: In function 'association_relay_free_alpha_z_association':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:18: error: 'NULL' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_z.c:21: warning: implicit declaration of function 'xfree'

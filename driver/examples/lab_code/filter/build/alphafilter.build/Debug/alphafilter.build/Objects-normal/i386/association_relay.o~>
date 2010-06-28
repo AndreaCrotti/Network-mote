@@ -1,0 +1,78 @@
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_free':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:30: error: 'ass' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:30: error: (Each undeclared identifier is reported only once
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:30: error: for each function it appears in.)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:34: warning: implicit declaration of function 'association_relay_free_alpha_n_association'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:37: warning: implicit declaration of function 'association_relay_free_alpha_m_association'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:40: warning: implicit declaration of function 'association_relay_free_alpha_c_association'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:43: warning: implicit declaration of function 'association_relay_free_alpha_z_association'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_handle_s1':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:55: warning: implicit declaration of function 'association_relay_handle_s1_alpha_n'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:58: warning: implicit declaration of function 'association_relay_handle_s1_alpha_m'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:61: warning: implicit declaration of function 'association_relay_handle_s1_alpha_c'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_verify':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:77: warning: implicit declaration of function 'association_relay_verify_alpha_n'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:85: warning: implicit declaration of function 'association_relay_verify_alpha_m'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:93: warning: implicit declaration of function 'association_relay_verify_alpha_c'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_handle_new_associations':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:124: error: invalid application of 'sizeof' to incomplete type 'struct alpha_m_association_relay' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:125: warning: implicit declaration of function 'association_relay_init_alpha_m_association'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:128: error: invalid application of 'sizeof' to incomplete type 'struct alpha_n_association_relay' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:129: warning: implicit declaration of function 'association_relay_init_alpha_n_association'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:132: error: invalid application of 'sizeof' to incomplete type 'struct alpha_c_association_relay' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:133: warning: implicit declaration of function 'association_relay_init_alpha_c_association'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:136: error: invalid application of 'sizeof' to incomplete type 'struct alpha_z_association_relay' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:137: warning: implicit declaration of function 'association_relay_init_alpha_z_association'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_handle_new_associations_ack':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:167: error: invalid application of 'sizeof' to incomplete type 'struct alpha_m_association_relay' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:171: error: invalid application of 'sizeof' to incomplete type 'struct alpha_n_association_relay' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:175: error: invalid application of 'sizeof' to incomplete type 'struct alpha_c_association_relay' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:179: error: invalid application of 'sizeof' to incomplete type 'struct alpha_z_association_relay' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_set_sign_anchor':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:205: error: 'struct association_relay' has no member named 'sign_anchor'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_set_ack_anchor':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:219: error: 'struct association_relay' has no member named 'ack_anchor'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_get_sign_anchor':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:247: error: 'struct association_relay' has no member named 'sign_anchor'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:248: warning: control reaches end of non-void function
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_get_ack_anchor':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:260: error: 'struct association_relay' has no member named 'ack_anchor'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:261: warning: control reaches end of non-void function
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_verify_sign_anchor':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:277: error: 'struct association_relay' has no member named 'sign_anchor'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: In function 'association_relay_verify_ack_anchor':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c:294: error: 'struct association_relay' has no member named 'ack_anchor'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay.c: At top level:
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../extended_math.h:25: warning: inline function 'exp_2' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:166: warning: inline function 'association_add_ack_element' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:164: warning: inline function 'association_add_sign_element' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:162: warning: inline function 'association_set_timestamp' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:160: warning: inline function 'association_get_timestamp' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:158: warning: inline function 'association_get_client_id' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:156: warning: inline function 'association_get_id' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:152: warning: inline function 'association_set_state' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:150: warning: inline function 'association_get_state' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:148: warning: inline function 'association_get_ack_element' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:146: warning: inline function 'association_get_sign_element' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:135: warning: inline function 'association_dec_sign_rounds' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:133: warning: inline function 'association_dec_ack_rounds' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../association.h:101: warning: inline function 'association_verify_anchor' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:185: warning: inline function 'host_check_min_timeout_exceed' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:145: warning: inline function 'host_get_outgoing_association' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:143: warning: inline function 'host_get_incoming_association' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:139: warning: inline function 'host_get_new_association_id' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:122: warning: inline function 'hosts_len' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:120: warning: inline function 'host_set_timestamp' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:118: warning: inline function 'host_get_timestamp' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:116: warning: inline function 'host_get_queue_size' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:114: warning: inline function 'host_enqueue_packet' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:110: warning: inline function 'host_get_addr' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:108: warning: inline function 'host_set_state' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:106: warning: inline function 'host_get_state' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../host.h:92: warning: inline function 'host_get_default_association' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../hashtree.h:108: warning: inline function 'htree_get_node_index' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../list.h:130: warning: inline function 'list_size' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../list.h:124: warning: inline function 'list_iterator_internal_set_end' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../list.h:122: warning: inline function 'list_iterator_internal_set_begin' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../list.h:120: warning: inline function 'list_iterator_internal_check_end' declared but never defined
+/Users/christiandernehl/Development/Alpha/svn/src/filter/../list.h:118: warning: inline function 'list_iterator_internal_check_begin' declared but never defined

@@ -1,0 +1,68 @@
+In file included from /Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:2:
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.h:12: error: 'HASHSIZE' undeclared here (not in a function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.h:19: warning: type defaults to 'int' in declaration of 'alpha_mode_t'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.h:23: warning: 'struct alpha_packet_s1' declared inside parameter list
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.h:23: warning: its scope is only this definition or declaration, which is probably not what you want
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.h:25: error: syntax error before 'bool'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:8: warning: type defaults to 'int' in declaration of 'alpha_mode_t'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:8: error: syntax error before 'mode'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c: In function 'association_relay_init_alpha_m_association':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:8: error: number of arguments doesn't match prototype
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.h:19: error: prototype declaration
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:9: warning: implicit declaration of function 'assert'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:9: error: 'ass' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:9: error: (Each undeclared identifier is reported only once
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:9: error: for each function it appears in.)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:9: error: 'NULL' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:10: error: 'id' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:11: error: 'mode' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:12: warning: implicit declaration of function 'ring_buffer_new'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:12: error: 'STORE_SIGN_ANCHORS' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:13: error: 'STORE_ACK_ANCHORS' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c: In function 'association_relay_free_alpha_m_association':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:20: error: 'NULL' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:24: warning: implicit declaration of function 'xfree'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c: At top level:
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:31: warning: 'struct alpha_packet_s1' declared inside parameter list
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:31: error: conflicting types for 'association_relay_handle_s1_alpha_m'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.h:23: error: previous declaration of 'association_relay_handle_s1_alpha_m' was here
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c: In function 'association_relay_handle_s1_alpha_m':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:32: error: 'NULL' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:36: error: dereferencing pointer to incomplete type
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:37: warning: implicit declaration of function 'memcpy'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:37: warning: incompatible implicit declaration of built-in function 'memcpy'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:37: error: 'alpha_packet_s1_m_t' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:39: error: dereferencing pointer to incomplete type
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:40: warning: implicit declaration of function 'log_2'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:42: warning: implicit declaration of function 'cache_tree_reallocate_node_buffer'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:42: warning: assignment makes pointer from integer without a cast
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:46: warning: implicit declaration of function 'cache_tree_get_number_of_sent_signatures'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:47: warning: implicit declaration of function 'cache_tree_store_node'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c: At top level:
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:55: error: syntax error before 'bool'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c: In function 'association_relay_verify_alpha_m':
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:56: error: 'anchor' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:56: error: 'NULL' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:57: error: 'ass' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:58: error: 'valid' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:58: error: 'false' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:60: error: 'packet' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:61: error: dereferencing pointer to incomplete type
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:63: error: 'alpha_packet_s2_m_t' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:66: error: 'packet_len' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:66: error: invalid application of 'sizeof' to incomplete type 'struct alpha_packet_s2_m' 
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:72: warning: implicit declaration of function 'memset'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:72: warning: incompatible implicit declaration of built-in function 'memset'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:76: warning: implicit declaration of function 'cache_tree_build_verification_buffer'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:85: warning: implicit declaration of function 'htree_verify_branch'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:86: error: 'alpha_m_association_internal_leaf_gen' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:86: error: 'alpha_m_association_internal_node_gen' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:88: error: 'true' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:90: warning: implicit declaration of function 'cache_tree_update_buffer'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:94: warning: implicit declaration of function 'association_relay_set_sign_anchor'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:94: error: 'alpha_packet_s2_t' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:94: error: syntax error before ')' token
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:101: error: 'CACHE_TREE_TWO_SIGNATURES_PER_PACKET' undeclared (first use in this function)
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:103: warning: implicit declaration of function 'cache_tree_verify_new_cache_entry'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:83: warning: unused variable 'calc_node_buffer'
+/Users/christiandernehl/Development/Alpha/svn/src/filter/association_relay_alpha_m.c:71: warning: unused variable 'buf'
