@@ -3,7 +3,7 @@ SF = $(TOSROOT)/support/sdk/c/sf
 
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 CFLAGS = -D_GNU_SOURCE -DPC
-FLAGS = -Wall
+FLAGS = -Wall -Wextra
 
 OBJECTS = tun_dev.o routing.o #config.o
 #OBJECTS = 
