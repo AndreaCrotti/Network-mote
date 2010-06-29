@@ -1,9 +1,10 @@
-// -*- compile-command: "gcc -Wall -Wextra -lm -o test test_packets.c && ./test" -*-
+// -*- compile-command: "gcc -Wall -Wextra -lm -lpcap -o test test_packets.c && ./test" -*-
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
 #include <assert.h>
+#include <pcap.h>
 
 #define LEN 100
 #define N_CHUNKS 400
