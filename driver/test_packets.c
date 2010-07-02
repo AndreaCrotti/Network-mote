@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <pcap.h>
-/* #include <netinet/ip6.h> */
+#include <netinet/ip6.h>
 
 #define LEN 100
 #define N_BYTES 8
@@ -26,8 +26,8 @@ typedef struct myPacket {
 void **split_binary(const void *, int, int);
 void *rebuild(void **, int, int);
 csum_type csum(unsigned short *, int);
-void print_packets(myPacket *, void (*my_print)(void *));
-myPacket *gen_packets(void *, int, int);
+void print_packet(myPacket *, void (*my_print)(void *));
+myPacket **gen_packets(void *, int, int);
 void int_print(void *);
 
 int num_chunks;
@@ -69,9 +69,9 @@ int main() {
     free(chunks);
     
     // FIXME: this should be a pointer to pointer instead
-    myPacket *packets = gen_packets(data, nbytes, 20);
+    myPacket **packets = gen_packets(data, nbytes, 20);
     for (i = 0; i < num_chunks; i++) {
-        print_packets(packets, int_print);
+        print_packet(packets[i], int_print);
     }
     return(0);
 }
@@ -82,26 +82,33 @@ myPacket **gen_packets(void *data, int nbytes, int mtu) {
     int max_bytes = mtu - (sizeof(int) - sizeof(unsigned int) - sizeof(csum_type));
     // here setting it globally, very ugly
     num_chunks = (ceil) ((float) nbytes / mtu);
-    myPacket *packets = malloc(sizeof(*myPacket) * num_chunks);
+    // allocates first the array
+    myPacket **packets = malloc(sizeof(myPacket *) * num_chunks);
     void **splitted = split_binary(data, nbytes, max_bytes);
     
     for (i = 0; i < num_chunks; i++) {
         packets[i] = malloc(sizeof(myPacket));
         // now only using an arrow or not?
-        packets[i].packet = splitted[i];
-        packets[i].seq_no = i;
-        packets[i].len = max_bytes;
+        packets[i]->packet = splitted[i];
+        packets[i]->seq_no = i;
+        packets[i]->len = max_bytes;
         // compute also the checksum
     }
     return packets;
 }
 
+// we get an unordered data set and we want to rebuild it correctly
+myPacket *reconstruct_data(myPacket **data, int num_chunks) {
+    // we can use bin_search
+}
+
 // takes a pointer to function to print correctly the internal data
-void print_packets(myPacket *packet, void (*my_print)(void *data)) {
+void print_packet(myPacket *packet, void (*my_print)(void *data)) {
     my_print(packet->packet);
     printf("seq_no = %d\n", packet->seq_no);
 }
 
+// example of a print function
 void int_print(void *data) {
     printf("%d\n", *((int *) data));
 }
