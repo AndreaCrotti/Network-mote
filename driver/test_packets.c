@@ -11,13 +11,27 @@
 #include <pcap.h>
 /* #include <netinet/ip6.h> */
 
-#define LEN 10000
+#define LEN 100
 #define N_BYTES 8
+typedef unsigned short csum_type;
+
+typedef struct myPacket {
+    void *packet;
+    int len;
+    unsigned int seq_no;
+    csum_type checksum;
+} myPacket;
+
 
 void **split_binary(const void *, int, int);
 void *rebuild(void **, int, int);
+csum_type csum(unsigned short *, int);
+void print_packets(myPacket *, void (*my_print)(void *));
+myPacket *gen_packets(void *, int, int);
+void int_print(void *);
 
 int num_chunks;
+
 
 int main() {
     // create some data and split and recombine it
@@ -44,9 +58,58 @@ int main() {
         free(chunks[i]);
     }
     free(chunks);
+    
+    // FIXME: this should be a pointer to pointer instead
+    myPacket *packets = gen_packets(data, nbytes, 20);
+    for (i = 0; i < num_chunks; i++) {
+        print_packets(packets, int_print);
+    }
     return(0);
 }
 
+// generates all the packets given the data and the maximal carried bytes
+myPacket **gen_packets(void *data, int nbytes, int mtu) {
+    int i;
+    int max_bytes = mtu - (sizeof(int) - sizeof(unsigned int) - sizeof(csum_type));
+    // here setting it globally, very ugly
+    num_chunks = (ceil) ((float) nbytes / mtu);
+    myPacket *packets = malloc(sizeof(*myPacket) * num_chunks);
+    void **splitted = split_binary(data, nbytes, max_bytes);
+    
+    for (i = 0; i < num_chunks; i++) {
+        packets[i] = malloc(sizeof(myPacket));
+        // now only using an arrow or not?
+        packets[i].packet = splitted[i];
+        packets[i].seq_no = i;
+        packets[i].len = max_bytes;
+        // compute also the checksum
+    }
+    return packets;
+}
+
+// takes a pointer to function to print correctly the internal data
+void print_packets(myPacket *packet, void (*my_print)(void *data)) {
+    my_print(packet->packet);
+    printf("seq_no = %d\n", packet->seq_no);
+}
+
+void int_print(void *data) {
+    printf("%d\n", *((int *) data));
+}
+
+// Function for checksum calculation. From the RFC,
+// the checksum algorithm is:
+//  "The checksum field is the 16 bit one's complement of the one's
+//  complement sum of all 16 bit words in the header.  For purposes of
+//  computing the checksum, the value of the checksum field is zero."
+csum_type csum(unsigned short *buf, int nwords) {
+    unsigned long sum;
+    for(sum=0; nwords>0; nwords--)
+        sum += *buf++;
+    sum = (sum >> 16) + (sum &0xffff);
+    sum += (sum >> 16);
+    return (unsigned short)(~sum);
+}
 
 // splitting the data in binary chunks of len len, returning
 // a pointer to the array of chunks
