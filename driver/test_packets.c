@@ -31,7 +31,8 @@ typedef unsigned short csum_type;
 typedef struct myPacket {
     void *packet;
     int len;
-    unsigned int seq_no;
+    uint8_t seq_no;
+    uint8_t ordering_no;
     csum_type checksum;
 } myPacket;
 

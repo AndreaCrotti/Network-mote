@@ -39,11 +39,11 @@ int main(int args, char** arg) {
     // Open serial
     /* int ser_src = open_serial_source(argv[optind], platform_baud_rate(argv[optind + 1]), */
     /*                              1, stderr_msg); */
-    ser_src = open_serial_source(device, baud_rate, 1, stderr_msg);
-    if (!ser_src) {
-      printf("Couldn't open serial port at device %s with baudrate %d\n", device, baud_rate);
-      exit(1);
-    }
+    /* ser_src = open_serial_source(device, baud_rate, 1, stderr_msg); */
+    /* if (!ser_src) { */
+    /*   printf("Couldn't open serial port at device %s with baudrate %d\n", device, baud_rate); */
+    /*   exit(1); */
+    /* } */
 
     //Connect to mote using serial forwarder
     /* int sf_fd = open_sf_source(sf_host, sf_port); */
@@ -163,49 +163,49 @@ serial_source open_serial_source(const char *device, int baud_rate,
 				 int non_blocking,
 				 void (*message)(serial_source_msg problem)) {
 /* Effects: opens serial port device at specified baud_rate. If non_blocking
-     is true, read_serial_packet calls will be non-blocking (writes are
-     always blocking, for now at least)
+   is true, read_serial_packet calls will be non-blocking (writes are
+   always blocking, for now at least)
    Returns: descriptor for serial forwarder at host:port, or
-     NULL for failure (bad device or bad baud rate)
- */
-  struct termios newtio;
-  int fd;
-  tcflag_t baudflag = parse_baudrate(baud_rate);
+   NULL for failure (bad device or bad baud rate)
+*/
+    struct termios newtio;
+    int fd;
+    tcflag_t baudflag = parse_baudrate(baud_rate);
 
-  if (!baudflag)
-    return NULL;
+    if (!baudflag)
+        return NULL;
 
-  fd = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
-  if (fd < 0)
-    return NULL;
+    fd = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if (fd < 0)
+        return NULL;
 
-  /* Serial port setting */
-  memset(&newtio, 0, sizeof(newtio));
-  newtio.c_cflag = CS8 | CLOCAL | CREAD;
-  newtio.c_iflag = IGNPAR | IGNBRK;
-  cfsetispeed(&newtio, baudflag);
-  cfsetospeed(&newtio, baudflag);
+    /* Serial port setting */
+    memset(&newtio, 0, sizeof(newtio));
+    newtio.c_cflag = CS8 | CLOCAL | CREAD;
+    newtio.c_iflag = IGNPAR | IGNBRK;
+    cfsetispeed(&newtio, baudflag);
+    cfsetospeed(&newtio, baudflag);
 
-  /* Raw output_file */
-  newtio.c_oflag = 0;
+    /* Raw output_file */
+    newtio.c_oflag = 0;
 
-  if (tcflush(fd, TCIFLUSH) >= 0 &&
-      tcsetattr(fd, TCSANOW, &newtio) >= 0) {
+    if (tcflush(fd, TCIFLUSH) >= 0 &&
+        tcsetattr(fd, TCSANOW, &newtio) >= 0) {
         serial_source src = malloc(sizeof *src);
 
-      if (src) {
-	  memset(src, 0, sizeof *src);
-	  src->fd = fd;
-	  src->non_blocking = non_blocking;
-	  src->message = message;
-	  src->send.seqno = 37;
+        if (src) {
+            memset(src, 0, sizeof *src);
+            src->fd = fd;
+            src->non_blocking = non_blocking;
+            src->message = message;
+            src->send.seqno = 37;
 
-	  return src;
-      }
-  }
-  close(fd);
+            return src;
+        }
+    }
+    close(fd);
 
-  return NULL;
+    return NULL;
 }
 
 static tcflag_t parse_baudrate(int requested)
