@@ -32,6 +32,7 @@ void int_print(void *);
 
 int num_chunks;
 
+void send(uint8_t* stream, unsigned count) {}
 
 int main() {
     // create some data and split and recombine it
@@ -41,15 +42,23 @@ int main() {
         data[i] = i;
     }
     int nbytes = LEN * sizeof(int);
-    num_chunks = (ceil) ((float) nbytes / N_BYTES);
+    num_chunks = ((nbytes + N_BYTES - 1) / N_BYTES);
 
-    void **chunks = split_binary(data, nbytes, N_BYTES);
+    /*void **chunks = split_binary(data, nbytes, N_BYTES);
     // now check if they're equivalent
     int *reconstructed = (int *) rebuild(chunks, nbytes, N_BYTES);
     // use assert to check for equivalence
     for (i = 0; i < LEN; i++) {
-        /* printf("data[i] = %d, reconstructed[i] = %d\n", data[i], reconstructed[i]); */
+        // printf("data[i] = %d, reconstructed[i] = %d\n", data[i], reconstructed[i]);
         assert(data[i] == (int) reconstructed[i]);
+        //send(data[i],N_BYTES);
+    }
+    */
+    // send the data
+    uint8_t* p = (uint8_t*)data;
+    for (i = 0; i < num_chunks; i++) {
+      send(p,N_BYTES);
+      p += N_BYTES;
     }
     /* // now we should free them also */
     
