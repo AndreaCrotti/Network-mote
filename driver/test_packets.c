@@ -2,6 +2,17 @@
 // TODO: add a checksum field
 // TODO: try with real IPv4 packets and try to send them over the localhost interface
 // TODO: check if I'm freeing the memory correctly with
+/**
+ * @file   test_packets.c
+ * @author Andrea Crotti <andrea.crotti.0@gmail.com>
+ * @date   Fri Jul  2 16:24:18 2010
+ * 
+ * @brief  - Read data from the tun device (making sure we know the structure used)
+ *         - Split the packet giving some sort of sequential number and a checksum
+ *         - Send it over the channel including the payload there
+ * 
+ */
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +20,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <pcap.h>
-#include <netinet/ip6.h>
+/* #include <netinet/ip6.h> */
 
 #define LEN 100
 #define N_BYTES 8
@@ -40,7 +51,7 @@ int main() {
         data[i] = i;
     }
     int nbytes = LEN * sizeof(int);
-    num_chunks = (ceil) ((float) nbytes / N_BYTES);
+    num_chunks = ceil((float) nbytes / N_BYTES);
 
     void **chunks = split_binary(data, nbytes, N_BYTES);
     // now check if they're equivalent
@@ -90,6 +101,7 @@ myPacket **gen_packets(void *data, int nbytes, int mtu) {
 // we get an unordered data set and we want to rebuild it correctly
 myPacket *reconstruct_data(myPacket **data, int num_chunks) {
     // we can use bin_search
+    return NULL;
 }
 
 // takes a pointer to function to print correctly the internal data
@@ -122,11 +134,12 @@ csum_type csum(unsigned short *buf, int nwords) {
 void **split_binary(const void *data, int tot_size, int chunk_size) {
     // allocate enough pointers here, make sure "int" is doing the ceil!
     int i;
-    void **result = malloc(sizeof(void *) * num_chunks);
+    /* void **result = malloc(sizeof(void *) * num_chunks); */
+    void **result = calloc(num_chunks, chunk_size);
     printf("allocating %d times %d bytes and tot = %d\n", num_chunks, chunk_size, tot_size);
 
-    for (i = 0; i < num_chunks; i++) {
-        result[i] = calloc(1, chunk_size);
+    for (i = 0; i < (num_chunks * chunk_size); i+=chunk_size) {
+        /* result[i] = calloc(1, chunk_size); */
         memcpy(result[i], data + (i * chunk_size), chunk_size);
     }
     return result;
