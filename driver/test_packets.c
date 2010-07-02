@@ -17,9 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
 #include <pcap.h>
+
 /* #include <netinet/ip6.h> */
 
 #define LEN 100
@@ -33,15 +35,17 @@ typedef struct myPacket {
     csum_type checksum;
 } myPacket;
 
-
 void **split_binary(const void *, int, int);
 void *rebuild(void **, int, int);
 csum_type csum(unsigned short *, int);
 void print_packet(myPacket *, void (*my_print)(void *));
 myPacket **gen_packets(void *, int, int);
 void int_print(void *);
+void send(uint8_t * stream, unsigned count);
 
 int num_chunks;
+
+void send(uint8_t* stream, unsigned count) {}
 
 int main() {
     // create some data and split and recombine it
@@ -51,29 +55,37 @@ int main() {
         data[i] = i;
     }
     int nbytes = LEN * sizeof(int);
-    num_chunks = ceil((float) nbytes / N_BYTES);
+    num_chunks = ((nbytes + N_BYTES - 1) / N_BYTES);
 
-    void **chunks = split_binary(data, nbytes, N_BYTES);
+    /*void **chunks = split_binary(data, nbytes, N_BYTES);
     // now check if they're equivalent
     int *reconstructed = (int *) rebuild(chunks, nbytes, N_BYTES);
     // use assert to check for equivalence
     for (i = 0; i < LEN; i++) {
-        /* printf("data[i] = %d, reconstructed[i] = %d\n", data[i], reconstructed[i]); */
+        // printf("data[i] = %d, reconstructed[i] = %d\n", data[i], reconstructed[i]);
         assert(data[i] == (int) reconstructed[i]);
+        //send(data[i],N_BYTES);
+    }
+    */
+    // send the data
+    uint8_t* p = (uint8_t*)data;
+    for (i = 0; i < num_chunks; i++) {
+      send(p,N_BYTES);
+      p += N_BYTES;
     }
     /* // now we should free them also */
     
-    free(reconstructed);
-    for (i = 0; i < num_chunks; i++) {
-        free(chunks[i]);
-    }
-    free(chunks);
+    /* free(reconstructed); */
+    /* for (i = 0; i < num_chunks; i++) { */
+    /*     free(chunks[i]); */
+    /* } */
+    /* free(chunks); */
     
-    // FIXME: this should be a pointer to pointer instead
-    myPacket **packets = gen_packets(data, nbytes, 20);
-    for (i = 0; i < num_chunks; i++) {
-        print_packet(packets[i], int_print);
-    }
+    /* // FIXME: this should be a pointer to pointer instead */
+    /* myPacket **packets = gen_packets(data, nbytes, 20); */
+    /* for (i = 0; i < num_chunks; i++) { */
+    /*     print_packet(packets[i], int_print); */
+    /* } */
     return(0);
 }
 
