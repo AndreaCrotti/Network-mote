@@ -10,6 +10,7 @@ then
     exit 1
 fi
 
-ifconfig $TUN $ADDR
+# once we have an IP and a netmask we can use it as a real network interface
+ifconfig $TUN $ADDR netmask 255.255.255.0
 # check if the address is correct
 ip route add default via $ADDR dev tun$1

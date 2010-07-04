@@ -48,54 +48,12 @@ int num_chunks;
 
 void send(uint8_t* stream, unsigned count) {}
 
-int main() {
-    // create some data and split and recombine it
-    int i;
-    int data[LEN];
-    for (i = 0; i < LEN; i++) {
-        data[i] = i;
-    }
-    int nbytes = LEN * sizeof(int);
-    num_chunks = ((nbytes + N_BYTES - 1) / N_BYTES);
-
-    /*void **chunks = split_binary(data, nbytes, N_BYTES);
-    // now check if they're equivalent
-    int *reconstructed = (int *) rebuild(chunks, nbytes, N_BYTES);
-    // use assert to check for equivalence
-    for (i = 0; i < LEN; i++) {
-        // printf("data[i] = %d, reconstructed[i] = %d\n", data[i], reconstructed[i]);
-        assert(data[i] == (int) reconstructed[i]);
-        //send(data[i],N_BYTES);
-    }
-    */
-    // send the data
-    uint8_t* p = (uint8_t*)data;
-    for (i = 0; i < num_chunks; i++) {
-      send(p,N_BYTES);
-      p += N_BYTES;
-    }
-    /* // now we should free them also */
-    
-    /* free(reconstructed); */
-    /* for (i = 0; i < num_chunks; i++) { */
-    /*     free(chunks[i]); */
-    /* } */
-    /* free(chunks); */
-    
-    /* // FIXME: this should be a pointer to pointer instead */
-    /* myPacket **packets = gen_packets(data, nbytes, 20); */
-    /* for (i = 0; i < num_chunks; i++) { */
-    /*     print_packet(packets[i], int_print); */
-    /* } */
-    return(0);
-}
 
 // generates all the packets given the data and the maximal carried bytes
 myPacket **gen_packets(void *data, int nbytes, int mtu) {
     int i;
     int max_bytes = mtu - (sizeof(int) - sizeof(unsigned int) - sizeof(csum_type));
     // here setting it globally, very ugly
-    num_chunks = (ceil) ((float) nbytes / mtu);
     // allocates first the array
     myPacket **packets = malloc(sizeof(myPacket *) * num_chunks);
     void **splitted = split_binary(data, nbytes, max_bytes);
@@ -167,3 +125,47 @@ void *rebuild(void **chunks, int size, int chunk_size) {
     }
     return data;
 }
+
+/* int main() { */
+/*     // create some data and split and recombine it */
+/*     int i; */
+/*     int data[LEN]; */
+/*     for (i = 0; i < LEN; i++) { */
+/*         data[i] = i; */
+/*     } */
+/*     int nbytes = LEN * sizeof(int); */
+/*     num_chunks = ((nbytes + N_BYTES - 1) / N_BYTES); */
+
+/*     // Simplified code that just uses the pointers to split the data */
+/*     // send the data */
+/*     uint8_t* p = (uint8_t *)data; */
+/*     for (i = 0; i < num_chunks; i++) { */
+/*       send(p, N_BYTES); */
+/*       p += N_BYTES; */
+/*     } */
+
+/*     /\*void **chunks = split_binary(data, nbytes, N_BYTES); */
+/*     // now check if they're equivalent */
+/*     int *reconstructed = (int *) rebuild(chunks, nbytes, N_BYTES); */
+/*     // use assert to check for equivalence */
+/*     for (i = 0; i < LEN; i++) { */
+/*         // printf("data[i] = %d, reconstructed[i] = %d\n", data[i], reconstructed[i]); */
+/*         assert(data[i] == (int) reconstructed[i]); */
+/*         //send(data[i],N_BYTES); */
+/*     } */
+/*     *\/ */
+/*     /\* // now we should free them also *\/ */
+    
+/*     /\* free(reconstructed); *\/ */
+/*     /\* for (i = 0; i < num_chunks; i++) { *\/ */
+/*     /\*     free(chunks[i]); *\/ */
+/*     /\* } *\/ */
+/*     /\* free(chunks); *\/ */
+    
+/*     /\* // FIXME: this should be a pointer to pointer instead *\/ */
+/*     /\* myPacket **packets = gen_packets(data, nbytes, 20); *\/ */
+/*     /\* for (i = 0; i < num_chunks; i++) { *\/ */
+/*     /\*     print_packet(packets[i], int_print); *\/ */
+/*     /\* } *\/ */
+/*     return(0); */
+/* } */
