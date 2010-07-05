@@ -12,6 +12,15 @@
   - [[http://www.tinyos.net/tinyos-2.x/doc/nesdoc/telosb/index.html][tinyos documentation for telosb]]
   - [[https://lists.eecs.berkeley.edu/sympa/info/blip-users][mailing list of blip users]]
   - [[http://www.linux.com/news/hardware/peripherals/180950-udev][how to write udev rules]]
+  - [[http://www.tcpdump.org/pcap.htm][Using libpcap to filter and sniff network traffic]], see ([[http://www.secdev.org/projects/scapy/demo.html][scapy for a python higher level interface]])
+  - [[http://www.faqs.org/rfcs/rfc1071.html][Computing the checksum of a packet]]
+    
+
+* Useful libraries
+  - [[http://www.infradead.org/~tgr/libnl/doc/modules.html][libnl, used for manipulating core network link functions]]
+  - [[http://www.tcpdump.org/pcap3_man.html][pcap, capture and manage packets]]
+  - [[http://www.tenouk.com/Module43a.html][example on raw sockets!!]]
+
 
 * Creating TUN device to communicate
   One way is to create a rule with udev, like here:
@@ -39,6 +48,8 @@
 
 * Routing
   Routing must be done bidirectionally, in tinyos is already present *CTP*, one idea is to use it twice in both directions.
+
+  - [[http://www.deepspace6.net/docs/iproute2tunnel-en.html][setup the ipv6 routing table with iproute2]]
 
 * Implementation
   - Using TUN to send messsages to the application instead of the 
