@@ -7,19 +7,25 @@
 #define SIZE_IPV6_HEADER 40
 #define MAX_CARRIED 127
 
-typedef union {
+struct myPacket {
     int len;
     uint8_t seq_no;
     uint8_t ordering_no;
-} myPacket;
+    int payload[32];
+}; //__attribute__((__packed__));
 
-typedef union {
+typedef struct myPacket myPacket;
+
+struct ipv6Packet {
     struct ip6_hdr ip6_hdr;
-    void *payload;
-} ipv6Packet;
+    myPacket payload;
+}; // __attribute__((__packed__));
+
+typedef struct ipv6Packet ipv6Packet;
 
 int main(int argc, char *argv) {
-    
+    ipv6Packet v6;
+    printf ("size = %d, int %d, uint8_t * 2 (%d), 32, ipv6header (%d)\n", sizeof(v6), sizeof(int), sizeof(uint8_t), sizeof(struct ip6_hdr));
     return 0;
 }
 
@@ -67,3 +73,51 @@ int main(int argc, char *argv) {
 /*     return 0;                                                                             */
 /* }                                                                                         */
 /*********************************************************************************************/
+
+// Struttura dell' header di paccketto (fissa)
+typedef struct myPacket {
+     int len;   // Length of payload
+     unsigned int seq_no;
+     csum_type checksum;
+} myPacket_hdr;
+
+
+// Struttura generica del pacchetto -variabile :-)
+typedef struct packet{
+       myPacket_hdr  hd;
+       int           dati[1]; // Trick: allocato a run time...
+//
+// NB: se il payload puo' essere differente
+//     union{
+//        uint8_t  d8[1];    // payload dati 8bit
+//        uint16_t d16[1];   // payload dati 16bit
+//        uint32_t d32[1];   // payload dati 32bit
+//     }dati;
+}MP_T;
+
+
+//
+// Crea un nuovo pacchetto dati.
+// La lunghezza del pacchetto
+MP_T* create_packet(int seq, int numOfData, int* pPayBuf)
+{
+   MP_T*  pPack;
+   size_t len;
+
+   len= (sizeof(int)*numOfData);
+
+   if(NULL != (pPack = malloc(len+sizeof(myPacket_hdr))))
+   {
+        pPack->hd.len=len;
+	pPack->hd.seq_no=seq;
+
+        if((NULL != pPayBuf) && (len))
+        {
+          // Se il payload NON e' vuoto, copialo!!!
+           memcpy((void*)&pPack->dati[0], (void*)pPayBuf, len);
+        }
+        // calcola checksum....
+	pPack->hd.checksum=compute_checksum(pPack);
+   }
+   return(pPack);		
+}
