@@ -2,17 +2,16 @@
 /* Function declarations */
 /*************************/
 void stderr_msg(serial_source_msg problem);
-void print_ip_packet(struct split_ip_msg *msg);
+/* void print_ip_packet(struct split_ip_msg *msg); */
 serial_source open_serial_source(const char *device, int baud_rate,
 				 int non_blocking,
 				 void (*message)(serial_source_msg problem));
 static tcflag_t parse_baudrate(int requested);
 
-extern struct in6_addr __my_address;
-
 // The IP address for our tunnel device
-struct in6_addr __my_address = {{{0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x65}}};
+/* struct in6_addr __my_address = {{{0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, */
+/*                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x65}}}; */
+
 
 enum {
     FALSE = 0,

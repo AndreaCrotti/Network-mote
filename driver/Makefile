@@ -5,7 +5,7 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 CFLAGS = -D_GNU_SOURCE -DPC
 FLAGS = -Wall -Wextra
 
-OBJECTS = tun_dev.o routing.o split.o #config.o
+OBJECTS = tunnel.o split.o #config.o tun_dev.o routing.o
 #OBJECTS = 
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o
@@ -19,6 +19,9 @@ tuntest: $(OBJECTS) client.c
 
 tuntest.pre: $(OBJECTS) client.c
 	gcc $(FLAGS) $(OBJECTS) client.c $(CFLAGS) $(INCLUDE) -E -o tuntest.pre
+
+tunnel.o: tunnel.c
+	gcc $(FLAGS) -c tunnel.c $(CFLAGS) $(INCLUDE) -o tunnel.o
 
 tun_dev.o: tun_dev.c
 	gcc $(FLAGS) -c tun_dev.c $(CFLAGS) $(INCLUDE) -o tun_dev.o

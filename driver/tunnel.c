@@ -18,11 +18,7 @@
 #include <linux/if_tun.h>
 #include <arpa/inet.h>  
 
-/***********/
-/* Defines */
-/***********/
-// size of tunnel buffer, should be greater than 1500
-#define BUFSIZE 2000
+#include "tunnel.h"
 
 /** 
  * Creates a new tun/tap device, or connects to a already existent one depending
@@ -92,7 +88,7 @@ int tun_setup(char *dev, struct in_addr *addr){
 
     // Prepare the ifr struct
     memset(&ifr, 0, sizeof(struct ifreq));
-    strncopy(ifr.ifr_name, dev, IFNAMSIZ);
+    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
     // Set up the interface
     ifr.ifr_flags |= IFF_UP;
@@ -108,8 +104,15 @@ int tun_setup(char *dev, struct in_addr *addr){
         return err;
     }
     
-    //TODO: What is SIOGIFINDEX?
-    //TODO: Set the address
+    //TODO: What is SIOGIFINDEX and is it needed??
+    
+    //TODO: Setting up a bridge
+
+    //TODO: Give an address to the bridge
+
+    //TODO: Set up default routing entry to the bridge
+
+    return 0;
 }
 
 /** 
