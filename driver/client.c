@@ -63,8 +63,6 @@ int main(int args, char** arg) {
         printf("created tun device: %s\n", dev);
     }
 
-    //TODO: Ask the mote for it's IP address and set it
-
     // Setup the tunnel (Beneath other things, this sets the ip address)
     if (tun_setup(dev, &__my_address) < 0) {
         printf("configuring the tun failed; aborting\n");
@@ -208,12 +206,11 @@ serial_source open_serial_source(const char *device, int baud_rate,
     return NULL;
 }
 
-static tcflag_t parse_baudrate(int requested)
-{
+// what's this thing needed for?
+static tcflag_t parse_baudrate(int requested) {
     int baudrate;
 
-    switch (requested)
-        {
+    switch (requested) {
 #ifdef B50
         case 50: baudrate = B50; break;
 #endif
@@ -306,6 +303,7 @@ static tcflag_t parse_baudrate(int requested)
 #endif
         default:
             baudrate = 0;
-        }
+    }
+
     return baudrate;
 }
