@@ -17,6 +17,7 @@ typedef struct in6_addr in6_dst;
 struct myPacketHeader {
     uint8_t seq_no;
     uint8_t ord_no;
+    unsigned short checksum;
 } __attribute__((__packed__));
 
 typedef struct myPacketHeader myPacketHeader;
@@ -28,34 +29,43 @@ struct ipv6Packet {
     void *payload;
 } __attribute__((__packed__));
 
+typedef struct ipv6Packet ipv6Packet;
+
 // in this way making a simple cast on the ipV6 data I get the rest
+// NOT USING THIS at the moment
 typedef struct innerPacket {
     myPacketHeader packetHeader;
     void *payload;
 } innerPacket;
 
-typedef struct ipv6Packet ipv6Packet;
 
 // TODO: is this the best way to solve this problem?
 int MAX_PAYLOAD_SIZE = MAX_CARRIED - sizeof(myPacketHeader) - sizeof(struct ip6_hdr);
 
-ipv6Packet **genIpv6Packets(void *data, int len, int seq_no);
+ipv6Packet *genIpv6Packets(void *data, int len, int seq_no);
+void *reconstruct(ipv6Packet *, int);
+unsigned short csum(unsigned short *, int);
 
 
 int main(int argc, char **argv) {
     ipv6Packet v6;
     printf("v6 = %ld\n", sizeof(v6));
-    int arr[10];
-    printf("allocating some payload\n");
-    int i;
-    for (i = 0; i < 10; i++) {
-        arr[i] = i;
-    }
-    v6.payload = arr;
     // now we try to send the packet and see if it's sniffable
     char *bigstring = "sdfklsjflksdjflksjdfkjsdfkjsdhfkjsdfhksdjh";
-    
-    ipv6Packet **packets = genIpv6Packets(bigstring, strlen(bigstring), 0);
+    int i;
+
+    int *arr = calloc(sizeof(int), 1000);
+    for (i = 0; i < 1000; i++) {
+        arr[i] = i;
+        printf("arr[i] = %d\n", arr[i]);
+    }
+
+    int num_chunks = (int)(1000 / MAX_PAYLOAD_SIZE) + 1;
+    ipv6Packet *packets = genIpv6Packets(arr, num_chunks, 0);
+    int *data = reconstruct(packets, num_chunks);
+    for (i = 0; i < 1000; i++) {
+        /* printf("data[i] = %d\n", data[i]); */
+    }
     return 0;
 }
 
@@ -63,24 +73,37 @@ int main(int argc, char **argv) {
  * Generate an array of ipv6Packet ready to send over the network
  * 
  * @param data data to split and encapsulate in chunks
- * @param len dimension in bytes of the data
+ * @param num_chunks number of chunks in which to split
  * 
  * @return 
  */
-ipv6Packet **genIpv6Packets(void *data, int len, int seq_no) {
+ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
     int ord_no;
-    int num_chunks = ((len + MAX_PAYLOAD_SIZE - 1) / MAX_PAYLOAD_SIZE);
+    // check this "integer" division
     // generating an array of ipv6Packet of the correct length
-    ipv6Packet **buffer = calloc(num_chunks, sizeof(ipv6Packet));
-    
-    // the payload is copied in another side
+    ipv6Packet *buffer = calloc(num_chunks, sizeof(ipv6Packet));
+    printf("pointer to struct %ld, struct = %ld\n", sizeof(ipv6Packet *), sizeof(ipv6Packet));
+    // copy this every time we need a new one
+    ipv6Packet original;
+    // set up some common fields
+    myPacketHeader pkt_header = original.packetHeader;
+    pkt_header.seq_no = seq_no;
+    // setup here the ipv6 fields here
+
+    // only the payload and the ord_no are changing
     for (ord_no = 0; ord_no < num_chunks; ord_no++) {
-        myPacketHeader *inner = &(buffer[ord_no]->packetHeader);
+        // simply copying by value the original packet
+        buffer[ord_no] = original;
+        // should work anyway?
+        /* memcpy(buffer[ord_no], &original, sizeof(ipv6Packet)); */
+        printf("copied the memory correctly, ord_no = %d\n", ord_no);
+        // FIXME: the problem is trying to access to this structure
+        myPacketHeader *inner = &(buffer[ord_no].packetHeader);
         inner->ord_no = ord_no;
         inner->seq_no = seq_no;
-        buffer[ord_no]->payload = calloc(1, MAX_PAYLOAD_SIZE);
+        buffer[ord_no].payload = calloc(1, MAX_PAYLOAD_SIZE);
         // copying the data in the actual payload
-        memcpy(buffer[ord_no]->payload, data, MAX_PAYLOAD_SIZE);
+        memcpy(buffer[ord_no].payload, data, MAX_PAYLOAD_SIZE);
         // TODO: are we sure we want to create the same packet every time?
         
         // Check if going forward of bytes or what
@@ -88,6 +111,36 @@ ipv6Packet **genIpv6Packets(void *data, int len, int seq_no) {
     }
     return buffer;
 }
+
+// with some ipv6 packets try to reconstruct everything
+void *reconstruct(ipv6Packet *data, int len) {
+    // if checksum is correct than...
+    int i;
+    void *rebuild = calloc(len, MAX_PAYLOAD_SIZE);
+    printf ("allocated %d memory for this\n", len * MAX_PAYLOAD_SIZE);
+    void *idx = rebuild;
+    for (i = 0; i < len; i++) {
+        // checksum before
+        memcpy(idx, data[i].payload, MAX_PAYLOAD_SIZE);
+        idx += MAX_PAYLOAD_SIZE;
+    }
+    return rebuild;
+}
+
+// Function for checksum calculation. From the RFC,
+// the checksum algorithm is:
+//  "The checksum field is the 16 bit one's complement of the one's
+//  complement sum of all 16 bit words in the header.  For purposes of
+//  computing the checksum, the value of the checksum field is zero."
+unsigned short csum(unsigned short *buf, int nwords) {
+    unsigned long sum;
+    for(sum=0; nwords>0; nwords--)
+        sum += *buf++;
+    sum = (sum >> 16) + (sum &0xffff);
+    sum += (sum >> 16);
+    return (unsigned short)(~sum);
+}
+
 
 /*********************************************************************************************/
 /* struct packet_header_s {                                                                  */
