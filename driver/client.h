@@ -12,7 +12,7 @@ static tcflag_t parse_baudrate(int requested);
 /* struct in6_addr __my_address = {{{0xfe, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, */
 /*                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x65}}}; */
 
-
+// XXX seriously, this is not how you do things in C
 enum {
     FALSE = 0,
     TRUE = 1,

@@ -106,6 +106,8 @@ csum_type csum(unsigned short *buf, int nwords) {
 void **split_binary(const void *data, int tot_size, int chunk_size) {
     // allocate enough pointers here, make sure "int" is doing the ceil!
     int i;
+    // XXX this extremly bad, because a function should never instantiate memory which is left to be freed somewhere else
+    // the buffer should be passed as pointer 
     /* void **result = malloc(sizeof(void *) * num_chunks); */
     void **result = calloc(num_chunks, chunk_size);
     printf("allocating %d times %d bytes and tot = %d\n", num_chunks, chunk_size, tot_size);
