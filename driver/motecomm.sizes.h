@@ -1,7 +1,7 @@
 #ifndef _MOTECOMM_SIZES_H
 #define _MOTECOMM_SIZES_H
 
-#define HD_BYTES_FROM_BITS(bits) (((bits)+7)&~7)
+#define HD_BYTES_FROM_BITS(bits) (((bits) + 7) & ~7)
 
 #define MCP_HD_VERSION 4
 #define MCP_HD_HEADER  4
