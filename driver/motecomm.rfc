@@ -1,0 +1,129 @@
+The protocol between the client side and the sensor node is defined as follows.
+We call this specification MCP.
+
+In this document, a byte is always defined as an octet of bits.
+
+Note: Keywords according to RFC 2119 are used. See
+      http://www.ietf.org/rfc/rfc2119.txt
+
+[ MCP Header ]
+
+Every exchanged packet has the header containing the following fields
+  -  4 bits: protocol version - Reserved for future use. Everything different
+                                than 1 must not be processed.
+                                The value 1 must be handled. A different value
+                                should be regarded as error and be displayed
+                                accordingly.
+  -  4 bits: header length - The number of bytes of the header. Since the
+                             header of this protocol is fixed, this will always
+                             be 6 (0110). A different value may be reported if
+                             appropriate. However, such a packet must not be
+                             ignored. Shorter values must be handled as error.
+                             Larger values may be processed.
+  -  8 bits: identification - A serial number that is unique for the sender of
+                              the packet. This must not be 0. For every packet
+                              sent, the sender must increment this number by
+                              one. If the number grows larger than 8 bits, the
+                              most significant bit must be truncated. Hence the
+                              sender may reuse numbers starting with the number
+                              that was least recently used (usually 1). The
+                              receiver should not check if one packet was
+                              missed.
+  -  8 bits: packet type - A numeric representation of the packet to be
+                           transmitted. See section 'Packet types'.
+  -  8 bits: port - An arbitrary port to communicate through. Port 0 must be
+                    implemented. Ports 1 through 255 may be implemented.
+  - 24 bits: payload length - The total length of the payload, in bytes.
+
+  A payload of 0 to 2^24-1 bytes is allowed.
+
+
+[ Packet Types ]
+  -  1: Mote communication control message protocol (MCCMP)
+        -  4 bits: protocol version - Reserved for future use. Everything
+                                      different than 1 must not be processed.
+                                      The value 1 must be handled. A different
+                                      value should be regarded as error and be
+                                      displayed accordingly.
+        -  4 bits: header length - The number of bytes of the header. Since the
+                                   header of this protocol is fixed, this will
+                                   always be 4 (0100). A different value may be
+                                   reported if appropriate. Such a value must
+                                   (!) be ignored (to avoid an infinite chain
+                                   of MCCMP packets).
+        -  8 bits: identification - The identification field of the packet to
+                                    which this is a response if appropriate.
+                                    Otherwise the number 0 must be used, which
+                                    indicates that this packet is not related
+                                    to a previous MCP packet.
+        -  8 bits: problem - This field carries a number to describe the reason
+                             for this packet. The allowed values are a subset
+                             of the allowed "Type" values for ICMP packets, and
+                             have a similar meaning. Additional types may be
+                             implemented. The required type list ist as follows
+                               -  0: Echo reply
+                               -  8: Echo request
+                               - 12: Parameter Problem. Indicating an ill
+                                     formatted packet (including layers below
+                                     MCP).
+                               - 31: Unsupported Feature. Indicating that the
+                                     sender cannot satisfy the requested
+                                     functionality. This may be issued if e.g.
+                                     the mote requests the client to forward
+                                     an ip packet, which is not meaningful.
+                             The complete list of ICMP types can be found at
+                             http://www.iana.org/assignments/icmp-parameters
+        -  8 bits: payload length - The total length of the payload, in bytes.
+        A payload of 0 to 255 bytes is allowed. This may either point to the
+        offset of the problematic header, or be set to 255.
+
+  -  2: Local address exchange protocol (LAEP)
+        -  4 bits: protocol version - Reserved for future use. Everything
+                                      different than 1 must not be processed.
+                                      The value 1 must be handled. A different
+                                      value should be regarded as error and be
+                                      displayed accordingly.
+        -  4 bits: header length - The number of bytes of the header. Since the
+                                   header of this protocol is fixed, this will
+                                   always be 3 (0011). A different value may be
+                                   reported if appropriate.
+                                   A different value must not be processed.
+                                   Instead an MCCMP packet must be sent back
+                                   indicating an ill formatted packet.
+        -  4 bits: ip version - The IP version used for the address. This
+                                conforms to the IP header field "version".
+                                Hence, it will be 4 or 6, most likely.
+                                0 indicates no specific IP version is used.
+        - 12 bits: payload length - The length of the address, in bytes.
+                                    For IPv4 this value must be 32 (100000)
+                                    For IPv6 this value must be 64 (1000000).
+        A payload of 0 to 2^12-1 bytes is allowed.
+  -  4: IP forward protocol (IFP)
+        -  4 bits: protocol version - Reserved for future use. Everything
+                                      different than 1 must not be processed.
+                                      The value 1 must be handled. A different
+                                      value should be regarded as error and be
+                                      displayed accordingly.
+        -  4 bits: header length - The number of bytes of the header. Since the
+                                   header of this protocol is fixed, this will
+                                   always be 2 (0010). This does not include
+                                   the additional information about the payload
+                                   length, prepended to the payload.
+                                   A different value may be reported if
+                                   appropriate.
+                                   A different value must not be processed.
+                                   Instead an MCCMP packet must be sent back
+                                   indicating an ill formatted packet.
+        -  4 bits: ip version - The IP version of the payload.
+        -  1 bit: infer payload - The IP packet carries information about its
+                                  size. If this field is set to 1, the receiver
+                                  should check the payload at the appropriate
+                                  address. Otherwise the payload size will be
+                                  prepended to the actual payload by the
+                                  sender, its size is determined by the next
+                                  field.
+        -  3 bits: payload length length: the length of the chunk carrying the
+                                          payload length, in bytes - typically
+                                          0 or 2.
+        A payload of 0 to 2^128-1 bytes is allowed. The payload should not
+        exceed 2^24-3 in order to still fit in one MCCMP packet.

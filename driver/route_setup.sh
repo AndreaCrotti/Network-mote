@@ -4,7 +4,9 @@
 TUN="tun$1"
 ADDR="fec0::1"
 
-if [ ! $(which ip) ]
+which ip > /dev/null 2>&1
+
+if [ "$?" != "0" ]
 then
     echo "you need iproute2 to setup ipv6 routing"
     exit 1
