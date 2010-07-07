@@ -36,6 +36,10 @@ struct ipv6Packet {
 
 typedef struct ipv6Packet ipv6Packet;
 
+// just for more ease of writing
+typedef struct sockaddr_in6 sockaddr_in6;
+typedef struct ip6_hdr ip6_hdr;
+
 // in this way making a simple cast on the ipV6 data I get the rest
 // NOT USING THIS at the moment
 /* typedef struct innerPacket { */
@@ -50,74 +54,38 @@ int MAX_PAYLOAD_SIZE = MAX_CARRIED - sizeof(myPacketHeader) - sizeof(struct ip6_
 ipv6Packet *genIpv6Packets(void *data, int len, int seq_no);
 void *reconstruct(ipv6Packet *, int);
 unsigned short csum(unsigned short *, int);
-void dataToLocalhost();
+void dataToLocalhost(void *, int, int);
+ip6_hdr genIpv6Header(size_t);
 
 int main(int argc, char **argv) {
     ipv6Packet v6;
     printf("v6 = %ld\n", sizeof(v6));
     // now we try to send the packet and see if it's sniffable
-    char *bigstring = "sdfklsjflksdjflksjdfkjsdfkjsdhfkjsdfhksdjh";
     int i;
 
     int *arr = calloc(sizeof(int), 1000);
     for (i = 0; i < 1000; i++) {
         arr[i] = i;
     }
-
     int num_chunks = (int)(1000 / MAX_PAYLOAD_SIZE) + 1;
-    ipv6Packet *packets = genIpv6Packets(arr, num_chunks, 0);
-    int *data = reconstruct(packets, num_chunks);
-    for (i = 0; i < 1000; i++) {
-        /* printf("data[i] = %d\n", data[i]); */
-    }
-    // we also need to free the payload of course
-
-    dataToLocalhost();
-
-    free(data);
-    free(packets);
+    dataToLocalhost(arr, num_chunks, 0);
     return 0;
 }
 
-// I need to do something like this
-ipv6Packet *create_packet() {
-    ipv6Packet *pkt;
-    /* tmp = (char*) malloc(ICMPLEN+sizeof(data)); */
-    /* memcpy (tmp, icmp, ICMPLEN); */
-    /* memcpy (tmp+ICMPLEN, data, sizeof(data)); */
-    /* icmp->checksum=csum((u16*) tmp, ICMPLEN+sizeof(data) >> 1); */
- 
-    /* memcpy (buff, ip, IPLEN); */
-    /* memcpy (buff+IPLEN, icmp, ICMPLEN); */
-    /* memcpy (buff+IPLEN+ICMPLEN, data, sizeof(data)); */
-
-    // we want 1 byte always
-    unsigned char buff[MAX_CARRIED];
-    // then I create the packet
-    return pkt;
-}
-
-struct ip6_hdr *createIpv6Header() {
-    struct ip6_hdr *header;
-    header->ip6_src = in6addr_loopback;
-    header->ip6_dst = in6addr_loopback;
-    
+ip6_hdr genIpv6Header(size_t payload_len) {
+    ip6_hdr header;
+    printf("payload len = %ld\n", payload_len);
+    header.ip6_src = in6addr_loopback;
+    header.ip6_dst = in6addr_loopback;
+    header.ip6_ctlun.ip6_un1.ip6_un1_plen = payload_len;
     /* header->ip6_src = 0; */
     return header;
 }
 
-// create some data and send it 
-void dataToLocalhost() {
-    int *buf = calloc(sizeof(int), 1000);
-    int i;
-    int on = 1; // what is that needed for?
-    for (i = 0; i < 1000; i++) {
-        buf[i] = i;
-    }
-
-    struct sockaddr_in6 dest;
+sockaddr_in6 localhostDest() {
+    sockaddr_in6 dest;
     dest.sin6_family = AF_INET6;
-    // TODO nicer way to set the loopback?
+    // manual way to set the loopback interface
     /* for(i = 0; i < 7; i++) { */
     /*     dest.sin6_addr.s6_addr16[i] = 0; */
     /* } */
@@ -128,10 +96,14 @@ void dataToLocalhost() {
     dest.sin6_scope_id = 0;
     /* dest.sin6_port = htons(9999); */
     dest.sin6_port = 0;
+    return dest;
+}
 
-    // now create the packets and send it
-    int num_chunks = (int)(1000 / MAX_PAYLOAD_SIZE) + 1;
-    ipv6Packet *packets = genIpv6Packets(buf, num_chunks, 0);
+// create some data and send it 
+void dataToLocalhost(void *data, int num_chunks, int seq_no) {
+    ipv6Packet *buffer = genIpv6Packets(data, num_chunks, seq_no);
+    
+    sockaddr_in6 dest = localhostDest();
     // send to localhost simply using a raw socket
     int raw_sock;
     
@@ -147,17 +119,21 @@ void dataToLocalhost() {
     /*     perror("cant setup the ip structure stuff"); */
     /* } */
 
-    // actually sending away my data with given length
-    if (sendto (raw_sock,
-                buf,
-                1000,
-                0,
-                (struct sockaddr *) &dest,
-                sizeof (dest)) < 0)  {
-        printf ("Error in send\n");
-        exit(1);
-    } else {
-        printf("packet sent correctly, sniff it\n");
+    int i;
+    for (i = 0; i < num_chunks; i++) {
+        // actually sending away my data with given length
+        if (sendto (raw_sock,
+                    &buffer,
+                    sizeof(ipv6Packet),
+                    0,
+                    (struct sockaddr *) &dest,
+                    sizeof (dest)) < 0)  {
+            printf ("Error in send\n");
+            exit(1);
+        } else {
+            printf("packet %d sent correctly, sniff it\n", i);
+        }
+        buffer++;
     }
 }
 
@@ -174,9 +150,10 @@ ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
     // check this "integer" division
     // generating an array of ipv6Packet of the correct length
     ipv6Packet *buffer = calloc(num_chunks, sizeof(ipv6Packet));
-    printf("pointer to struct %ld, struct = %ld\n", sizeof(ipv6Packet *), sizeof(ipv6Packet));
     // copy this every time we need a new one
     ipv6Packet original;
+    // passing the length of the payload
+    original.ip6_hdr = genIpv6Header(sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE);
     // set up some common fields
     myPacketHeader pkt_header = original.packetHeader;
     pkt_header.seq_no = seq_no;
