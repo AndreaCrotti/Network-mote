@@ -3,6 +3,7 @@
 // TODO: check integer division
 // TODO: send the raw packets generated via the tun device
 // TODO: use perror to print out errors when possible
+// TODO: set first the packet to all 0 and only set the needed fields
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,10 +11,12 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <assert.h>
 
 // measures in bytes
 #define SIZE_IPV6_HEADER 40
 #define MAX_CARRIED 127
+#define TOT_PACKET_SIZE(payload_len) (sizeof(ip6_hdr) + sizeof(myPacketHeader) + payload_len)
 
 typedef struct in6_addr in6_src;
 typedef struct in6_addr in6_dst;
@@ -68,8 +71,13 @@ int main(int argc, char **argv) {
         arr[i] = i;
     }
     int num_chunks = (int)(1000 / MAX_PAYLOAD_SIZE) + 1;
+    printf("total length of packet %ld\n", TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
     dataToLocalhost(arr, num_chunks, 0);
     return 0;
+}
+
+void testWithMemset() {
+    
 }
 
 ip6_hdr genIpv6Header(size_t payload_len) {
@@ -78,6 +86,7 @@ ip6_hdr genIpv6Header(size_t payload_len) {
     header.ip6_src = in6addr_loopback;
     header.ip6_dst = in6addr_loopback;
     header.ip6_ctlun.ip6_un1.ip6_un1_plen = payload_len;
+    header.ip6_ctlun.ip6_un2_vfc = 6;
     /* header->ip6_src = 0; */
     return header;
 }
@@ -124,7 +133,7 @@ void dataToLocalhost(void *data, int num_chunks, int seq_no) {
         // actually sending away my data with given length
         if (sendto (raw_sock,
                     &buffer,
-                    sizeof(ipv6Packet),
+                    TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE),
                     0,
                     (struct sockaddr *) &dest,
                     sizeof (dest)) < 0)  {
@@ -154,27 +163,24 @@ ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
     ipv6Packet original;
     // passing the length of the payload
     original.ip6_hdr = genIpv6Header(sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE);
+    // the header is actually correct
+    assert(original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
     // set up some common fields
     myPacketHeader pkt_header = original.packetHeader;
     pkt_header.seq_no = seq_no;
-    // setup here the ipv6 fields here
+    // setup here the ipv6 fields
 
     // only the payload and the ord_no are changing
     for (ord_no = 0; ord_no < num_chunks; ord_no++) {
         // simply copying by value the original packet
         buffer[ord_no] = original;
+        assert(buffer[ord_no].ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
         // should work anyway?
-        /* memcpy(buffer[ord_no], &original, sizeof(ipv6Packet)); */
         printf("copied the memory correctly, ord_no = %d\n", ord_no);
-        // FIXME: the problem is trying to access to this structure
-        myPacketHeader *inner = &(buffer[ord_no].packetHeader);
-        inner->ord_no = ord_no;
+        buffer[ord_no].packetHeader.ord_no = ord_no;
         buffer[ord_no].payload = calloc(1, MAX_PAYLOAD_SIZE);
         // copying the data in the actual payload
         memcpy(buffer[ord_no].payload, data, MAX_PAYLOAD_SIZE);
-        // TODO: are we sure we want to create the same packet every time?
-        
-        // Check if going forward of bytes or what
         data += MAX_PAYLOAD_SIZE;
     }
     return buffer;
@@ -209,96 +215,3 @@ unsigned short csum(unsigned short *buf, int nwords) {
     return (unsigned short)(~sum);
 }
 
-
-/*********************************************************************************************/
-/* struct packet_header_s {                                                                  */
-/*     unsigned len:32;                                                                      */
-/*     unsigned seq_no:32;                                                                   */
-/*     unsigned checksum:32;                                                                 */
-/* } __attribute__((__packed__));                                                            */
-/* typedef struct packet_header_s t_packet_header_s;                                         */
-/* #define PACKET_HEADER_SIZE (sizeof(t_packet_header_s))                                    */
-/*                                                                                           */
-/* typedef struct packet_s {                                                                 */
-/*     void *payload;                                                                        */
-/*     t_packet_header_s head;                                                               */
-/* } t_packet_s;                                                                             */
-/*                                                                                           */
-/* #define MAX_PAYLOAD_SIZE 50                                                               */
-/* #define MAX_PAYLOAD_PP (MAX_PAYLOAD_SIZE-PACKET_HEADER_SIZE)                              */
-/*                                                                                           */
-/* int split_into_packets(void *data, size_T datasize, t_packet_s                            */
-/*                        **outpackets, int *n_outpackets)                                   */
-/* {                                                                                         */
-/*     int i, sent;                                                                          */
-/*     /\* calculate number of packets *\/                                                   */
-/*     *n_outpackets = datasize/MAX_PAYLOAD_PP ;                                             */
-/*     if (datasize%MAX_PAYLOAD_PP) ++*n_outpackets;                                         */
-/*     /\* allocate outpackets *\/                                                           */
-/*     if ((*outpackets =                                                                    */
-/*          malloc(sizeof(***outpackets)*(*n_outpackets)))==NULL) /\* deal with err          */
-/*                                                                 *\/                       */
-/*         for (i=sent=0; i<*n_outpackets; ++i) {                                            */
-/*             /\* allocate packets and copy data *\/                                        */
-/*             if (((*outpackets)[i] =                                                       */
-/*                  malloc(sizeof(*(*outpackets[i]))))==NULL) /\* deal with err *\/          */
-/*                 (*outpackets)[i].payload = ((unsigned char *)data)+sent;                  */
-/*             (*outpackets)[i].head.len = ((datasize-sent)>MAX_PAYLOAD_PP)?                 */
-/*                 MAX_PAYLOAD_PP:datasize-sent;                                             */
-/*             (*outpackets)[i].head.len += PACKET_HEADER_SIZE; /\* if you                   */
-/*                                                                 want the head len too *\/ */
-/*             (*outpackets)[i].head.seq_no = i;                                             */
-/*             (*outpackets)[i].head.checksum = /\* whatever *\/                             */
-/*                 sent += 50-PACKET_HEADER_SIZE;                                            */
-/*         }                                                                                 */
-/*     return 0;                                                                             */
-/* }                                                                                         */
-/*********************************************************************************************/
-
-/* // Struttura dell' header di paccketto (fissa) */
-/* typedef struct myPacket { */
-/*      int len;   // Length of payload */
-/*      unsigned int seq_no; */
-/*      csum_type checksum; */
-/* } myPacket_hdr; */
-
-
-/* // Struttura generica del pacchetto -variabile :-) */
-/* typedef struct packet{ */
-/*        myPacket_hdr  hd; */
-/*        int           dati[1]; // Trick: allocato a run time... */
-/* // */
-/* // NB: se il payload puo' essere differente */
-/* //     union{ */
-/* //        uint8_t  d8[1];    // payload dati 8bit */
-/* //        uint16_t d16[1];   // payload dati 16bit */
-/* //        uint32_t d32[1];   // payload dati 32bit */
-/* //     }dati; */
-/* }MP_T; */
-
-
-/* // */
-/* // Crea un nuovo pacchetto dati. */
-/* // La lunghezza del pacchetto */
-/* MP_T* create_packet(int seq, int numOfData, int* pPayBuf) */
-/* { */
-/*    MP_T*  pPack; */
-/*    size_t len; */
-
-/*    len= (sizeof(int)*numOfData); */
-
-/*    if(NULL != (pPack = malloc(len+sizeof(myPacket_hdr)))) */
-/*    { */
-/*         pPack->hd.len=len; */
-/* 	pPack->hd.seq_no=seq; */
-
-/*         if((NULL != pPayBuf) && (len)) */
-/*         { */
-/*           // Se il payload NON e' vuoto, copialo!!! */
-/*            memcpy((void*)&pPack->dati[0], (void*)pPayBuf, len); */
-/*         } */
-/*         // calcola checksum.... */
-/* 	pPack->hd.checksum=compute_checksum(pPack); */
-/*    } */
-/*    return(pPack);		 */
-/* } */
