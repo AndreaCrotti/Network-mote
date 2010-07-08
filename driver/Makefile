@@ -5,16 +5,16 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 CFLAGS = -D_GNU_SOURCE -DPC
 FLAGS = -Wall -Wextra
 
-OBJECTS = tunnel.o split.o #config.o tun_dev.o routing.o
+OBJECTS = tunnel.o split.o motecomm.o #config.o tun_dev.o routing.o
 #OBJECTS = 
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o
 SRC = client.c
 
-all: clean tuntest
+# all: clean tuntest
 
 # TODO: refactoring of those redundant objects
-tuntest: $(OBJECTS) client.c
+tuntest: autogen $(OBJECTS) client.c
 	gcc $(FLAGS) $(OBJECTS) $(EXTERNALS)  client.c $(CFLAGS) $(INCLUDE) -o tuntest
 
 tuntest.pre: $(OBJECTS) client.c
@@ -29,16 +29,27 @@ tun_dev.o: tun_dev.c
 routing.o: routing.c
 	gcc $(FLAGS) -c routing.c $(CFLAGS) $(INCLUDE) -o routing.o
 
+motecomm.o: motecomm.c motecomm.h motecomm.sizes.h
+	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -o motecomm.o
+
 split.o: split.c
 	gcc -lm -c split.c -o split.o
 
 #config.o: config.c
 #	gcc $(FLAGS) -c config.c $(CFLAGS) $(INCLUDE) -o config.o
 
-clean:
-	rm -f *.o tuntest
+hostname.h: hostname.sh
+	bash hostname.sh
 
+clean:
+	rm -f *.o hostname.h tuntest
+
+# Makefile diagnostic
 diag:
 	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE)
 
-.PHONY: clean diag
+autogen: hostname.h
+
+force: clean tuntest
+
+.PHONY: clean diag force autogen

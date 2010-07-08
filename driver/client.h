@@ -1,3 +1,6 @@
+#ifndef _CLIENT_H
+#define _CLIENT_H
+
 /*************************/
 /* Function declarations */
 /*************************/
@@ -41,3 +44,5 @@ struct serial_source_t {
         uint16_t crc;
     } send;
 };
+
+#endif

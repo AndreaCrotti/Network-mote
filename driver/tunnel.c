@@ -75,7 +75,7 @@ int tun_open(char *dev, int flags){
  * @return Error-code.
  */
 int tun_setup(char *dev, struct in_addr *addr){
-    
+    (void)addr;
     struct ifreq ifr;
     int fd, err;
     int mtu = 1280;

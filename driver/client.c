@@ -27,9 +27,12 @@
 #include "client.h"
 
 int main(int args, char** arg) {
+    (void)args;
+    (void)arg;
 
     char tun_name[IFNAMSIZ];
     char input[20];
+    (void)input;
 
     // Variables to pass to the serial forwarder
     /* char* sf_host = "127.0.0.1"; */
@@ -37,8 +40,11 @@ int main(int args, char** arg) {
     
     //Variables for a direct serial connection
     char *device = "/dev/ttyUSB0";
-    int baud_rate = 115200;
+    (void)device;
+    int baud_rate = 115200; //57600?
+    (void)baud_rate;
     serial_source ser_src;
+    (void)ser_src;
 
     char *ip_address_str = "10.0.0.1";
     struct in_addr *ip_address;
@@ -83,6 +89,7 @@ int main(int args, char** arg) {
     /* uint8_t buf[sizeof(struct split_ip_msg) + INET_MTU]; */
     /* struct split_ip_msg *msg = (struct split_ip_msg *)buf; */
     int len;
+    (void)len;
 
     while (1) {
         // Read one Ethernet packet
@@ -108,8 +115,8 @@ int main(int args, char** arg) {
     return 0;
 }
 
-void stderr_msg(serial_source_msg problem)
-{
+void stderr_msg(serial_source_msg problem) {
+    (void)problem;
     //fprintf(stderr, "Note: %s\n", msgs[problem]);
     fprintf(stderr, "Note: Some error occurred when opening the serial port.\n");
 }
