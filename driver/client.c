@@ -37,7 +37,7 @@ int main(int args, char** arg) {
     // Variables to pass to the serial forwarder
     /* char* sf_host = "127.0.0.1"; */
     /* int sf_port = 1000; */
-    
+
     //Variables for a direct serial connection
     char *device = "/dev/ttyUSB0";
     (void)device;
