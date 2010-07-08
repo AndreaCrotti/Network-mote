@@ -41,7 +41,7 @@ int main(int args, char** arg) {
     //Variables for a direct serial connection
     char *device = "/dev/ttyUSB0";
     (void)device;
-    int baud_rate = 115200; //57600?
+    int baud_rate = 115200;
     (void)baud_rate;
     serial_source ser_src;
     (void)ser_src;
