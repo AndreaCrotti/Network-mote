@@ -32,6 +32,9 @@ routing.o: routing.c
 motecomm.o: motecomm.c motecomm.h motecomm.sizes.h
 	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -o motecomm.o
 
+motecomm: motecomm.c motecomm.h motecomm.sizes.h
+	gcc $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) $(CFLAGS) $(INCLUDE) -ggdb -O0 -o motecomm
+
 motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -E -o motecomm.pre
 

@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+
+#include <stdio.h>
+
 class_t* __class_t__ctor(void** obj, unsigned typesz) {
   assert(obj);
   class_t* result = NULL;;
@@ -52,28 +55,38 @@ payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* cons
 void freePayload(payload_t** payload) {
   assert(payload);
   if (*payload) {
-    if ((*payload)->stream)
+    if ((*payload)->stream) {
       free((void*)((*payload)->stream));
+      (*payload)->stream = NULL;
+    }
     free((void*)*payload);
     *payload = NULL;
   }
 }
 
+mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t** sif) {
+  serialif_t* _sif = sif?*sif:NULL;
+  _sif = serialif(_sif,dev,platform,NULL);
+  if (!_sif) {
+    return NULL;
+  }
+  motecomm_t* cmm = motecomm(NULL,_sif);
+  assert(_sif);
+  assert(cmm);
+  if (sif) {
+    *sif = _sif;
+  }
+  return mcp(NULL,cmm);
+}
+
 /**** serialif_t ****/
 
+serial_source_msg* __serialif_t__openMessage_target = NULL;
+
 void __serialif_t__openMessage(serial_source_msg problem) {
-  static serial_source_msg* target = NULL;
-  if ((unsigned)problem > 127) { // hack, to sneak some extra information in here
-    serial_source_msg* arg = (serial_source_msg*)problem;
-    if (target == arg) {
-      target = NULL;
-    } else {
-      target = arg;
-    }
-    return;
+  if (__serialif_t__openMessage_target) {
+    *__serialif_t__openMessage_target = problem;
   }
-  assert(target);
-  *target = problem;
 }
 
 int __serialif_t__send(serialif_t* this, payload_t const payload) {
@@ -87,8 +100,9 @@ void __serialif_t__read(serialif_t* this, payload_t** const payload) {
   payload_t buf;
   buf.stream = read_serial_packet(this->source,(int*)&(buf.len));
   if (!buf.stream != !buf.len) {
-    if (!buf.stream)
+    if (buf.stream) {
       free((void*)(buf.stream));
+    }
     buf.stream = NULL;
     buf.len = 0;
   }
@@ -100,7 +114,7 @@ void __serialif_t__read(serialif_t* this, payload_t** const payload) {
       (*payload)->stream = NULL;
     }
   } else {
-    **payload = buf;
+    *payload = gluePayloadMalloc(&buf,NULL);
   }
 }
 
@@ -117,10 +131,11 @@ serialif_t* serialif(serialif_t* this, char const* const dev, char* const platfo
   SETDTOR(CTOR(this)) __serialif_t__dtor;
   this->send = __serialif_t__send;
   this->read = __serialif_t__read;
-  serial_source_msg _ssm = (serial_source_msg)128;
-  __serialif_t__openMessage((serial_source_msg)&_ssm);// this is not a bug, we cast the pointer to the actual time
+  assert(this && this->send);
+  serial_source_msg _ssm = 128;
+  __serialif_t__openMessage_target = &_ssm;
   this->source = open_serial_source(dev,platform_baud_rate(platform),READ_NON_BLOCKING,__serialif_t__openMessage);
-  __serialif_t__openMessage((serial_source_msg)&_ssm);
+  __serialif_t__openMessage_target = NULL;
   this->msg = _ssm;
   if (ssm) {
     *ssm = _ssm;
@@ -145,8 +160,19 @@ void __motecomm_t__read(motecomm_t* this) {
   assert(this->motecomm_handler.receive);
   payload_t* payload = NULL; //will be created
   this->serialif.read(&(this->serialif),&payload);
-  this->motecomm_handler.receive(&(this->motecomm_handler),*payload);
-  freePayload(&payload);
+  if (payload) {
+    if (payload->stream) {
+      payload_t p = *payload;
+      if (p.len >= 8) {
+        p.len -= 8;
+        p.stream = malloc(p.len*sizeof(stream_t));
+        memcpy((void*)(p.stream),((void*)(payload->stream))+8,p.len);
+        this->motecomm_handler.receive(&(this->motecomm_handler),p);
+        free((void*)(p.stream));
+      }
+    }
+    freePayload(&payload);
+  }
 }
 
 void __motecomm_t__setHandler(motecomm_t* this, motecomm_handler_t const handler) {
@@ -172,8 +198,13 @@ motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interface) {
 typedef union {
   stream_t const* stream;
   struct {
+#if NX_SWAP_NIBBLES
+    unsigned header  :MCP_HD_HEADER;
+    unsigned version :MCP_HD_VERSION;
+#else
     unsigned version :MCP_HD_VERSION;
     unsigned header  :MCP_HD_HEADER;
+#endif
     unsigned ident   :MCP_HD_IDENT;
     unsigned type    :MCP_HD_TYPE;
     unsigned port    :MCP_HD_PORT;
@@ -181,7 +212,8 @@ typedef union {
   }__attribute__((__packed__))* header;
 } mcp_header_t;
 
-void __mcp_t__receive(motecomm_handler_t* that, payload_t const payload) {// implements motecomm_handler_t::receive
+/// implements motecomm_handler_t::receive
+void __mcp_t__receive(motecomm_handler_t* that, payload_t const payload) {
   mcp_t* this = (mcp_t*)(that->p);
   assert(payload.stream);
   if (payload.len < MCP_HEADER_BYTES) {
@@ -247,6 +279,10 @@ void __mcp_t__send(struct mcp_t* this, mcp_type_t const type, payload_t const pa
   free(ns);
 }
 
+motecomm_t* __mcp_t__getComm(mcp_t* this) {
+  return *(this->comm);
+}
+
 void __mcp_t__dtor(mcp_t* this) {
   assert(this);
   this->motecomm_handler.p = NULL;
@@ -267,6 +303,7 @@ mcp_t* mcp(mcp_t* this, motecomm_t* const uniqComm) {
   memset((void*)(this->handler),0,sizeof(mcp_handler_t*)*MCP_TYPE_SIZE);
   this->setHandler = __mcp_t__setHandler;
   this->send = __mcp_t__send;
+  this->getComm = __mcp_t__getComm;
   this->motecomm_handler.p = (void*)this;
   this->motecomm_handler.receive = __mcp_t__receive;
   persistentComm->setHandler(persistentComm,this->motecomm_handler);
@@ -280,8 +317,13 @@ mcp_t* mcp(mcp_t* this, motecomm_t* const uniqComm) {
 typedef union {
   stream_t const* stream;
   struct {
+#if NX_SWAP_NIBBLES
+    unsigned header  :MCCMP_HD_HEADER;
+    unsigned version :MCCMP_HD_VERSION;
+#else
     unsigned version :MCCMP_HD_VERSION;
     unsigned header  :MCCMP_HD_HEADER;
+#endif
     unsigned ident   :MCCMP_HD_IDENT;
     unsigned problem :MCCMP_HD_PROBLEM;
     unsigned offset  :MCCMP_HD_OFFSET;
@@ -304,7 +346,7 @@ void __mccmp_t__receive(mcp_handler_t* that, payload_t const payload) {
   if (h.header->header != MCCMP_HEADER_BYTES) {
     return;
   }
-  if (h.header->problem < MCCMP_PROBLEM_HANDLER_SIZE) {
+  if (h.header->problem >= MCCMP_PROBLEM_HANDLER_SIZE) {
     return;
   }
   mccmp_problem_handler_t* hnd = &(this->handler[h.header->problem]);
@@ -372,6 +414,7 @@ mccmp_t* mccmp(mccmp_t* this, mcp_t* const mcp) {
   this->parent.p = (void*)this;
   this->parent.receive = __mccmp_t__receive;
   this->mcp->setHandler(this->mcp,MCP_MCCMP,this->parent);
+  this->mcp->mccmp = this;
   memset((void*)(this->handler),0,sizeof(mccmp_problem_handler_t*)*MCCMP_PROBLEM_HANDLER_SIZE);
   this->setHandler(this,MCCMP_ECHO_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = __mccmp_t__echoRequest});
   this->setHandler(this,MCCMP_IFY_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = __mccmp_t__ifyRequest});
@@ -393,3 +436,30 @@ void ifp(ifp_t* this, mcp_t* const mcp) {
   assert(mcp);
   // TODO
 }
+
+
+
+
+
+#if STANDALONE
+
+int main(int argc, char** args) {
+  assert(argc >= 3);
+  mcp_t* mcp = openMcpConnection(args[1],args[2],NULL);
+  if (!mcp) {
+    printf("There was an error opening the connection to %s over device %s.",args[2],args[1]);
+    return 1; 
+  }
+  assert(mcp);
+  assert(mcp->getComm);
+  assert(mcp->getComm(mcp));
+  assert(mcp->getComm(mcp)->read);
+  mccmp(NULL,mcp);
+  while (1) {
+    mcp->getComm(mcp)->read(mcp->getComm(mcp));
+    printf("there was a message\n");
+  }
+  return 0;
+}
+
+#endif

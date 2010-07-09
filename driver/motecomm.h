@@ -16,8 +16,15 @@
 #define ARCHITECTURE_IDENTIFICATION ((stream_t const* const)HOSTNAME)
 #define ARCHITECTURE_IDENTIFICATION_SIZE sizeof(ARCHITECTURE_IDENTIFICATION)
 
+// for a not completely understood reason, nibbles in bitfields are interpreted
+// the wrong way around, hence, 15 is converted to 5,1 which is obviously not what we want.
+// However: if your architecture does it differently, pass it so as compile flag.
+#ifndef NX_SWAP_NIBBLES
+#define NX_SWAP_NIBBLES 1
+#endif
+
 #ifndef READ_NON_BLOCKING
-#define READ_NON_BLOCKING 1
+#define READ_NON_BLOCKING 0
 #endif
 
 /****************************************************************
@@ -59,6 +66,9 @@ typedef struct {
 
 payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* const second);
 
+forward(mcp_t);
+forward(serialif_t);
+forward(mcp_t)* openMcpConnection(char const* const dev, char* const platform, forward(serialif_t)** sif);
 
 /****************************************************************
  *  serialif_t                                                  *
@@ -128,6 +138,7 @@ class (mcp_t,
   mcp_handler_t handler[MCP_TYPE_SIZE];
   void (*setHandler)(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd);
   void (*send)(mcp_t* this, mcp_type_t const type, payload_t const payload);
+  motecomm_t* (*getComm)(mcp_t* this);
 );
 
 // mcp_t constructor

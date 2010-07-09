@@ -85,7 +85,7 @@ implementation{
     }
     {
       static unsigned char leds = 0;
-      call Leds.set(leds++*23);
+      call Leds.set(leds++*5);
     }
   }
 
