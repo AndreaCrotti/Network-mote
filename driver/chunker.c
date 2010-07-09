@@ -43,14 +43,6 @@ typedef struct ipv6Packet ipv6Packet;
 typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct ip6_hdr ip6_hdr;
 
-// in this way making a simple cast on the ipV6 data I get the rest
-// NOT USING THIS at the moment
-/* typedef struct innerPacket { */
-/*     myPacketHeader packetHeader; */
-/*     void *payload; */
-/* } innerPacket; */
-
-
 // TODO: is this the best way to solve this problem?
 int MAX_PAYLOAD_SIZE = MAX_CARRIED - sizeof(myPacketHeader) - sizeof(struct ip6_hdr);
 
@@ -74,7 +66,7 @@ int main(int argc, char **argv) {
     }
     int num_chunks = (int)(1000 / MAX_PAYLOAD_SIZE) + 1;
     printf("total length of packet %ld\n", TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
-    dataToLocalhost(arr, num_chunks, 0);
+    /* dataToLocalhost(arr, num_chunks, 0); */
     testWithMemset();
     return 0;
 }
@@ -84,7 +76,7 @@ void testWithMemset(void) {
     ip6_hdr header = genIpv6Header(100);
     memcpy(buff, &header, sizeof(header));
     int *data = calloc(10, sizeof(int));
-    memset(data, 0xf, sizeof(int));
+    memset(data, 0xff, sizeof(int) * 10);
     memcpy(buff + sizeof(header), data, sizeof(int) * 10);
     sendToLocalhost(buff, TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
 }
