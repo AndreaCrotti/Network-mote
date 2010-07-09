@@ -3,38 +3,166 @@
 #include <string.h>
 #include <stdlib.h>
 
+class_t* __class_t__ctor(void** obj, unsigned typesz) {
+  assert(obj);
+  class_t* result = NULL;;
+  char ctorAllocd = !*obj;
+  if (ctorAllocd)
+    *obj = malloc(typesz);
+  result = (class_t*)*obj;
+  // in a class the class_t struct is always at the first address
+  result->ctorAllocd = ctorAllocd;
+  result->dtor = NULL;
+  return result;
+}
+void __class_t__dtor(void** obj) {
+  assert(obj);
+  class_t* c = (class_t*)*obj;
+  if (c->dtor) {
+    c->dtor(*obj);
+  }
+  if (c->ctorAllocd) {
+    free(*obj);
+    *obj = NULL;
+  }
+}
+
+payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* const second) {
+  if (second && second->len && (!first || !first->len))
+    return gluePayloadMalloc(second,NULL);
+  payload_t* tar = (payload_t*)malloc(sizeof(payload_t));
+  stream_t f, s;
+  payload_t fp = {.len = 0, .stream = &f};
+  payload_t sp = {.len = 0, .stream = &s};
+  if (first) {
+    fp = *first;
+  }
+  if (second) {
+    sp = *second;
+  }
+  tar->len = fp.len + sp.len;
+  if (tar->len) {
+    tar->stream = malloc(tar->len*sizeof(stream_t));
+    memcpy((void*)(tar->stream),(void*)fp.stream,fp.len);
+    memcpy((void*)(tar->stream)+fp.len,(void*)sp.stream,sp.len);
+  }
+  return tar;
+}
+
+void freePayload(payload_t** payload) {
+  assert(payload);
+  if (*payload) {
+    if ((*payload)->stream)
+      free((void*)((*payload)->stream));
+    free((void*)*payload);
+    *payload = NULL;
+  }
+}
+
+/**** serialif_t ****/
+
+void __serialif_t__openMessage(serial_source_msg problem) {
+  static serial_source_msg* target = NULL;
+  if ((unsigned)problem > 127) { // hack, to sneak some extra information in here
+    serial_source_msg* arg = (serial_source_msg*)problem;
+    if (target == arg) {
+      target = NULL;
+    } else {
+      target = arg;
+    }
+    return;
+  }
+  assert(target);
+  *target = problem;
+}
+
+int __serialif_t__send(serialif_t* this, payload_t const payload) {
+  assert(this);
+  return write_serial_packet(this->source,payload.stream,payload.len);
+}
+
+void __serialif_t__read(serialif_t* this, payload_t** const payload) {
+  assert(this);
+  assert(payload);
+  payload_t buf;
+  buf.stream = read_serial_packet(this->source,(int*)&(buf.len));
+  if (!buf.stream != !buf.len) {
+    if (!buf.stream)
+      free((void*)(buf.stream));
+    buf.stream = NULL;
+    buf.len = 0;
+  }
+  if (*payload) {
+    (*payload)->len = buf.len;
+    if (buf.stream) {
+      memcpy((void*)((*payload)->stream),(void*)(buf.stream),buf.len);
+    } else {
+      (*payload)->stream = NULL;
+    }
+  } else {
+    **payload = buf;
+  }
+}
+
+void __serialif_t__dtor(serialif_t* this) {
+  assert(this);
+  if (this->source) {
+    close_serial_source(this->source);
+  }
+}
+
+serialif_t* serialif(serialif_t* this, char const* const dev, char* const platform, serial_source_msg* ssm) {
+  assert(dev);
+  assert(platform);
+  SETDTOR(CTOR(this)) __serialif_t__dtor;
+  this->send = __serialif_t__send;
+  this->read = __serialif_t__read;
+  serial_source_msg _ssm = (serial_source_msg)128;
+  __serialif_t__openMessage((serial_source_msg)&_ssm);// this is not a bug, we cast the pointer to the actual time
+  this->source = open_serial_source(dev,platform_baud_rate(platform),READ_NON_BLOCKING,__serialif_t__openMessage);
+  __serialif_t__openMessage((serial_source_msg)&_ssm);
+  this->msg = _ssm;
+  if (ssm) {
+    *ssm = _ssm;
+  }
+  if (!this->source) { // there was a problem
+    DTOR(this);
+    this = NULL; // tell user there was something wrong. He can then theck the ssm he gave us (if he did so).
+  }
+  return this;
+}
+
 /**** motecomm_t ****/
 
 // public:
 void __motecomm_t__send(motecomm_t* this, payload_t const payload) {
-  (void)this;
-  (void)payload;
-  // TODO TODO TODO send the stream using the serialif
+  assert(this);
+  this->serialif.send(&(this->serialif),payload);
 }
 
-void __motecomm_t__listen(motecomm_t* this) {
+void __motecomm_t__read(motecomm_t* this) {
+  assert(this);
   assert(this->motecomm_handler.receive);
-  stream_t* stream = NULL;
-  int len = 0;
-  // TODO TODO TODO start reading, put it to stream, length to len
-  this->motecomm_handler.receive(&(this->motecomm_handler),(payload_t){.stream = stream, .len = len});
+  payload_t* payload = NULL; //will be created
+  this->serialif.read(&(this->serialif),&payload);
+  this->motecomm_handler.receive(&(this->motecomm_handler),*payload);
+  freePayload(&payload);
 }
 
-void __motecomm_t__setHandler(motecomm_t* this, motecomm_handler_t const* const handler) {
+void __motecomm_t__setHandler(motecomm_t* this, motecomm_handler_t const handler) {
   assert(this);
-  assert(handler);
-  this->motecomm_handler = *handler;
+  this->motecomm_handler = handler;
 }
 
-void motecomm(motecomm_t* this, serialif_t const* const interface) {
-  assert(this);
+motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interface) {
+  CTOR(this);
   assert(interface && interface->send);
   this->serialif = *interface; // compile time fixed size, so we can copy directly - members are copied transparently
   this->send = __motecomm_t__send;
-  this->listen = __motecomm_t__listen;
+  this->read = __motecomm_t__read;
   this->setHandler = __motecomm_t__setHandler;
+  return this;
 }
-
 
 
 /**** mcp_t ****/
@@ -119,11 +247,17 @@ void __mcp_t__send(struct mcp_t* this, mcp_type_t const type, payload_t const pa
   free(ns);
 }
 
-void mcp(mcp_t* this, motecomm_t* const uniqComm) {
+void __mcp_t__dtor(mcp_t* this) {
   assert(this);
-  assert(uniqComm);
+  this->motecomm_handler.p = NULL;
+  this->motecomm_handler.receive = NULL;
+  (*(this->comm))->setHandler(*(this->comm),this->motecomm_handler);
+}
+
+mcp_t* mcp(mcp_t* this, motecomm_t* const uniqComm) {
+  SETDTOR(CTOR(this)) __mcp_t__dtor;
   static motecomm_t* persistentComm = NULL;
-  if (!persistentComm && !uniqComm)
+  if (!persistentComm && uniqComm)
     persistentComm = uniqComm;
   assert(uniqComm == persistentComm && "Cannot use different comm objects.");
   assert(persistentComm && "Uninitialised motecomm_t.");
@@ -135,7 +269,8 @@ void mcp(mcp_t* this, motecomm_t* const uniqComm) {
   this->send = __mcp_t__send;
   this->motecomm_handler.p = (void*)this;
   this->motecomm_handler.receive = __mcp_t__receive;
-  persistentComm->setHandler(persistentComm,&(this->motecomm_handler));
+  persistentComm->setHandler(persistentComm,this->motecomm_handler);
+  return this;
 }
 
 
@@ -222,16 +357,25 @@ void __mccmp_t__setHandler(mccmp_t* this, mccmp_problem_t const problem, mccmp_p
   this->handler[problem] = hnd;
 }
 
-void mccmp(mccmp_t* this, mcp_t* const mcp) {
+void __mccmp_t__dtor(mccmp_t* this) {
   assert(this);
+  this->parent.p = NULL;
+  this->parent.receive = NULL;
+  this->mcp->setHandler(this->mcp,MCP_MCCMP,this->parent);
+}
+
+mccmp_t* mccmp(mccmp_t* this, mcp_t* const mcp) {
+  SETDTOR(CTOR(this)) __mccmp_t__dtor;
   this->mcp = mcp;
   this->send = __mccmp_t__send;
   this->setHandler = __mccmp_t__setHandler;
   this->parent.p = (void*)this;
   this->parent.receive = __mccmp_t__receive;
+  this->mcp->setHandler(this->mcp,MCP_MCCMP,this->parent);
   memset((void*)(this->handler),0,sizeof(mccmp_problem_handler_t*)*MCCMP_PROBLEM_HANDLER_SIZE);
   this->setHandler(this,MCCMP_ECHO_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = __mccmp_t__echoRequest});
   this->setHandler(this,MCCMP_IFY_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = __mccmp_t__ifyRequest});
+  return this;
 }
 
 /**** leap_t ****/
