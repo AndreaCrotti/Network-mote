@@ -46,10 +46,8 @@ int main(int args, char** arg) {
     serial_source ser_src;
     (void)ser_src;*/
 
+    // The IP address
     char *ip_address_str = "10.0.0.1";
-    struct in_addr *ip_address;
-    memset(&ip_address, 0, sizeof(ip_address));
-    inet_aton(ip_address_str, ip_address);
 
     // Open serial
     /* int ser_src = open_serial_source(argv[optind], platform_baud_rate(argv[optind + 1]), */
@@ -79,7 +77,7 @@ int main(int args, char** arg) {
     }
 
     // Setup the tunnel (Beneath other things, this sets the ip address)
-    if (tun_setup(tun_name, ip_address) < 0) {
+    if (tun_setup(tun_name, ip_address_str) < 0) {
         printf("configuring the tun failed; aborting\n");
         return 1;
     }

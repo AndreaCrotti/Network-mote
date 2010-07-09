@@ -5,7 +5,7 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 CFLAGS = -D_GNU_SOURCE -DPC
 FLAGS = -Wall -Wextra
 
-OBJECTS = tunnel.o split.o motecomm.o #config.o tun_dev.o routing.o
+OBJECTS = tunnel.o split.o motecomm.o #config.o tun_dev.o routing.o 
 #OBJECTS = 
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
