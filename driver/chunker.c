@@ -50,7 +50,7 @@ ipv6Packet *genIpv6Packets(void *, int, int);
 void *reconstruct(ipv6Packet *, int);
 unsigned short csum(unsigned short *, int);
 void dataToLocalhost(void *, int, int);
-ip6_hdr genIpv6Header(size_t);
+ip6_hdr *genIpv6Header(size_t);
 sockaddr_in6 *localhostDest(void);
 void testWithMemset(void);
 void sendToLocalhost(void *, size_t);
@@ -75,23 +75,24 @@ int main(int argc, char **argv) {
 
 void testWithMemset(void) {
     unsigned char *buff = calloc(MAX_CARRIED, sizeof(unsigned char));
-    ip6_hdr header = genIpv6Header(100);
-    memcpy(buff, &header, sizeof(header));
-    int *data = calloc(10, sizeof(int));
-    memset(data, 0xff, sizeof(int) * 10);
-    memcpy(buff + sizeof(header), data, sizeof(int) * 10);
+    ip6_hdr *header = genIpv6Header(100);
+    memcpy(buff, header, sizeof(ip6_hdr));
+    /* int *data = calloc(10, sizeof(int)); */
+    /* memset(data, 0xff, sizeof(int) * 10); */
+    /* memcpy(buff + sizeof(ip6_hdr), data, sizeof(int) * 10); */
     sendToLocalhost(buff, TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
 }
 
 // how do I free the memory when not returning pointers?
 // FIXME: maybe we have to use htons whenever we add data to the network
-ip6_hdr genIpv6Header(size_t payload_clen) {
-    ip6_hdr header;
-    printf("payload len = %ld\n", payload_len);
-    header.ip6_src = in6addr_loopback;
-    header.ip6_dst = in6addr_loopback;
-    header.ip6_ctlun.ip6_un1.ip6_un1_plen = payload_len;
-    header.ip6_ctlun.ip6_un2_vfc = 6;
+ip6_hdr *genIpv6Header(size_t payload_len) {
+    ip6_hdr *header = malloc(sizeof(ip6_hdr));
+    header->ip6_src = in6addr_loopback;
+    header->ip6_dst = in6addr_loopback;
+    // 16 bit file
+    header->ip6_ctlun.ip6_un1.ip6_un1_plen = htons(payload_len);
+    printf("payload len = %x, after htons %x\n", payload_len, htons(payload_len));
+    header->ip6_ctlun.ip6_un2_vfc = 6;
     /* header->ip6_src = 0; */
     return header;
 }
@@ -111,9 +112,8 @@ sockaddr_in6 *localhostDest(void) {
 }
 
 void sendDataTo(void *buffer, struct sockaddr *dest, size_t size, int raw_sock) {
-    // actually sending away my data with given length
-    printf("sizeof(dest) = %d\n", sizeof(*dest));
-    // FIXME: why the hell we get this error, if getting dest from here it doesn't work
+    // TODO: the sizes are different, how can we manage it?
+    printf("norm %ld, 6version %ld,\n", sizeof(struct sockaddr), sizeof(sockaddr_in6));
     int result = sendto(raw_sock,
                         &buffer,
                         size,
@@ -180,8 +180,8 @@ ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
     ipv6Packet *buffer = calloc(num_chunks, sizeof(ipv6Packet));
     // copy this every time we need a new one
     ipv6Packet original;
-    // passing the length of the payload
-    original.ip6_hdr = genIpv6Header(sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE);
+    ip6_hdr *header = genIpv6Header(sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE);
+    memcpy(&(original.ip6_hdr), header, sizeof(ip6_hdr));
     // the header is actually correct
     assert(original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
     // set up some common fields

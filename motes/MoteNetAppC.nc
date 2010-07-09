@@ -9,11 +9,11 @@ implementation{
 //    components Ieee154MessageC as ForwardRadio;
 
     // Components for the serial connection
-    /*components SerialDispatcherC as SerialControl, Serial802_15_4C as Serial;
-    MoteNetAppP.SerialControl -> SerialControl;
-    MoteNetAppP.SerialReceive -> Serial.Receive;
-    MoteNetAppP.SerialSend -> Serial.Send;
-    MoteNetAppP.SerialPacket -> Serial.Packet;*/
+    /* components SerialDispatcherC as SerialControl, Serial802_15_4C as Serial; */
+    /*   MoteNetAppP.SerialControl -> SerialControl; */
+    /*   MoteNetAppP.SerialReceive -> Serial.Receive; */
+    /*   MoteNetAppP.SerialSend -> Serial.Send; */
+    /*   MoteNetAppP.SerialPacket -> Serial.Packet; */
 
     components SerialActiveMessageC as Serial;
     MoteNetAppP.SerialControl -> Serial;
