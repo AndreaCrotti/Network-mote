@@ -53,6 +53,7 @@ void dataToLocalhost(void *, int, int);
 ip6_hdr genIpv6Header(size_t);
 void testWithMemset(void);
 void sendToLocalhost(void *, size_t);
+void sendDataTo(void *, struct sockaddr *, size_t, int);
 
 int main(int argc, char **argv) {
     ipv6Packet v6;
@@ -110,27 +111,34 @@ sockaddr_in6 localhostDest(void) {
     return dest;
 }
 
+void sendDataTo(void *buffer, struct sockaddr *dest, size_t size, int raw_sock) {
+    // actually sending away my data with given length
+    int result = sendto (raw_sock,
+                         &buffer,
+                         size,
+                         0,
+                         dest,
+                         sizeof (dest));
+    if (result < 0) {
+        perror("error in sending");
+    } else {
+        printf("send correctly %d bytes, and size was = %ld\n", result, size);
+    }
+}
+
+
+// using struct and not pointers can be more heavy but no free necessary
 void sendToLocalhost(void *buffer, size_t size) {
     sockaddr_in6 dest = localhostDest();
     // send to localhost simply using a raw socket
     int raw_sock;
     
+    // creating a raw socket for ipv6
     if((raw_sock = socket(AF_INET6, SOCK_RAW, IPPROTO_RAW)) < 0) {
         perror("socket() error");
     }
-
-    // actually sending away my data with given length
-    if (sendto (raw_sock,
-                &buffer,
-                size,
-                0,
-                (struct sockaddr *) &dest,
-                sizeof (dest)) < 0)  {
-        printf ("Error in send\n");
-        exit(1);
-    } else {
-        printf ("Sended everything correctly\n");
-    }
+    // This could be dangerous since we use outside a pointer to a local variable
+    sendDataTo(buffer, (struct sockaddr *) &dest, size, raw_sock);
 }
 
 // create some data and send it 
@@ -146,12 +154,6 @@ void dataToLocalhost(void *data, int num_chunks, int seq_no) {
     }
 
     // now set up the correct fields to it
-    
-    
-    // this is necessary for using raw packets
-    /* if(setsockopt(raw_sock, IPPROTO_IP, IP_HDRINCL, &on, sizeof(on)) < 0) { */
-    /*     perror("cant setup the ip structure stuff"); */
-    /* } */
 
     int i;
     for (i = 0; i < num_chunks; i++) {
