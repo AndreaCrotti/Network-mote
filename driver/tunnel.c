@@ -17,6 +17,7 @@
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #include <arpa/inet.h>  
+#include <net/route.h>
 
 #include "tunnel.h"
 
@@ -70,14 +71,16 @@ int tun_open(char *dev, int flags){
  * Sets up the tunnel interface and assigns a MTU and a IPv4 address.
  * 
  * @param dev The device name.
- * @param addr An IPv4 address.
+ * @param addr An IPv4 address (As a string).
  * 
  * @return Error-code.
  */
-int tun_setup(char *dev, struct in_addr *addr){
+int tun_setup(char *dev, char *addr){
     
     struct ifreq ifr;
-    int fd, err;
+    struct rtentry rte;
+    struct sockaddr_in sock_addr;
+    int fd,err;
     int mtu = 1280;
     
     // Getting the device identifier with the socket command
@@ -104,13 +107,39 @@ int tun_setup(char *dev, struct in_addr *addr){
         return err;
     }
     
-    //TODO: What is SIOGIFINDEX and is it needed??
+    // Reset Ifr and set the name and family
+    memset(&ifr, 0, sizeof(struct ifreq));
+    strncpy(ifr.ifr_name,dev,IFNAMSIZ);
+    ifr.ifr_addr.sa_family = AF_INET;
+
+    // Set the IP-addres
+    struct sockaddr_in *inaddr = (struct sockaddr_in *)&ifr.ifr_addr;
+    inet_aton(addr, &inaddr->sin_addr);
+    if( (err = ioctl(fd, SIOCSIFADDR, &ifr)) < 0) {
+        perror("Assigning IP");
+        return err;
+    }
+
+    //TODO: Delete the current default entry!
+
+    // Add a routing entry
+    memset(&rte, 0, sizeof(struct rtentry));
+    // Set destination to default (INADDR_ANY)
+    sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    memcpy(&rte.rt_dst, &sock_addr, sizeof(sock_addr));
+    // Mask is also default
+    memcpy(&rte.rt_genmask, &sock_addr, sizeof(sock_addr));
+    // As is the gateway
+    memcpy(&rte.rt_gateway, &sock_addr, sizeof(sock_addr));
     
-    //TODO: Setting up a bridge
+    rte.rt_metric = 15;
+    rte.rt_dev = dev;
+    rte.rt_flags = RTF_UP;
 
-    //TODO: Give an address to the bridge
-
-    //TODO: Set up default routing entry to the bridge
+    if( (err = ioctl(fd, SIOCADDRT, &rte)) < 0){
+        perror("Adding routing entry");
+        return err;
+    }
 
     return 0;
 }
