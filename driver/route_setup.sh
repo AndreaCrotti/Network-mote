@@ -4,13 +4,16 @@
 TUN="tun$1"
 ADDR="fec0::1"
 
-if [ ! $(which ip) ]
+which ip > /dev/null 2>&1
+
+if [ "$?" != "0" ]
 then
     echo "you need iproute2 to setup ipv6 routing"
     exit 1
 fi
+# take the address 
 
 # once we have an IP and a netmask we can use it as a real network interface
-ifconfig $TUN $ADDR netmask 255.255.255.0
+# ifconfig $TUN $ADDR netmask 255.255.255.0 not needed anymore
 # check if the address is correct
 ip route add default via $ADDR dev tun$1

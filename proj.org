@@ -21,7 +21,6 @@
   - [[http://www.tcpdump.org/pcap3_man.html][pcap, capture and manage packets]]
   - [[http://www.tenouk.com/Module43a.html][example on raw sockets!!]]
 
-
 * Creating TUN device to communicate
   One way is to create a rule with udev, like here:
   
@@ -45,6 +44,19 @@
   - check the routing protocols already present in tinyos evaluating what's best to do
   - try out the *IPBaseStation* and see how it's implemented
 
+* Reading from the device
+  *read* on the TUN device can read only one packet at a time, and is also blocking.
+  It's only needed to allocate a buffer with the maximum length of the IPv6 header.
+
+* Using TUN/TAP?
+  Using a tap device we would have directly the ethernet packet, while using the tun device we're one layer upper.
+  One possible advantage in using directly ethernet is that the packets can be much smaller and then we could have less problems in splitting them.
+  
+** Dimensions
+   | Proto    | Header | Payload Max |
+   |----------+--------+-------------|
+   | IPv6     |        | 65k         |
+   | ethernet |        |             |
 
 * Routing
   Routing must be done bidirectionally, in tinyos is already present *CTP*, one idea is to use it twice in both directions.

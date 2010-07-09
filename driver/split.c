@@ -20,9 +20,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
-//#include <pcap.h>
+/* #include <pcap.h> */
 
-/* #include <netinet/ip6.h> */
+#include <netinet/ip6.h>
 
 #define LEN 100
 #define N_BYTES 8
@@ -42,11 +42,11 @@ csum_type csum(unsigned short *, int);
 void print_packet(myPacket *, void (*my_print)(void *));
 myPacket **gen_packets(void *, int, int);
 void int_print(void *);
-void send(uint8_t * stream, unsigned count);
+/* void send(uint8_t * stream, unsigned count); */
 
 int num_chunks;
 
-void send(uint8_t* stream, unsigned count) {}
+/* void send(uint8_t* stream, unsigned count) {} */
 
 
 // generates all the packets given the data and the maximal carried bytes
@@ -54,6 +54,7 @@ myPacket **gen_packets(void *data, int nbytes, int mtu) {
     int i;
     int max_bytes = mtu - (sizeof(int) - sizeof(unsigned int) - sizeof(csum_type));
     // here setting it globally, very ugly
+    // TODO: don't need to allocate anything, just use the pointer
     // allocates first the array
     myPacket **packets = malloc(sizeof(myPacket *) * num_chunks);
     void **splitted = split_binary(data, nbytes, max_bytes);
@@ -105,6 +106,8 @@ csum_type csum(unsigned short *buf, int nwords) {
 void **split_binary(const void *data, int tot_size, int chunk_size) {
     // allocate enough pointers here, make sure "int" is doing the ceil!
     int i;
+    // XXX this extremly bad, because a function should never instantiate memory which is left to be freed somewhere else
+    // the buffer should be passed as pointer 
     /* void **result = malloc(sizeof(void *) * num_chunks); */
     void **result = calloc(num_chunks, chunk_size);
     printf("allocating %d times %d bytes and tot = %d\n", num_chunks, chunk_size, tot_size);
