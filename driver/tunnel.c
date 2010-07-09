@@ -120,7 +120,20 @@ int tun_setup(char *dev, char *addr){
         return err;
     }
 
-    //TODO: Delete the current default entry!
+    // Delete the current standard entry
+    memset(&rte, 0, sizeof(struct rtentry));
+    sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    sock_addr.sin_family = AF_INET;
+    sock_addr.sin_port = 0;
+    memcpy(&rte.rt_dst, &sock_addr, sizeof(sock_addr));
+    // Mask is also default
+    memcpy(&rte.rt_genmask, &sock_addr, sizeof(sock_addr));
+    // As is the gateway
+    memcpy(&rte.rt_gateway, &sock_addr, sizeof(sock_addr));
+    if( (err = ioctl(fd, SIOCDELRT, &rte)) < 0){
+        perror("Deleting routing entry");
+        return err;
+    }
 
     // Add a routing entry
     memset(&rte, 0, sizeof(struct rtentry));
