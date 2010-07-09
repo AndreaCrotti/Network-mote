@@ -5,10 +5,10 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 CFLAGS = -D_GNU_SOURCE -DPC
 FLAGS = -Wall -Wextra
 
-OBJECTS = tunnel.o split.o motecomm.o #config.o tun_dev.o routing.o
+OBJECTS = tunnel.o split.o  #config.o tun_dev.o routing.o motecomm.o
 #OBJECTS = 
 #For external libraries
-EXTERNALS = $(SF)/sfsource.o
+EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
 SRC = client.c
 
 # all: clean tuntest
@@ -31,6 +31,9 @@ routing.o: routing.c
 
 motecomm.o: motecomm.c motecomm.h motecomm.sizes.h
 	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -o motecomm.o
+
+motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
+	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -E -o motecomm.pre
 
 split.o: split.c
 	gcc -lm -c split.c -o split.o
