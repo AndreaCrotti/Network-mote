@@ -46,11 +46,12 @@ typedef struct ip6_hdr ip6_hdr;
 // TODO: is this the best way to solve this problem?
 int MAX_PAYLOAD_SIZE = MAX_CARRIED - sizeof(myPacketHeader) - sizeof(struct ip6_hdr);
 
-ipv6Packet *genIpv6Packets(void *data, int len, int seq_no);
+ipv6Packet *genIpv6Packets(void *, int, int);
 void *reconstruct(ipv6Packet *, int);
 unsigned short csum(unsigned short *, int);
 void dataToLocalhost(void *, int, int);
 ip6_hdr genIpv6Header(size_t);
+sockaddr_in6 *localhostDest(void);
 void testWithMemset(void);
 void sendToLocalhost(void *, size_t);
 void sendDataTo(void *, struct sockaddr *, size_t, int);
@@ -83,7 +84,8 @@ void testWithMemset(void) {
 }
 
 // how do I free the memory when not returning pointers?
-ip6_hdr genIpv6Header(size_t payload_len) {
+// FIXME: maybe we have to use htons whenever we add data to the network
+ip6_hdr genIpv6Header(size_t payload_clen) {
     ip6_hdr header;
     printf("payload len = %ld\n", payload_len);
     header.ip6_src = in6addr_loopback;
@@ -94,58 +96,59 @@ ip6_hdr genIpv6Header(size_t payload_len) {
     return header;
 }
 
-sockaddr_in6 localhostDest(void) {
-    sockaddr_in6 dest;
-    dest.sin6_family = AF_INET6;
+sockaddr_in6 *localhostDest(void) {
+    sockaddr_in6 *dest = malloc(sizeof(sockaddr_in6));
+    dest->sin6_family = AF_INET6;
     // manual way to set the loopback interface
-    /* for(i = 0; i < 7; i++) { */
-    /*     dest.sin6_addr.s6_addr16[i] = 0; */
-    /* } */
-    dest.sin6_addr = in6addr_loopback;
+    dest->sin6_addr = in6addr_loopback;
 
-    dest.sin6_addr.s6_addr16[7] = htons(1);
-    dest.sin6_flowinfo = 0;
-    dest.sin6_scope_id = 0;
+    dest->sin6_addr.s6_addr16[7] = htons(1);
+    dest->sin6_flowinfo = 0;
+    dest->sin6_scope_id = 0;
     /* dest.sin6_port = htons(9999); */
-    dest.sin6_port = 0;
+    dest->sin6_port = 0;
     return dest;
 }
 
 void sendDataTo(void *buffer, struct sockaddr *dest, size_t size, int raw_sock) {
     // actually sending away my data with given length
-    int result = sendto (raw_sock,
-                         &buffer,
-                         size,
-                         0,
-                         dest,
-                         sizeof (dest));
+    printf("sizeof(dest) = %d\n", sizeof(*dest));
+    // FIXME: why the hell we get this error, if getting dest from here it doesn't work
+    int result = sendto(raw_sock,
+                        &buffer,
+                        size,
+                        0,
+                        dest,
+                        // TODO: this is not generic enough
+                        sizeof(sockaddr_in6));
     if (result < 0) {
         perror("error in sending");
     } else {
-        printf("send correctly %d bytes, and size was = %ld\n", result, size);
+        // checking if sending all the data needed
+        assert(result == size);
     }
 }
 
 
 // using struct and not pointers can be more heavy but no free necessary
 void sendToLocalhost(void *buffer, size_t size) {
-    sockaddr_in6 dest = localhostDest();
+    sockaddr_in6 *dest = localhostDest();
     // send to localhost simply using a raw socket
     int raw_sock;
-    
+
     // creating a raw socket for ipv6
     if((raw_sock = socket(AF_INET6, SOCK_RAW, IPPROTO_RAW)) < 0) {
         perror("socket() error");
     }
     // This could be dangerous since we use outside a pointer to a local variable
-    sendDataTo(buffer, (struct sockaddr *) &dest, size, raw_sock);
+    sendDataTo(buffer, (struct sockaddr *) dest, size, raw_sock);
+    /* free(dest); */
 }
 
 // create some data and send it 
 void dataToLocalhost(void *data, int num_chunks, int seq_no) {
     ipv6Packet *buffer = genIpv6Packets(data, num_chunks, seq_no);
-    
-    sockaddr_in6 dest = localhostDest();
+
     // send to localhost simply using a raw socket
     int raw_sock;
     
