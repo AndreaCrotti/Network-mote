@@ -59,6 +59,8 @@ void *reconstruct(ipv6Packet *, int);
 unsigned short csum(unsigned short *, int);
 void dataToLocalhost(void *, int, int);
 ip6_hdr genIpv6Header(size_t);
+void testWithMemset(void);
+void sendToLocalhost(void *, size_t);
 
 int main(int argc, char **argv) {
     ipv6Packet v6;
@@ -73,13 +75,21 @@ int main(int argc, char **argv) {
     int num_chunks = (int)(1000 / MAX_PAYLOAD_SIZE) + 1;
     printf("total length of packet %ld\n", TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
     dataToLocalhost(arr, num_chunks, 0);
+    testWithMemset();
     return 0;
 }
 
-void testWithMemset() {
-    
+void testWithMemset(void) {
+    unsigned char *buff = calloc(MAX_CARRIED, sizeof(unsigned char));
+    ip6_hdr header = genIpv6Header(100);
+    memcpy(buff, &header, sizeof(header));
+    int *data = calloc(10, sizeof(int));
+    memset(data, 0xf, sizeof(int));
+    memcpy(buff + sizeof(header), data, sizeof(int) * 10);
+    sendToLocalhost(buff, TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
 }
 
+// how do I free the memory when not returning pointers?
 ip6_hdr genIpv6Header(size_t payload_len) {
     ip6_hdr header;
     printf("payload len = %ld\n", payload_len);
@@ -91,7 +101,7 @@ ip6_hdr genIpv6Header(size_t payload_len) {
     return header;
 }
 
-sockaddr_in6 localhostDest() {
+sockaddr_in6 localhostDest(void) {
     sockaddr_in6 dest;
     dest.sin6_family = AF_INET6;
     // manual way to set the loopback interface
@@ -100,12 +110,35 @@ sockaddr_in6 localhostDest() {
     /* } */
     dest.sin6_addr = in6addr_loopback;
 
-    dest.sin6_addr.s6_addr16[7]=htons(1);
+    dest.sin6_addr.s6_addr16[7] = htons(1);
     dest.sin6_flowinfo = 0;
     dest.sin6_scope_id = 0;
     /* dest.sin6_port = htons(9999); */
     dest.sin6_port = 0;
     return dest;
+}
+
+void sendToLocalhost(void *buffer, size_t size) {
+    sockaddr_in6 dest = localhostDest();
+    // send to localhost simply using a raw socket
+    int raw_sock;
+    
+    if((raw_sock = socket(AF_INET6, SOCK_RAW, IPPROTO_RAW)) < 0) {
+        perror("socket() error");
+    }
+
+    // actually sending away my data with given length
+    if (sendto (raw_sock,
+                &buffer,
+                size,
+                0,
+                (struct sockaddr *) &dest,
+                sizeof (dest)) < 0)  {
+        printf ("Error in send\n");
+        exit(1);
+    } else {
+        printf ("Sended everything correctly\n");
+    }
 }
 
 // create some data and send it 
@@ -130,18 +163,7 @@ void dataToLocalhost(void *data, int num_chunks, int seq_no) {
 
     int i;
     for (i = 0; i < num_chunks; i++) {
-        // actually sending away my data with given length
-        if (sendto (raw_sock,
-                    &buffer,
-                    TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE),
-                    0,
-                    (struct sockaddr *) &dest,
-                    sizeof (dest)) < 0)  {
-            printf ("Error in send\n");
-            exit(1);
-        } else {
-            printf("packet %d sent correctly, sniff it\n", i);
-        }
+        sendToLocalhost(&buffer, TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
         buffer++;
     }
 }
