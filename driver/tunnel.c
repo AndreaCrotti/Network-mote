@@ -84,7 +84,7 @@ int tun_setup(char *dev, char *addr){
     int mtu = 1280;
     
     // Getting the device identifier with the socket command
-    if( (fd = socket(PF_INET, SOCK_DGRAM, 0)) < 0){
+    if( (fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
         perror("Getting socket");
         return fd;
     }
@@ -126,6 +126,9 @@ int tun_setup(char *dev, char *addr){
     memset(&rte, 0, sizeof(struct rtentry));
     // Set destination to default (INADDR_ANY)
     sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    sock_addr.sin_family = AF_INET;
+    sock_addr.sin_port = 0;
+    
     memcpy(&rte.rt_dst, &sock_addr, sizeof(sock_addr));
     // Mask is also default
     memcpy(&rte.rt_genmask, &sock_addr, sizeof(sock_addr));
