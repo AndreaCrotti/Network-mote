@@ -132,7 +132,8 @@ int tun_setup(char *dev, char *addr){
     memcpy(&rte.rt_gateway, &sock_addr, sizeof(sock_addr));
     if( (err = ioctl(fd, SIOCDELRT, &rte)) < 0){
         perror("Deleting routing entry");
-        return err;
+        // CHANGED: should not exit when it doesn't find it
+        /* return err; */
     }
 
     // Add a routing entry
@@ -174,7 +175,7 @@ int tun_read(int fd, char *buf, int n){
     int nread;
 
     //TODO: Maybe recv is better here
-    if((nread=read(fd, buf, n)) < 0){
+    if((nread = read(fd, buf, n)) < 0){
         perror("Reading data");
         exit(1);
     }
@@ -194,7 +195,7 @@ int tun_write(int fd, char *buf, int n){
     int nwrite;
     
     //TODO: Maybe send is better here
-    if((nwrite=write(fd, buf, n)) < 0){
+    if((nwrite = write(fd, buf, n)) < 0){
         perror("Writing data");
         exit(1);
     }
