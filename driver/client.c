@@ -89,27 +89,17 @@ int main(int args, char** arg) {
     int len;
     (void)len;
 
-    while (1) {
-        // Read one Ethernet packet
-        //len = tun_read(fd, (void *)(&msg->pi), INET_MTU + sizeof(struct ip6_hdr));
-      
-        /* if (len > 0) { */
-        /*     printf("tun_read: read 0x%x bytes\n", len); */
-
-        /*     /\* if ((msg->hdr.vlfc[0] >> 4) != IPV6_VERSION) { *\/ */
-        /*     /\*     printf("tun_read: discarding non-ip packet\n"); *\/ */
-        /*     /\* } else *\/  */
-        /*     if (ntohs(msg->hdr.plen) > INET_MTU - sizeof(struct ip6_hdr)) { */
-        /*         printf("tun_input: dropping packet due to length: 0x%x\n", ntohs(msg->hdr.plen)); */
-        /*     } else if (msg->hdr.nxt_hdr == 0) { */
-        /*         printf("tun_input: dropping packet with IPv6 options\n"); */
-        /*     } */
-        /* } */
-
-        fflush(stdout);
-        usleep(100);
+    int size = 200;
+    char *buff = malloc(size);
+    while(1) {
+        memset(buff, 0, size);
+        len = tun_read(tun_fd, buff, size);
+        if (len > 0) {
+            printf("got a message of length %d\n", len);
+        } else {
+            perror("not receiving anything\n");
+        }
     }
-
     return 0;
 }
 
