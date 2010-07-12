@@ -157,10 +157,11 @@ int tun_write(int fd, struct split_ip_msg *msg)
     return write(fd, buf, sizeof(struct tun_pi) + sizeof(struct ip6_hdr) + ntohs(msg->hdr.plen));
 }
 
+// we pass the memory already allocated?
 int tun_read(int fd, char *buf, int len)
 {
     int out;
     out = read(fd, buf, sizeof(struct tun_pi) + len);
-
+    
     return out - sizeof(struct tun_pi);
 }
