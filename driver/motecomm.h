@@ -11,7 +11,12 @@
 #include "motecomm.sizes.h"
 #include "hostname.h"
 
+#ifdef _TOS_MOTECOMM
+typedef void* serial_source;
+typedef void* serial_source_msg;
+#else
 #include <serialsource.h>
+#endif
 #include <stdint.h>
 
 #define ARCHITECTURE_IDENTIFICATION ((stream_t const* const)HOSTNAME)
@@ -35,7 +40,7 @@
 #define class(NAME_T,body) \
   typedef struct NAME_T NAME_T;\
   struct NAME_T {\
-    class_t __class;\
+    class_t _class;\
     body\
   }
 
@@ -43,8 +48,8 @@
 
 typedef void (*dtor_t)(void*);
 
-#define CTOR(objPtr) __class_t__ctor((void**)&objPtr,sizeof(*objPtr))
-#define DTOR(objPtr) __class_t__dtor((void**)&objPtr)
+#define CTOR(objPtr) _class_t_ctor((void**)&objPtr,sizeof(*objPtr))
+#define DTOR(objPtr) _class_t_dtor((void**)&objPtr)
 #define SETDTOR(classPtr) (classPtr)->dtor = (dtor_t)
 
 #define virtual
@@ -54,16 +59,8 @@ typedef struct {
   void (*dtor)(void* this);
 } class_t;
 
-class_t* __class_t__ctor(void** obj, unsigned typesz);
-void __class_t__dtor(void** obj);
-
-typedef unsigned char stream_t;
-typedef unsigned int streamlen_t;
-
-typedef struct {
-  stream_t const* stream;
-  streamlen_t len;
-} payload_t;
+class_t* _class_t_ctor(void** obj, unsigned typesz);
+void _class_t_dtor(void** obj);
 
 payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* const second);
 
@@ -79,7 +76,8 @@ class (serialif_t,
   serial_source source;
   serial_source_msg msg;
   int (*send)(serialif_t* this, payload_t const payload);
-  void (*read)(serialif_t* this, payload_t** const payload);
+  void (*read)(serialif_t* this, payload_t* const payload);
+  void (*ditch)(serialif_t* this, payload_t** payload);
 );
 
 /**
@@ -108,7 +106,7 @@ class (motecomm_t,
 );
 
 // motecomm_t constructor
-motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interface);
+motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf);
 
 /****************************************************************
  *  mcp_t                                                       *
@@ -177,7 +175,7 @@ class (mccmp_t,
   void (*setHandler)(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd);
 );
 
-mccmp_t* mccmp(mccmp_t* this, mcp_t* const mcp);
+mccmp_t* mccmp(mccmp_t* this, mcp_t* const _mcp);
 
 /****************************************************************
  *  laep_t                                                      *
@@ -207,7 +205,7 @@ class (laep_t,
   void (*setHandler)(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd);
 );
 
-laep_t* laep(laep_t* this, mcp_t* const mcp);
+laep_t* laep(laep_t* this, mcp_t* const _mcp);
 
 /****************************************************************
  *  ifp_t                                                       *
@@ -228,6 +226,6 @@ class (ifp_t,
   void (*setHandler)(ifp_t* this, ifp_handler_t const hnd);
 );
 
-ifp_t* ifp(ifp_t* this, mcp_t* const mcp);
+ifp_t* ifp(ifp_t* this, mcp_t* const _mcp);
 
 #endif
