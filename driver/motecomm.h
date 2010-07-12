@@ -213,10 +213,21 @@ laep_t* laep(laep_t* this, mcp_t* const mcp);
  *  ifp_t                                                       *
  ****************************************************************/
 
-typedef struct ifp_t {
-  mcp_handler_t parent;
-} ifp_t;
+#define IFP_VERSION 1
 
-void ifp(ifp_t* this, mcp_t* const mcp);
+typedef struct ifp_handler_t {
+  void* p;
+  void (*handle)(struct ifp_handler_t* this, payload_t const payload);
+} ifp_handler_t;
+
+class (ifp_t,
+  mcp_handler_t parent;
+  mcp_t* mcp;
+  ifp_handler_t handler;
+  void (*send)(ifp_t* this, payload_t const payload);
+  void (*setHandler)(ifp_t* this, ifp_handler_t const hnd);
+);
+
+ifp_t* ifp(ifp_t* this, mcp_t* const mcp);
 
 #endif

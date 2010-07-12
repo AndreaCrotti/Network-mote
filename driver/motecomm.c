@@ -496,24 +496,83 @@ void __laep_t__receive(mcp_handler_t* that, payload_t const payload) {
   }
 }
 
-laep_t* leap(laep_t* this, mcp_t* const mcp) {
+laep_t* laep(laep_t* this, mcp_t* const mcp) {
   CTOR(this);
   this->mcp = mcp;
   this->request = __laep_t__request;
   this->setHandler = __laep_t__setHandler;
   this->parent.p = (void*)this;
   this->parent.receive = __laep_t__receive;
-  this->mcp->setHandler(this->mcp,MCP_LAEP,this->parent);
+  this->mcp->setHandler(this->mcp,MCP_IFP,this->parent);
   memset((void*)(this->handler),0,sizeof(laep_handler_t)*LAEP_HANDLER_SIZE);
   return this;
 }
 
 /**** ifp_t ****/
 
-void ifp(ifp_t* this, mcp_t* const mcp) {
+typedef union {
+  stream_t const* stream;
+  struct {
+#if NX_SWAP_NIBBLES
+    unsigned header  :IFP_HD_HEADER;
+    unsigned version :IFP_HD_VERSION;
+#else
+    unsigned version :IFP_HD_VERSION;
+    unsigned header  :IFP_HD_HEADER;
+#endif
+    unsigned payload :IFP_HD_PAYLOAD;
+  } __attribute__((__packed__))* header;
+} ifp_header_t;
+
+void __ifp_t__receive(mcp_handler_t* that, payload_t const payload) {
+  ifp_t* this = (ifp_t*)(that->p);
+  assert(payload.stream);
+  if (payload.len < IFP_HEADER_BYTES)
+    return;
+  ifp_header_t h;
+  h.stream = payload.stream;
+  if (h.header->version != IFP_VERSION) {
+    return;
+  }
+  if (h.header->header != IFP_HEADER_BYTES) {
+    return;
+  }
+  ifp_handler_t* hnd = &(this->handler);
+  if (hnd->handle) {
+    hnd->handle(hnd,(payload_t){.len = payload.len, .stream = payload.stream+IFP_HEADER_BYTES});
+  }
+}
+
+void __ifp_t__send(ifp_t* this, payload_t const payload) {
+  payload_t pl = {.len = IFP_HEADER_BYTES+payload.len, .stream = NULL};
+  pl.stream = (stream_t*)malloc(pl.len*sizeof(stream_t));
+  ifp_header_t h;
+  h.stream = pl.stream;
+  h.header->version = IFP_VERSION;
+  h.header->header = IFP_HEADER_BYTES;
+  h.header->payload = payload.len;
+  memcpy((void*)(pl.stream+IFP_HEADER_BYTES),(void*)(payload.stream),payload.len);
+  this->mcp->send(this->mcp,MCP_IFP,pl);
+  free((void*)(pl.stream));
+}
+
+void __ifp_t__setHandler(ifp_t* this, ifp_handler_t const hnd) {
+  assert(this);
+  this->handler = hnd;
+}
+
+
+ifp_t* ifp(ifp_t* this, mcp_t* const mcp) {
+  CTOR(this);
   assert(this);
   assert(mcp);
-  // TODO
+  this->mcp = mcp;
+  this->parent.p = (void*)this;
+  this->parent.receive = __ifp_t__receive;
+  this->send = __ifp_t__send;
+  this->setHandler = __ifp_t__setHandler;
+  memset((void*)&(this->handler),0,sizeof(ifp_handler_t)*1);
+  return this;
 }
 
 
