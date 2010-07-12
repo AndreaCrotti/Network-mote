@@ -334,7 +334,7 @@ typedef union {
 void __mccmp_t__receive(mcp_handler_t* that, payload_t const payload) {
   mccmp_t* this = (mccmp_t*)(that->p);
   assert(payload.stream);
-  if (payload.len < MCP_HEADER_BYTES)
+  if (payload.len < MCCMP_HEADER_BYTES)
     return;
   mccmp_header_t h;
   h.stream = payload.stream;
@@ -381,8 +381,8 @@ void __mccmp_t__send(mccmp_t* this, mccmp_problem_t const problem, unsigned char
   stream_t const* stream = &dummyPayload;
   if (payload.stream)
     stream = payload.stream;
-  stream_t* ns = malloc(MCP_HEADER_BYTES+payload.len);
-  memcpy(ns+MCP_HEADER_BYTES,stream,payload.len);
+  stream_t* ns = malloc(MCCMP_HEADER_BYTES+payload.len);
+  memcpy(ns+MCCMP_HEADER_BYTES,stream,payload.len);
   mccmp_header_t h;
   h.stream = ns;
   h.header->version = MCCMP_VERSION;
@@ -415,7 +415,7 @@ mccmp_t* mccmp(mccmp_t* this, mcp_t* const mcp) {
   this->parent.receive = __mccmp_t__receive;
   this->mcp->setHandler(this->mcp,MCP_MCCMP,this->parent);
   this->mcp->mccmp = this;
-  memset((void*)(this->handler),0,sizeof(mccmp_problem_handler_t*)*MCCMP_PROBLEM_HANDLER_SIZE);
+  memset((void*)(this->handler),0,sizeof(mccmp_problem_handler_t)*MCCMP_PROBLEM_HANDLER_SIZE);
   this->setHandler(this,MCCMP_ECHO_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = __mccmp_t__echoRequest});
   this->setHandler(this,MCCMP_IFY_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = __mccmp_t__ifyRequest});
   return this;
@@ -423,10 +423,89 @@ mccmp_t* mccmp(mccmp_t* this, mcp_t* const mcp) {
 
 /**** leap_t ****/
 
-void leap(leap_t* this, mcp_t* const mcp) {
-  assert(this);
-  assert(mcp);
-  // TODO
+typedef union {
+  stream_t const* stream;
+  struct {
+#if NX_SWAP_NIBBLES
+    unsigned header  :LAEP_HD_HEADER;
+    unsigned version :LAEP_HD_VERSION;
+    unsigned type    :LAEP_HD_TYPE;
+    unsigned ipv     :LAEP_HD_IPV;
+#else
+    unsigned version :LAEP_HD_VERSION;
+    unsigned header  :LAEP_HD_HEADER;
+    unsigned ipv     :LAEP_HD_IPV;
+    unsigned type    :LAEP_HD_TYPE;
+#endif
+    unsigned payload :LAEP_HD_PAYLOAD;
+  } __attribute__((__packed__))* header;
+} laep_header_t;
+
+void __laep_t__request(laep_t* this) {
+  payload_t payload;
+  payload.stream = malloc(LAEP_HEADER_BYTES*sizeof(stream_t));
+  payload.len = 0;
+  laep_header_t h;
+  h.stream = payload.stream;
+  h.header->version = LAEP_VERSION;
+  h.header->header = LAEP_HEADER_BYTES;
+  h.header->version = 0;
+  h.header->type = LAEP_REQUEST;
+  h.header->payload = 0;
+  this->mcp->send(this->mcp,MCP_LAEP,payload);
+  free((void*)(payload.stream));
+}
+void __laep_t__setHandler(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd) {
+  assert(msg < LAEP_HANDLER_SIZE);
+  this->handler[msg] = hnd;
+}
+void __laep_t__receive(mcp_handler_t* that, payload_t const payload) {
+  laep_t* this = (laep_t*)(that->p);
+  assert(payload.stream);
+  if (payload.len < LAEP_HEADER_BYTES)
+    return;
+  laep_header_t h;
+  h.stream = payload.stream;
+  if (h.header->version != LAEP_VERSION) {
+    return;
+  }
+  if (h.header->header != LAEP_HEADER_BYTES) {
+    return;
+  }
+  if (h.header->type >= LAEP_HANDLER_SIZE) {
+    return;
+  }
+  if (h.header->ipv != 4 && h.header->ipv != 6) {
+    return;
+  }
+  if (h.header->payload != 1 << (h.header->ipv / 2)) {
+    return;
+  }
+  if ((unsigned)(h.header->payload+LAEP_HEADER_BYTES) > payload.len) {
+    return;
+  }
+  laep_handler_t* hnd = &(this->handler[h.header->type]);
+  if (hnd->handle) {
+    la_t addr = 0;
+    unsigned i;
+    for (i = 0; i < h.header->payload; ++i) {
+      addr <<= 8;
+      addr |= payload.stream[i+LAEP_HEADER_BYTES];
+    }
+    hnd->handle(hnd,addr);
+  }
+}
+
+laep_t* leap(laep_t* this, mcp_t* const mcp) {
+  CTOR(this);
+  this->mcp = mcp;
+  this->request = __laep_t__request;
+  this->setHandler = __laep_t__setHandler;
+  this->parent.p = (void*)this;
+  this->parent.receive = __laep_t__receive;
+  this->mcp->setHandler(this->mcp,MCP_LAEP,this->parent);
+  memset((void*)(this->handler),0,sizeof(laep_handler_t)*LAEP_HANDLER_SIZE);
+  return this;
 }
 
 /**** ifp_t ****/

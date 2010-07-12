@@ -12,6 +12,7 @@
 #include "hostname.h"
 
 #include <serialsource.h>
+#include <stdint.h>
 
 #define ARCHITECTURE_IDENTIFICATION ((stream_t const* const)HOSTNAME)
 #define ARCHITECTURE_IDENTIFICATION_SIZE sizeof(ARCHITECTURE_IDENTIFICATION)
@@ -118,7 +119,7 @@ motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interface);
 typedef enum {
   MCP_NONE = 0,
   MCP_MCCMP = 1,
-  MCP_LEAP = 2,
+  MCP_LAEP = 2,
   MCP_IFP = 4
 } mcp_type_t;
 
@@ -179,14 +180,34 @@ class (mccmp_t,
 mccmp_t* mccmp(mccmp_t* this, mcp_t* const mcp);
 
 /****************************************************************
- *  leap_t                                                      *
+ *  laep_t                                                      *
  ****************************************************************/
 
-typedef struct leap_t {
-  mcp_handler_t parent;
-} leap_t;
+#define LAEP_VERSION 1
 
-void leap(leap_t* this, mcp_t* const mcp);
+typedef uint64_t la_t;
+
+typedef enum {
+  LAEP_REPLY = 0,
+  LAEP_REQUEST = 1
+} laep_msg_t;
+
+#define LAEP_HANDLER_SIZE 2
+
+typedef struct laep_handler_t {
+  void* p;
+  void (*handle)(struct laep_handler_t* this, la_t const address);
+} laep_handler_t;
+
+class (laep_t,
+  mcp_handler_t parent;
+  mcp_t* mcp;
+  laep_handler_t handler[LAEP_HANDLER_SIZE];
+  void (*request)(laep_t* this);
+  void (*setHandler)(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd);
+);
+
+laep_t* laep(laep_t* this, mcp_t* const mcp);
 
 /****************************************************************
  *  ifp_t                                                       *
