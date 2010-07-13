@@ -1,15 +1,15 @@
+#ifdef _TOS_MOTECOMM
+#define INCLUDE_SERIAL_IMPLEMENTATION 0
+#define DYNAMIC_MEMORY 0
+#define ALLOW_ASSERT 0
+#endif
+
 #include "motecomm.h"
 #include <string.h>
 #include <stdlib.h>
 
 #if STANDALONE
 #include <stdio.h>
-#endif
-
-#ifdef _TOS_MOTECOMM
-#define INCLUDE_SERIAL_IMPLEMENTATION 0
-#define DYNAMIC_MEMORY 0
-#define ALLOW_ASSERT 0
 #endif
 
 /****** copied from serialsource.c ******/

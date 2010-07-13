@@ -27,6 +27,17 @@
 // our own declarations
 #include "client.h"
 
+#include "motecomm.h"
+
+#include "glue.h"
+
+// a wrapper for mcp::receive that will be understood by the fdglue module
+void mcpReceive(fdglue_handler_t* that) {
+  mcp_t* this = (mcp_t*)(that->p);
+  this->getComm(this)->read(this->getComm(this));
+}
+
+
 int main(int args, char** arg) {
     (void)args;
     (void)arg;
@@ -95,18 +106,35 @@ int main(int args, char** arg) {
     int size = 200;
     char *buff = malloc(size);
     (void)buff;
+
+    fdglue_t fdg;
+    fdglue(&fdg);
+    char mote[] = "telosb";
+    char const* dev = arg[1];
+    serialif_t* sif = NULL;
+    mcp_t* mcp = openMcpConnection(dev,mote,&sif);
+    if (!mcp) {
+      printf("There was an error opening the connection to %s over device %s.",mote,dev);
+    }
+    fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){
+                                                  .p = mcp,
+                                                  .handle = mcpReceive},FDGHR_APPEND);
+    fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){
+                                                  .p = NULL,
+                                                  .handle = NULL},FDGHR_APPEND); //TODO
+    for (;;) {
+      fdg.listen(&fdg,3600);
+    }
+    /*
     while(1) {
-      //int watchfd_tun;
-      //int watchfd_ser;
-        /*
         memset(buff, 0, size);
         len = tun_read(tun_fd, buff, size);
         if (len > 0) {
             printf("got a message of length %d\n", len);
         } else {
             perror("not receiving anything\n");
-        }*/
-    }
+        }
+    }*/
     return 0;
 }
 
