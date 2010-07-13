@@ -11,6 +11,7 @@ import zlib
 from select import select
 import socket
 import struct
+import sys
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -28,28 +29,37 @@ EOP = "eop"
 
 max_size = 0
 
+class TunTap(object):
+    "Tun tap interface class management"
+    TUNSETIFF = 0x400454ca
+    # those values should be read in the if_tun.h directly somehow
+    IFF_TUN = 0x0001
+    IFF_TAP = 0x0002
+
+    def __init__(self, mode):
+        self.mode = mode
+
+    def tun_setup(self):
+        # creating a tun device and sending data on it
+
+        if self.mode == 'tap':
+            TUNMODE = TunTap.IFF_TAP
+            # setup the bridge
+        else:
+            TUNMODE = TunTap.IFF_TUN
+            # setup the routing stuff
+
+        self.fd = os.open("/dev/net/tun", os.O_RDWR)
+        ifs = ioctl(self.fd, TunTap.TUNSETIFF, struct.pack("16sH", "toto%d", TUNMODE))
+        ifname = ifs[:16].strip("\x00")
+        print "Allocated interface %s. Configure it and use it" % ifname
+
+    def close(self):
+        os.close(self.fd)
+
 # s = socket(AF_INET, SOCK_DGRAM)
 # s.sendto(MAGIC_WORD, peer)
 
-# setup the correct route via the created device
-def setup_device(ipaddr, mode='tun'):
-    # creating a tun device and sending data on it
-    TUNSETIFF = 0x400454ca
-    # those values should be read in the if_tun.h directly somehow
-    IFF_TUN   = 0x0001
-    IFF_TAP   = 0x0002
-
-    if mode == 'tap':
-        TUNMODE = IFF_TAP
-    else:
-        TUNMODE = IFF_TUN
-
-    fd = os.open("/dev/net/tun", os.O_RDWR)
-    ifs = ioctl(fd, TUNSETIFF, struct.pack("16sH", "toto%d", TUNMODE))
-    ifname = ifs[:16].strip("\x00")
-    print "Allocated interface %s. Configure it and use it" % ifname
-    os.popen("ifconfig %s %s netmask 255.255.255.0" % (ifname, ipaddr))
-    return fd
 
 def compress(packet, seq, dst, size=100):
     # seqno, ordnumber, checksum
@@ -141,28 +151,51 @@ def test_select():
         for x in r:
             print "reading data %s" % str(x.recv(1024))
 
-
-from string import ascii_letters
-from random import choice
-
-def rand_string(dim):
-    return "".join([choice(ascii_letters) for _ in range(dim)])
-
 def test_usb_writing():
     dev = "/dev/ttyUSB0"
     fd = os.open(dev, os.O_RDWR)
     # try to read and write from that and see what happens
 
 
-payload = rand_string(1000)
-pkts = compress(payload, 1, "::1")
-for p in pkts:
-    print p.show()
+# pkts = compress(payload, 1, "::1")
+# for p in pkts:
+#     print p.show()
 # rec = reconstruct(pkts)
 
 # print "%s --> \n%s" % (rec, payload)
 # assert(rec == payload)
 
-test_select()
 # for x in pkts:
 #     print x.show(), len(x)
+
+def usage():
+    print "usage: ./main.py <device>"
+    sys.exit(os.EX_USAGE)
+
+def main():
+    if len(sys.argv) < 2:
+        usage()
+    else:
+        device = "/dev/ttyUSB%s" % sys.argv[1]
+        t = TunTap('tap')
+        t.tun_setup()
+        mote_fd = os.open(device, os.O_RDWR)
+        try:
+            while True:
+                ro, wr, ex = select([t.fd, mote_fd], [t.fd, mote_fd], [])
+                # now we read the ethernet packets from the tap device and send
+                # them to the mote writing them out
+                if t.fd in ro:
+                    # compress and send to the serial interface
+                    pass
+                elif mote_fd in ro:
+                    # reconstruct and
+                    pass
+
+        except KeyboardInterrupt:
+            # use "with" instead if possible
+            t.close()
+            os.close(mote_fd)
+
+if __name__ == '__main__':
+    main()
