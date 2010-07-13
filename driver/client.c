@@ -37,6 +37,11 @@ void mcpReceive(fdglue_handler_t* that) {
   this->getComm(this)->read(this->getComm(this));
 }
 
+void tunReceive(fdglue_handler_t* that) {
+  void* this = that->p;
+  //call what?
+}
+
 
 int main(int args, char** arg) {
     (void)args;
