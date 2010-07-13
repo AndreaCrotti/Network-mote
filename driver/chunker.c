@@ -117,8 +117,9 @@ void dataToLocalhost(void *data, int num_chunks, int seq_no) {
  * 
  * @return 
  */
-ipv6Packet *genIpv6Packets(void *data, int data_size, int seq_no) {
+ipv6Packet *genIpv6Packets(void *data, int data_size, int seq_no, unsigned* count) {
     unsigned num_chunks = ((size + MAX_CARRIED-1/MAX_CARRIED));
+    *count = num_chunks;
 
     int ord_no;
     // check this "integer" division
@@ -145,16 +146,17 @@ ipv6Packet *genIpv6Packets(void *data, int data_size, int seq_no) {
         // should work anyway?
         buffer[ord_no].packetHeader.ord_no = ord_no;
         buffer[ord_no].payload = calloc(1, MAX_PAYLOAD_SIZE);
-
+        int copy_len;
         if(ord_no == (num_chunks - 1) && ord_no * MAX_CARRIED + MAX_CARRIED > data_size){
             int data_left = data_size - ord_no * MAX_CARRIED;
-            memcpy(buffer[ord_no].payload, data, data_left);            
-            data += data_left;
+            copy_len = data_left;
         }else{  
-            // copying the data in the actual payload
-            memcpy(buffer[ord_no].payload, data, MAX_PAYLOAD_SIZE);
-            data += MAX_PAYLOAD_SIZE;
+            copy_len = MAX_PAYLOAD_SIZE;
         }
+        buffer[ord_no].payload = malloc(copy_len);
+        memcpy(buffer[ord_no].payload, data, copy_len);
+        buffer[ord_no].plsize = copy_len;
+        data += copy_len;
     }
     return buffer;
 }

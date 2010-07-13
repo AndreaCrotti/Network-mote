@@ -21,8 +21,11 @@ typedef struct myPacketHeader myPacketHeader;
 
 // only the final ipv6 packet must be "__packed__".
 struct ipv6Packet {
-    struct ip6_hdr ip6_hdr;
-    myPacketHeader packetHeader;
+    struct ipv6PacketHeader{ 
+      struct ip6_hdr ip6_hdr;
+      myPacketHeader packetHeader;
+    } __attribute__((__packed__)) header;
+    unsigned plsize;
     void *payload;
 } __attribute__((__packed__));
 

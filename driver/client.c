@@ -47,9 +47,16 @@ void tunReceive(fdglue_handler_t* that) {
   int size = tun_read(fd,buf,ETHERNET_FRAME_SIZE);
   assert(size);
   static int seqno = 0;
-  ipv6Packet* ipv6 = genIpv6Packets(buf, size, ++seqno);
-
-  //
+  unsigned count;
+  ipv6Packet* ipv6 = genIpv6Packets(buf, size, ++seqno, &count);
+  for (;--count; ipv6++) {
+    int ssi = sizeof(struct ipv6PacketHeader);
+    int totalsize = ipv6->plsize + ssi
+    stream_t* b = malloc(totalsize);
+    memcpy(b,&(ipv6->header),ssi);
+    memcpy(b+ssi,ipv6->payload,ipv6->plsize);
+    payload_t payload = {.len = totalsize, .stream = b};
+  }
 }
 
 
@@ -136,7 +143,7 @@ int main(int args, char** arg) {
                                                   .handle = mcpReceive},FDGHR_APPEND);
     fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){
                                                   .p = &tun_fd,
-                                                  .handle = NULL},FDGHR_APPEND); //TODO
+                                                  .handle = tunReceive},FDGHR_APPEND); //TODO
     for (;;) {
       fdg.listen(&fdg,3600);
     }
