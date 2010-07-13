@@ -11,7 +11,7 @@ if [ $# -lt 3 ] ; then
     usage
     exit 0
 fi
-             
+
 set -x
 TAP=$1
 ETH=$2
@@ -38,7 +38,6 @@ function brdown {
     # hack for Arch only
     /etc/rc.d/network restart
 }
-
 
 # now we can execute our program
 brup
