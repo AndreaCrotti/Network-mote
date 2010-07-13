@@ -12,59 +12,36 @@
 #define ALLOW_ASSERT 0
 #endif
 
-#ifndef INCLUDE_SERIAL_IMPLEMENTATION
-#define INCLUDE_SERIAL_IMPLEMENTATION 1
-#endif
-
-#ifndef DYNAMIC_MEMORY
-#define DYNAMIC_MEMORY 1
-#endif
-
-#ifndef ALLOW_ASSERT
-#define ALLOW_ASSERT 1
-#endif
-
-#if ALLOW_ASSERT
-#include <assert.h>
+/****** copied from serialsource.c ******/
+typedef int bool;
+#define BUFSIZE 256
+#define MTU 256
+struct serial_source_t {
+#ifndef LOSE32
+  int fd;
 #else
-#define assert(expr) 
+  HANDLE hComm;
 #endif
+  bool non_blocking;
+  void (*message)(serial_source_msg problem);
 
-class_t* _class_t_ctor(void** obj, unsigned typesz) {
-  class_t* result = NULL;
-  assert(obj);
-  {
-    char ctorAllocd = !*obj;
-#if DYNAMIC_MEMORY
-    if (ctorAllocd)
-      *obj = malloc(typesz);
-#else
-    assert(!ctorAllocd);
-#endif
-    result = (class_t*)*obj;
-    // in a class the class_t struct is always at the first address
-    result->ctorAllocd = ctorAllocd;
-    result->dtor = NULL;
-  }
-  return result;
-}
-void _class_t_dtor(void** obj) {
-  assert(obj);
-  {
-    class_t* c = (class_t*)*obj;
-    if (c->dtor) {
-      c->dtor(*obj);
-    }
-#if DYNAMIC_MEMORY
-    if (c->ctorAllocd) {
-      free(*obj);
-      *obj = NULL;
-    }
-#else
-    assert(!(c->ctorAllocd));
-#endif
-  }
-}
+  /* Receive state */
+  struct {
+    uint8_t buffer[BUFSIZE];
+    int bufpos, bufused;
+    uint8_t packet[MTU];
+    bool in_sync, escaped;
+    int count;
+    struct packet_list *queue[256]; // indexed by protocol
+  } recv;
+  struct {
+    uint8_t seqno;
+    uint8_t *escaped;
+    int escapeptr;
+    uint16_t crc;
+  } send;
+};
+
 
 /* deprecated and not used
 payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* const second) {
@@ -95,7 +72,7 @@ mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t
   { assert(sif); }
   _sif = *sif;
 #else
-  serialif_t* _sif = sif?*sif:NULL;
+  _sif = sif?*sif:NULL;
 #endif
   _sif = serialif(_sif,dev,platform,NULL);
   if (!_sif) {
@@ -120,8 +97,14 @@ void _serialif_t_read(serialif_t* this, payload_t* const payload);
 void _serialif_t_dtor(serialif_t* this);
 void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
 void _serialif_t_ditch(serialif_t* this, payload_t** payload);
+int _serialif_t_fd(serialif_t* this);
 
 #if INCLUDE_SERIAL_IMPLEMENTATION
+
+int _serialif_t_fd(serialif_t* this) {
+  assert(this);
+  return this->source->fd;
+}
 
 void _serialif_t_ditch(serialif_t* this, payload_t** payload) {
   (void)this;
@@ -196,6 +179,7 @@ serialif_t* serialif(serialif_t* this, char const* const dev, char* const platfo
   this->send = _serialif_t_send;
   this->read = _serialif_t_read;
   this->ditch = _serialif_t_ditch;
+  this->fd = _serialif_t_fd;
   assert(this && this->send);
   _serialif_t_open(this,dev,platform,ssm);
   if (!this->source) { // there was a problem
@@ -241,7 +225,7 @@ void _motecomm_t_setHandler(motecomm_t* this, motecomm_handler_t const handler) 
 
 motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf) {
   CTOR(this);
-  assert(interf && interface->send);
+  assert(interf && interf->send);
   this->serialif = *interf; // compile time fixed size, so we can copy directly - members are copied transparently
   this->send = _motecomm_t_send;
   this->read = _motecomm_t_read;

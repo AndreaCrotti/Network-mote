@@ -36,33 +36,10 @@ typedef void* serial_source_msg;
 /****************************************************************
  *  util                                                        *
  ****************************************************************/
+#include "util.h"
 
-#define class(NAME_T,body) \
-  typedef struct NAME_T NAME_T;\
-  struct NAME_T {\
-    class_t _class;\
-    body\
-  }
 
-#define forward(NAME_T) struct NAME_T
-
-typedef void (*dtor_t)(void*);
-
-#define CTOR(objPtr) _class_t_ctor((void**)&objPtr,sizeof(*objPtr))
-#define DTOR(objPtr) _class_t_dtor((void**)&objPtr)
-#define SETDTOR(classPtr) (classPtr)->dtor = (dtor_t)
-
-#define virtual
-
-typedef struct {
-  char ctorAllocd;
-  void (*dtor)(void* this);
-} class_t;
-
-class_t* _class_t_ctor(void** obj, unsigned typesz);
-void _class_t_dtor(void** obj);
-
-payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* const second);
+//payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* const second);
 
 forward(mcp_t);
 forward(serialif_t);
@@ -78,6 +55,7 @@ class (serialif_t,
   int (*send)(serialif_t* this, payload_t const payload);
   void (*read)(serialif_t* this, payload_t* const payload);
   void (*ditch)(serialif_t* this, payload_t** payload);
+  int (*fd)(serialif_t* this);
 );
 
 /**

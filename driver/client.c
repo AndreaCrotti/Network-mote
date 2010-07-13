@@ -91,14 +91,18 @@ int main(int args, char** arg) {
 
     int size = 200;
     char *buff = malloc(size);
+    (void)buff;
     while(1) {
+      //int watchfd_tun;
+      //int watchfd_ser;
+        /*
         memset(buff, 0, size);
         len = tun_read(tun_fd, buff, size);
         if (len > 0) {
             printf("got a message of length %d\n", len);
         } else {
             perror("not receiving anything\n");
-        }
+        }*/
     }
     return 0;
 }
