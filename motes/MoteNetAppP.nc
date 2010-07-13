@@ -4,6 +4,7 @@
 
 #include "AM.h"
 #include "Serial.h"
+#include "hostname.h"
 #define _TOS_MOTECOMM // deactivate funny linux specific weirdos like malloc or calls to the serialsource lib
 #include "../driver/motecomm.h"
 
