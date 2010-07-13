@@ -114,11 +114,11 @@ void restore_gateway(int param){
  */
 int tun_setup(char *dev, char *addr){
     
-    struct ifreq ifr;
-    struct rtentry rte;
-    struct sockaddr_in sock_addr;
-    int fd, err;
-    int mtu = 1280;
+    /* struct ifreq ifr; */
+    /* struct rtentry rte; */
+    /* struct sockaddr_in sock_addr; */
+    /* int mtu = 1280; */
+    /* int fd, err; */
     
     // TODO: what do we need a socket for when we setup the device??
     // Getting the device identifier with the socket command
@@ -127,151 +127,151 @@ int tun_setup(char *dev, char *addr){
         return sock;
     }
 
-    // Prepare the ifr struct
-    memset(&ifr, 0, sizeof(struct ifreq));
-    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    /* // Prepare the ifr struct */
+    /* memset(&ifr, 0, sizeof(struct ifreq)); */
+    /* strncpy(ifr.ifr_name, dev, IFNAMSIZ); */
 
-    // Set up the interface
-    ifr.ifr_flags |= IFF_UP;
-    if( (err = ioctl(sock, SIOCSIFFLAGS, &ifr)) < 0) {
-        perror("Setting up the interface");
-        return err;
-    }
+    /* // Set up the interface */
+    /* ifr.ifr_flags |= IFF_UP; */
+    /* if( (err = ioctl(sock, SIOCSIFFLAGS, &ifr)) < 0) { */
+    /*     perror("Setting up the interface"); */
+    /*     return err; */
+    /* } */
 
-    // Assign the MTU value
-    ifr.ifr_mtu = mtu;
-    if( (err = ioctl(sock, SIOCSIFMTU, &ifr)) < 0) {
-        perror("Assigning MTU");
-        return err;
-    }
+    /* // Assign the MTU value */
+    /* ifr.ifr_mtu = mtu; */
+    /* if( (err = ioctl(sock, SIOCSIFMTU, &ifr)) < 0) { */
+    /*     perror("Assigning MTU"); */
+    /*     return err; */
+    /* } */
     
-    // Reset Ifr and set the name and family
-    memset(&ifr, 0, sizeof(struct ifreq));
-    strncpy(ifr.ifr_name,dev,IFNAMSIZ);
-    ifr.ifr_addr.sa_family = AF_INET;
+    /* // Reset Ifr and set the name and family */
+    /* memset(&ifr, 0, sizeof(struct ifreq)); */
+    /* strncpy(ifr.ifr_name,dev,IFNAMSIZ); */
+    /* ifr.ifr_addr.sa_family = AF_INET; */
 
-    // Set the IP-addres
-    struct sockaddr_in *inaddr = (struct sockaddr_in *)&ifr.ifr_addr;
-    inet_aton(addr, &inaddr->sin_addr);
-    if( (err = ioctl(sock, SIOCSIFADDR, &ifr)) < 0) {
-        perror("Assigning IP");
-        return err;
-    }
+    /* // Set the IP-addres */
+    /* struct sockaddr_in *inaddr = (struct sockaddr_in *)&ifr.ifr_addr; */
+    /* inet_aton(addr, &inaddr->sin_addr); */
+    /* if( (err = ioctl(sock, SIOCSIFADDR, &ifr)) < 0) { */
+    /*     perror("Assigning IP"); */
+    /*     return err; */
+    /* } */
 
-    //// TEMPORARY ////
-    FILE *in=popen("netstat -rn", "r");
-    char tmp[256]={0x0};
-    int i;
-    char *gw_str, *genm_str, *flag_str, *mss_str, *window_str, *irrt_str, *interface_str;
-    for(i = 0; fgets(tmp,sizeof(tmp),in)!=NULL; i++){
-        // Ignore the first two lines
-        if(i >= 2){
-            // Cut the string into tokens
-            char *dest_str = strtok(tmp, " ");
-            // Check if we got the standard gateway
-            if(strcmp(dest_str, "0.0.0.0") == 0){
-                gw_str = strtok(NULL, " ");
-                genm_str = strtok(NULL, " ");
-                flag_str = strtok(NULL, " ");
-                mss_str = strtok(NULL, " ");
-                window_str = strtok(NULL, " ");
-                irrt_str = strtok(NULL, " ");
-                interface_str = strtok(NULL, "\n");
-                // Routing table has a gateway
-                stored_gw = 1;
-            }
+    /* //// TEMPORARY //// */
+    /* FILE *in=popen("netstat -rn", "r"); */
+    /* char tmp[256]={0x0}; */
+    /* int i; */
+    /* char *gw_str, *genm_str, *flag_str, *mss_str, *window_str, *irrt_str, *interface_str; */
+    /* for(i = 0; fgets(tmp,sizeof(tmp),in)!=NULL; i++){ */
+    /*     // Ignore the first two lines */
+    /*     if(i >= 2){ */
+    /*         // Cut the string into tokens */
+    /*         char *dest_str = strtok(tmp, " "); */
+    /*         // Check if we got the standard gateway */
+    /*         if(strcmp(dest_str, "0.0.0.0") == 0){ */
+    /*             gw_str = strtok(NULL, " "); */
+    /*             genm_str = strtok(NULL, " "); */
+    /*             flag_str = strtok(NULL, " "); */
+    /*             mss_str = strtok(NULL, " "); */
+    /*             window_str = strtok(NULL, " "); */
+    /*             irrt_str = strtok(NULL, " "); */
+    /*             interface_str = strtok(NULL, "\n"); */
+    /*             // Routing table has a gateway */
+    /*             stored_gw = 1; */
+    /*         } */
             
-        }
-    }
-    pclose(in);
+    /*     } */
+    /* } */
+    /* pclose(in); */
  
-    // Store the data in the global rtentry struct
-    if(stored_gw){
-        struct in_addr p_addr;
-        memset(&p_addr, 0, sizeof(p_addr));
+    /* // Store the data in the global rtentry struct */
+    /* if(stored_gw){ */
+    /*     struct in_addr p_addr; */
+    /*     memset(&p_addr, 0, sizeof(p_addr)); */
 
-        memset(&saved_entry, 0, sizeof(saved_entry));
-        // Destination
-        sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        sock_addr.sin_family = AF_INET;
-        sock_addr.sin_port = 0;
-        memcpy(&saved_entry.rt_dst, &sock_addr, sizeof(sock_addr));
-        // Gateway
-        inet_aton(gw_str, &p_addr);
-        //inet_aton(gw_str, &sock_addr.sin_addr);
-        sock_addr.sin_addr.s_addr = htonl(p_addr.s_addr);
-        memcpy(&saved_entry.rt_gateway, &sock_addr, sizeof(sock_addr));
-        // Network Mask
-        inet_aton(genm_str, &p_addr);
-        sock_addr.sin_addr.s_addr = htonl(p_addr.s_addr);
-        memcpy(&saved_entry.rt_genmask, &sock_addr, sizeof(sock_addr));
-        // Flags ('R' is not supported yet ...) 
-        unsigned short int flags = 0;
-        if(strchr(flag_str, 'U')) flags |= RTF_UP;
-        if(strchr(flag_str, 'H')) flags |= RTF_HOST;
-        if(strchr(flag_str, 'G')) flags |= RTF_GATEWAY;
-        //if(strchr(flag_str, 'R')) flags |= RTF_REJECT;
-        if(strchr(flag_str, 'D')) flags |= RTF_DYNAMIC;
-        if(strchr(flag_str, 'M')) flags |= RTF_MODIFIED;
-        if(strchr(flag_str, '!')) flags |= RTF_REJECT;
-        saved_entry.rt_flags = htonl(flags);
-        // mss value
-        saved_entry.rt_mss = htonl(atoi(mss_str));
-        // Window
-        saved_entry.rt_window = htonl(atoi(window_str));
-        // irrt value
-        saved_entry.rt_irtt = htonl(atoi(irrt_str));
-        // interface name
-        strncpy(ifname, interface_str, 10);
-        saved_entry.rt_dev = ifname;
-    }
+    /*     memset(&saved_entry, 0, sizeof(saved_entry)); */
+    /*     // Destination */
+    /*     sock_addr.sin_addr.s_addr = htonl(INADDR_ANY); */
+    /*     sock_addr.sin_family = AF_INET; */
+    /*     sock_addr.sin_port = 0; */
+    /*     memcpy(&saved_entry.rt_dst, &sock_addr, sizeof(sock_addr)); */
+    /*     // Gateway */
+    /*     inet_aton(gw_str, &p_addr); */
+    /*     //inet_aton(gw_str, &sock_addr.sin_addr); */
+    /*     sock_addr.sin_addr.s_addr = htonl(p_addr.s_addr); */
+    /*     memcpy(&saved_entry.rt_gateway, &sock_addr, sizeof(sock_addr)); */
+    /*     // Network Mask */
+    /*     inet_aton(genm_str, &p_addr); */
+    /*     sock_addr.sin_addr.s_addr = htonl(p_addr.s_addr); */
+    /*     memcpy(&saved_entry.rt_genmask, &sock_addr, sizeof(sock_addr)); */
+    /*     // Flags ('R' is not supported yet ...)  */
+    /*     unsigned short int flags = 0; */
+    /*     if(strchr(flag_str, 'U')) flags |= RTF_UP; */
+    /*     if(strchr(flag_str, 'H')) flags |= RTF_HOST; */
+    /*     if(strchr(flag_str, 'G')) flags |= RTF_GATEWAY; */
+    /*     //if(strchr(flag_str, 'R')) flags |= RTF_REJECT; */
+    /*     if(strchr(flag_str, 'D')) flags |= RTF_DYNAMIC; */
+    /*     if(strchr(flag_str, 'M')) flags |= RTF_MODIFIED; */
+    /*     if(strchr(flag_str, '!')) flags |= RTF_REJECT; */
+    /*     saved_entry.rt_flags = htonl(flags); */
+    /*     // mss value */
+    /*     saved_entry.rt_mss = htonl(atoi(mss_str)); */
+    /*     // Window */
+    /*     saved_entry.rt_window = htonl(atoi(window_str)); */
+    /*     // irrt value */
+    /*     saved_entry.rt_irtt = htonl(atoi(irrt_str)); */
+    /*     // interface name */
+    /*     strncpy(ifname, interface_str, 10); */
+    /*     saved_entry.rt_dev = ifname; */
+    /* } */
 
   
-    // Delete the current standard entry
-    if(stored_gw){
-        memset(&rte, 0, sizeof(struct rtentry));
-        memset(&sock_addr, 0, sizeof(sock_addr));
-        // Build up the address (we want to delete the default gateway)
-        sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        sock_addr.sin_family = AF_INET;
-        sock_addr.sin_port = 0;
-        memcpy(&rte.rt_dst, &sock_addr, sizeof(sock_addr));
-        // Mask is also default
-        memcpy(&rte.rt_genmask, &sock_addr, sizeof(sock_addr));
-        // As is the gateway
-        memcpy(&rte.rt_gateway, &sock_addr, sizeof(sock_addr));
-        if( (err = ioctl(sock, SIOCDELRT, &rte)) < 0){
-            perror("Deleting routing entry");
-            return err;
-        }
-    }
+    /* // Delete the current standard entry */
+    /* if(stored_gw){ */
+    /*     memset(&rte, 0, sizeof(struct rtentry)); */
+    /*     memset(&sock_addr, 0, sizeof(sock_addr)); */
+    /*     // Build up the address (we want to delete the default gateway) */
+    /*     sock_addr.sin_addr.s_addr = htonl(INADDR_ANY); */
+    /*     sock_addr.sin_family = AF_INET; */
+    /*     sock_addr.sin_port = 0; */
+    /*     memcpy(&rte.rt_dst, &sock_addr, sizeof(sock_addr)); */
+    /*     // Mask is also default */
+    /*     memcpy(&rte.rt_genmask, &sock_addr, sizeof(sock_addr)); */
+    /*     // As is the gateway */
+    /*     memcpy(&rte.rt_gateway, &sock_addr, sizeof(sock_addr)); */
+    /*     if( (err = ioctl(sock, SIOCDELRT, &rte)) < 0){ */
+    /*         perror("Deleting routing entry"); */
+    /*         return err; */
+    /*     } */
+    /* } */
 
-    // Add a routing entry
-    memset(&rte, 0, sizeof(struct rtentry));
-    // Set destination to default (INADDR_ANY)
-    sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    sock_addr.sin_family = AF_INET;
-    sock_addr.sin_port = 0;
+    /* // Add a routing entry */
+    /* memset(&rte, 0, sizeof(struct rtentry)); */
+    /* // Set destination to default (INADDR_ANY) */
+    /* sock_addr.sin_addr.s_addr = htonl(INADDR_ANY); */
+    /* sock_addr.sin_family = AF_INET; */
+    /* sock_addr.sin_port = 0; */
     
-    memcpy(&rte.rt_dst, &sock_addr, sizeof(sock_addr));
-    // Mask is also default
-    memcpy(&rte.rt_genmask, &sock_addr, sizeof(sock_addr));
-    // As is the gateway
-    memcpy(&rte.rt_gateway, &sock_addr, sizeof(sock_addr));
+    /* memcpy(&rte.rt_dst, &sock_addr, sizeof(sock_addr)); */
+    /* // Mask is also default */
+    /* memcpy(&rte.rt_genmask, &sock_addr, sizeof(sock_addr)); */
+    /* // As is the gateway */
+    /* memcpy(&rte.rt_gateway, &sock_addr, sizeof(sock_addr)); */
     
-    rte.rt_metric = 15;
-    rte.rt_dev = dev;
-    rte.rt_flags = RTF_UP;
+    /* rte.rt_metric = 15; */
+    /* rte.rt_dev = dev; */
+    /* rte.rt_flags = RTF_UP; */
 
-    if( (err = ioctl(sock, SIOCADDRT, &rte)) < 0){
-        perror("Adding routing entry");
-        return err;
-    }
+    /* if( (err = ioctl(sock, SIOCADDRT, &rte)) < 0){ */
+    /*     perror("Adding routing entry"); */
+    /*     return err; */
+    /* } */
     
-    if(stored_gw){
-        // restore_gateway should be called if the program stops
-        signal(SIGINT, restore_gateway);
-    }
+    /* if(stored_gw){ */
+    /*     // restore_gateway should be called if the program stops */
+    /*     signal(SIGINT, restore_gateway); */
+    /* } */
 
     return 0;
 }
@@ -289,7 +289,7 @@ int tun_read(int fd, char *buf, int length){
     
     int nread;
 
-    if((nread=recv(fd, buf, length, 0)) < 0){
+    if((nread = recv(fd, buf, length, 0)) < 0){
         perror("Reading data");
         exit(1);
     }
