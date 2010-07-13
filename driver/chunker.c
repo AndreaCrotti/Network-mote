@@ -12,6 +12,7 @@
 #include <assert.h>
 
 #include "chunker.h"
+#include "motecomm.h"
 
 // TODO: is this the best way to solve this problem?
 int MAX_PAYLOAD_SIZE = MAX_CARRIED - sizeof(myPacketHeader) - sizeof(struct ip6_hdr);
@@ -26,10 +27,9 @@ void testWithMemset(void) {
     sendToLocalhost(buff, TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
 }
 
-// how do I free the memory when not returning pointers?
+
 // FIXME: maybe we have to use htons whenever we add data to the network
-ip6_hdr *genIpv6Header(size_t payload_len) {
-    ip6_hdr *header = malloc(sizeof(ip6_hdr));
+void genIpv6Header(ip6_hdr *header, size_t payload_len) {
     header->ip6_src = in6addr_loopback;
     header->ip6_dst = in6addr_loopback;
     // 16 bit file
@@ -110,6 +110,32 @@ void dataToLocalhost(void *data, int num_chunks, int seq_no) {
 }
 
 /** 
+ * Computes the needed number of chunks given a payload size.
+ * 
+ * @param data_size The payload size.
+ * 
+ * @return The number of needed chunks.
+ */
+unsigned needed_chunks(int data_size){
+    return ((size + MAX_CARRIED-1)/MAX_CARRIED);
+}
+
+/** 
+ * Splits data into a given number of chunks and stores them in packets.
+ * 
+ * @param data 
+ * @param data_size 
+ * @param packets 
+ * @param num_chunks 
+ * @param seq_no 
+ */
+unsigned char const *genIpv6Packets(unsigned char const *const data, int data_size, ipv6Packet *packets, int seq_no){
+    int ord_no;
+    
+    
+} 
+
+/** 
  * Generate an array of ipv6Packet ready to send over the network
  * 
  * @param data data to split and encapsulate in chunks
@@ -128,10 +154,10 @@ ipv6Packet *genIpv6Packets(void *data, int data_size, int seq_no, unsigned* coun
     ipv6Packet *buffer = calloc(num_chunks, sizeof(ipv6Packet));
     // copy this every time we need a new one
     ipv6Packet original;
-    ip6_hdr *header = genIpv6Header(sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE);
+    ip6_hdr *header = genIpv6Header(sizeof(myPacketHeader) + MAX_CARRIED);
     memcpy(&(original.ip6_hdr), header, sizeof(ip6_hdr));
     // check that the payload length is set correctly
-    printf("%d instead of %d\n", original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen, (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
+    printf("%d instead of %d\n", original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen, (sizeof(myPacketHeader) + MAX_CARRIED));
     /* assert(original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE)); */
     // set up some common fields
     myPacketHeader pkt_header = original.packetHeader;
@@ -142,16 +168,15 @@ ipv6Packet *genIpv6Packets(void *data, int data_size, int seq_no, unsigned* coun
     for (ord_no = 0; ord_no < num_chunks; ord_no++) {
         // simply copying by value the original packet
         buffer[ord_no] = original;
-        assert(buffer[ord_no].ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
+        assert(buffer[ord_no].ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_CARRIED));
         // should work anyway?
         buffer[ord_no].packetHeader.ord_no = ord_no;
-        buffer[ord_no].payload = calloc(1, MAX_PAYLOAD_SIZE);
         int copy_len;
         if(ord_no == (num_chunks - 1) && ord_no * MAX_CARRIED + MAX_CARRIED > data_size){
             int data_left = data_size - ord_no * MAX_CARRIED;
             copy_len = data_left;
         }else{  
-            copy_len = MAX_PAYLOAD_SIZE;
+            copy_len = MAX_CARRIED;
         }
         buffer[ord_no].payload = malloc(copy_len);
         memcpy(buffer[ord_no].payload, data, copy_len);
