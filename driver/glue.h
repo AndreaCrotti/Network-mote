@@ -9,10 +9,20 @@ typedef struct fdglue_handler_t {
 } fdglue_handler_t;
 
 typedef enum {
-  FDGHT_READ,
-  FDGHT_WRITE,
-  FDGHT_ERROR
+  FDGHT_READ = 0,
+  FDGHT_WRITE = 1,
+  FDGHT_ERROR = 2
 } fdglue_handle_type_t;
+
+#define FDGHT_SIZE 3
+
+typedef enum {
+  FDGHR_REPLACE = 0,
+  FDGHR_APPEND = 1,
+  FDGHR_REMOVE = 2
+} fdglue_handler_replace_t;
+
+#define FDGHR_SIZE 3
 
 class (fdglue_t,
   struct fdglue_handlerlist_t {
