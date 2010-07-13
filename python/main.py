@@ -10,6 +10,7 @@ import os
 import zlib
 from select import select
 import socket
+import struct
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -46,16 +47,44 @@ def setup_device(ipaddr, mode='tun'):
     os.popen("ifconfig %s %s netmask 255.255.255.0" % (ifname, ipaddr))
     return fd
 
-def compress(packet, dst, size=100):
-    # conf.route6.add
+def compress(packet, seq, dst, size=100):
+    # seqno, ordnumber, checksum
+    header = "!hHL"
+    # add the needed fields
+    print "we need %d bytes for the added info" % struct.calcsize(header)
     # maybe we can also sniff instead of reading on the device
-    compressed = zlib.compress(str(packet), 9)
-    # should also setup the source and other fields
+    # compressed = zlib.compress(packet)
+    compressed = packet
+    max_size = size - (struct.calcsize(header) + len(IPv6()))
+    print "max size for the payload = %d" % max_size
+    inner = lambda s, ord, chk: struct.pack(header + "s", seq, ord, chk, s)
     # get the slicing
-    splits = [compressed[x:x+size] for x in range(0, len(compressed), size)]
+    splits = []
+    count = 0
+    for x in range(0, len(compressed), max_size):
+        splits.append(inner(compressed[x:x+max_size], count, 0))
+        count += 1
+
+    print "returning %d packets" % len(splits)
     return [IPv6(dst=dst) / x for x in splits]
 
-payload = "very long message" * 100
+def reconstruct(packets):
+    "Reconstruct the original data from the compressed packets"
+    restored = [struct.unpack("!hHLs", str(p.payload)) for p in packets]
+    # grouping by sequential number and sorting by ord number after
+    data = ""
+    for v in sorted(restored, key=lambda x: x[1]):
+        print v
+        data += v[3]
+    # now we can finally uncompress the data
+    # orig = zlib.decompress(data)
+    return data
+
+from collections import namedtuple
+    
+def test_compress():
+    p = sniff(count=10)
+    # print compress(str(p), "::1")
 
 # proof of concept, create 2 virtual device, and start some multiprocessing magic with them
 def proof():
@@ -83,4 +112,17 @@ def proof():
         for d in devs:
             print "closing %d" % d
             os.close(d)
-proof()
+
+from string import ascii_letters
+from random import choice
+
+def rand_string(dim):
+    return "".join([choice(ascii_letters) for _ in range(dim)])
+
+
+payload = rand_string(1000)
+pkts = compress(payload, 1, "::1")
+
+assert(reconstruct(pkts) == payload)
+# for x in pkts:
+#     print x.show(), len(x)
