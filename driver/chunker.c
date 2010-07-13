@@ -148,11 +148,11 @@ ipv6Packet *genIpv6Packets(void *data, int data_size, int seq_no) {
         buffer[ord_no].packetHeader.ord_no = ord_no;
         buffer[ord_no].payload = calloc(1, MAX_PAYLOAD_SIZE);
 
-        if(ord_no == (num_chunks - 1) && ord_no * MAX_CARRIED + MAX_CARRIED > data_size){
+        if (ord_no == (num_chunks - 1) && ord_no * MAX_CARRIED + MAX_CARRIED > data_size) {
             int data_left = data_size - ord_no * MAX_CARRIED;
             memcpy(buffer[ord_no].payload, data, data_left);            
             data += data_left;
-        }else{  
+        } else { 
             // copying the data in the actual payload
             memcpy(buffer[ord_no].payload, data, MAX_PAYLOAD_SIZE);
             data += MAX_PAYLOAD_SIZE;
