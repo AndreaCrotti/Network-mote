@@ -4,6 +4,8 @@
 
 #include "AM.h"
 #include "Serial.h"
+#define _TOS_MOTECOMM // deactivate funny linux specific weirdos like malloc or calls to the serialsource lib
+#include "../driver/motecomm.h"
 
 module MoteNetAppP{
     uses{
@@ -38,6 +40,9 @@ module MoteNetAppP{
     }
 }
 implementation{
+#define __TOS_MOTECOMM // deactivate funny linux specific weirdos like malloc or calls to the serialsource lib
+#include "../driver/motecomm.c" // ! watch out, the c code is actually pasted here
+
     message_t packet;
 
     event void Boot.booted() {
