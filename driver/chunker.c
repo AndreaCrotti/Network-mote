@@ -114,11 +114,13 @@ void dataToLocalhost(void *data, int num_chunks, int seq_no) {
  * Generate an array of ipv6Packet ready to send over the network
  * 
  * @param data data to split and encapsulate in chunks
- * @param num_chunks number of chunks in which to split
+ * @param data_size size of the payload to send.
  * 
  * @return 
  */
-ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
+ipv6Packet *genIpv6Packets(void *data, int data_size, int seq_no) {
+    unsigned num_chunks = ((size + MAX_CARRIED-1/MAX_CARRIED));
+
     int ord_no;
     // check this "integer" division
     // generating an array of ipv6Packet of the correct length
@@ -135,7 +137,7 @@ ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
     pkt_header.seq_no = seq_no;
     // setup here the ipv6 fields
 
-    // only the payload and the ord_no are changing
+                            
     for (ord_no = 0; ord_no < num_chunks; ord_no++) {
         // simply copying by value the original packet
         buffer[ord_no] = original;
@@ -144,9 +146,16 @@ ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
         printf("copied the memory correctly, ord_no = %d\n", ord_no);
         buffer[ord_no].packetHeader.ord_no = ord_no;
         buffer[ord_no].payload = calloc(1, MAX_PAYLOAD_SIZE);
-        // copying the data in the actual payload
-        memcpy(buffer[ord_no].payload, data, MAX_PAYLOAD_SIZE);
-        data += MAX_PAYLOAD_SIZE;
+
+        if(ord_no == (num_chunks - 1) && ord_no * MAX_CARRIED + MAX_CARRIED > data_size){
+            int data_left = data_size - ord_no * MAX_CARRIED;
+            memcpy(buffer[ord_no].payload, data, data_left);            
+            data += data_left;
+        }else{  
+            // copying the data in the actual payload
+            memcpy(buffer[ord_no].payload, data, MAX_PAYLOAD_SIZE);
+            data += MAX_PAYLOAD_SIZE;
+        }
     }
     return buffer;
 }
