@@ -23,6 +23,10 @@ else:
 
 from tinyos.tossim.TossimApp import NescApp
 
+# payload for the end of packet
+EOP = "eop"
+
+max_size = 0
 
 # s = socket(AF_INET, SOCK_DGRAM)
 # s.sendto(MAGIC_WORD, peer)
@@ -55,6 +59,7 @@ def compress(packet, seq, dst, size=100):
     # maybe we can also sniff instead of reading on the device
     # compressed = zlib.compress(packet)
     compressed = packet
+    global max_size
     max_size = size - (struct.calcsize(header) + len(IPv6()))
     print "max size for the payload = %d" % max_size
     inner = lambda s, ord, chk: struct.pack(header + "s", seq, ord, chk, s)
@@ -70,7 +75,8 @@ def compress(packet, seq, dst, size=100):
 
 def reconstruct(packets):
     "Reconstruct the original data from the compressed packets"
-    restored = [struct.unpack("!hHLs", str(p.payload)) for p in packets]
+    print "len = %d" % len(packets[0].payload)
+    restored = [struct.unpack("!hHL%ds" % max_size,  p.payload) for p in packets]
     # grouping by sequential number and sorting by ord number after
     data = ""
     for v in sorted(restored, key=lambda x: x[1]):
@@ -122,7 +128,12 @@ def rand_string(dim):
 
 payload = rand_string(1000)
 pkts = compress(payload, 1, "::1")
+for p in pkts:
+    print p.show()
+rec = reconstruct(pkts)
 
-assert(reconstruct(pkts) == payload)
+print "%s --> \n%s" % (rec, payload)
+assert(rec == payload)
+
 # for x in pkts:
 #     print x.show(), len(x)
