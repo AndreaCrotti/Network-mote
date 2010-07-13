@@ -1,5 +1,6 @@
 /**
  * Macro to see if we're working on OSX is __APPLE__
+ * TODO: when we have a TAP device it doesn't make sense to create 
  */
 
 // Includes
@@ -48,6 +49,8 @@ int main(int args, char** arg) {
 
     // The IP address
     char *ip_address_str = "10.0.0.1";
+
+    // TODO: here we only need to open the device FD and pass it to motecomm program
 
     // Open serial
     /* int ser_src = open_serial_source(argv[optind], platform_baud_rate(argv[optind + 1]), */
