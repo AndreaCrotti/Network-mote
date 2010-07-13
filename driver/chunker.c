@@ -33,7 +33,7 @@ ip6_hdr *genIpv6Header(size_t payload_len) {
     header->ip6_src = in6addr_loopback;
     header->ip6_dst = in6addr_loopback;
     // 16 bit file
-    header->ip6_ctlun.ip6_un1.ip6_un1_plen = payload_len;
+    header->ip6_ctlun.ip6_un1.ip6_un1_plen = htons(payload_len);
     printf("payload len = %x, after htons %x\n", payload_len, htons(payload_len));
     header->ip6_ctlun.ip6_un2_vfc = 6;
     /* header->ip6_src = 0; */
@@ -103,6 +103,7 @@ void dataToLocalhost(void *data, int num_chunks, int seq_no) {
 
     int i;
     for (i = 0; i < num_chunks; i++) {
+        printf("sending packet number %d\n", i);
         sendToLocalhost(&buffer, TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
         buffer++;
     }
@@ -112,14 +113,17 @@ void dataToLocalhost(void *data, int num_chunks, int seq_no) {
  * Generate an array of ipv6Packet ready to send over the network
  * 
  * @param data data to split and encapsulate in chunks
- * @param num_chunks number of chunks in which to split
+ * @param data_size size of the payload to send.
  * 
  * @return 
  */
-ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
+ipv6Packet *genIpv6Packets(void *data, int data_size, int seq_no) {
+    unsigned num_chunks = ((size + MAX_CARRIED-1/MAX_CARRIED));
+
     int ord_no;
     // check this "integer" division
     // generating an array of ipv6Packet of the correct length
+    // TODO: check if this size is actually correct
     ipv6Packet *buffer = calloc(num_chunks, sizeof(ipv6Packet));
     // copy this every time we need a new one
     ipv6Packet original;
@@ -127,24 +131,30 @@ ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
     memcpy(&(original.ip6_hdr), header, sizeof(ip6_hdr));
     // check that the payload length is set correctly
     printf("%d instead of %d\n", original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen, (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
-    assert(original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
+    /* assert(original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE)); */
     // set up some common fields
     myPacketHeader pkt_header = original.packetHeader;
     pkt_header.seq_no = seq_no;
     // setup here the ipv6 fields
 
-    // only the payload and the ord_no are changing
+                            
     for (ord_no = 0; ord_no < num_chunks; ord_no++) {
         // simply copying by value the original packet
         buffer[ord_no] = original;
         assert(buffer[ord_no].ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
         // should work anyway?
-        printf("copied the memory correctly, ord_no = %d\n", ord_no);
         buffer[ord_no].packetHeader.ord_no = ord_no;
         buffer[ord_no].payload = calloc(1, MAX_PAYLOAD_SIZE);
-        // copying the data in the actual payload
-        memcpy(buffer[ord_no].payload, data, MAX_PAYLOAD_SIZE);
-        data += MAX_PAYLOAD_SIZE;
+
+        if(ord_no == (num_chunks - 1) && ord_no * MAX_CARRIED + MAX_CARRIED > data_size){
+            int data_left = data_size - ord_no * MAX_CARRIED;
+            memcpy(buffer[ord_no].payload, data, data_left);            
+            data += data_left;
+        }else{  
+            // copying the data in the actual payload
+            memcpy(buffer[ord_no].payload, data, MAX_PAYLOAD_SIZE);
+            data += MAX_PAYLOAD_SIZE;
+        }
     }
     return buffer;
 }

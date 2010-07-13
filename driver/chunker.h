@@ -3,8 +3,9 @@
 
 // measures in bytes
 #define SIZE_IPV6_HEADER 40
-#define MAX_CARRIED 127
+#define MAX_CARRIED 128
 #define TOT_PACKET_SIZE(payload_len) (sizeof(ip6_hdr) + sizeof(myPacketHeader) + payload_len)
+#define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet)))
 
 typedef struct in6_addr in6_src;
 typedef struct in6_addr in6_dst;
@@ -31,8 +32,23 @@ typedef struct ipv6Packet ipv6Packet;
 typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct ip6_hdr ip6_hdr;
 
+/** 
+ * Generates an array of ipv6Packet
+ * 
+ * @param void * pointer to the data
+ * @param int number of chunks (must be computed externally)
+ * @param int sequential number of this packet
+ * 
+ * @return 
+ */
 ipv6Packet *genIpv6Packets(void *, int, int);
 
+/** 
+ * Reconstruct the stream of data given the ipv6 packets
+ * 
+ * 
+ * @return 
+ */
 void *reconstruct(ipv6Packet *, int);
 
 unsigned short csum(unsigned short *, int);
