@@ -118,6 +118,7 @@ int tun_setup(char *dev, char *addr){
     struct rtentry rte;
     struct sockaddr_in sock_addr;
     int fd, err;
+    (void)fd;
     int mtu = 1280;
     
     // TODO: what do we need a socket for when we setup the device??
