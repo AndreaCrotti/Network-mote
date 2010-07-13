@@ -63,6 +63,7 @@ if MODE == 0:
 
 
 f = os.open("/dev/net/tun", os.O_RDWR)
+# what the second line is supposed to do??
 ifs = ioctl(f, TUNSETIFF, struct.pack("16sH", "toto%d", TUNMODE))
 ifname = ifs[:16].strip("\x00")
 

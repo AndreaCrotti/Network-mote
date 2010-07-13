@@ -2,6 +2,7 @@
 """
 Take some data, send it to the device
 TODO: make the compression an option which could be also disabled
+TODO: setup a nice logger
 """
 
 from scapy.all import *
@@ -12,6 +13,8 @@ from select import select
 import socket
 import struct
 import sys
+import logging
+import subprocess
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -36,10 +39,11 @@ class TunTap(object):
     IFF_TUN = 0x0001
     IFF_TAP = 0x0002
 
-    def __init__(self, mode):
+    def __init__(self, mode, max_size):
         self.mode = mode
+        self.max_size = max_size
 
-    def tun_setup(self):
+    def setup(self):
         # creating a tun device and sending data on it
 
         if self.mode == 'tap':
@@ -50,15 +54,29 @@ class TunTap(object):
             # setup the routing stuff
 
         self.fd = os.open("/dev/net/tun", os.O_RDWR)
-        ifs = ioctl(self.fd, TunTap.TUNSETIFF, struct.pack("16sH", "toto%d", TUNMODE))
+        ifs = ioctl(self.fd, TunTap.TUNSETIFF, struct.pack("16sH", "tap%d", TUNMODE))
         ifname = ifs[:16].strip("\x00")
         print "Allocated interface %s. Configure it and use it" % ifname
 
     def close(self):
         os.close(self.fd)
 
+    def read(self):
+        return os.read(self.fd, self.max_size)
+
+    def write(self, data):
+        assert(len(data) < self.max_size)
+        os.write(self.fd, data)
+
+    # TODO: see if implementing fileno could be useful
+
 # s = socket(AF_INET, SOCK_DGRAM)
 # s.sendto(MAGIC_WORD, peer)
+
+class Splitter(object):
+    """ Class used for splitting our data """
+    def __init__(self, compression=True):
+        pass
 
 
 def compress(packet, seq, dst, size=100):
@@ -97,7 +115,7 @@ def reconstruct(packets):
     return data
 
 from collections import namedtuple
-    
+
 def test_compress():
     p = sniff(count=10)
     # print compress(str(p), "::1")
@@ -168,6 +186,19 @@ def test_usb_writing():
 # for x in pkts:
 #     print x.show(), len(x)
 
+# rewrite this using only scapy
+def test_mtu_speed():
+    t = TunTap('tap', 1024)
+    t.setup()
+    addr = "10.0.1.1"
+    subprocess.Popen("/sbin/ifconfig tap0 %s" % addr, shell=True)
+    for mtu in range(50, 1000, 100):
+        print "\n\nfor mtu %d we have ping" % mtu
+        subprocess.Popen("ifconfig tap0 mtu %d" % mtu, shell=True)
+        os.popen("/sbin/ifconfig tap0 mtu %d" % mtu).read()
+        # then ping and see how fast it is
+        subprocess.Popen("ping -p ff -c 5 %s" % addr, shell=True)
+
 def usage():
     print "usage: ./main.py <device>"
     sys.exit(os.EX_USAGE)
@@ -178,7 +209,7 @@ def main():
     else:
         device = "/dev/ttyUSB%s" % sys.argv[1]
         t = TunTap('tap')
-        t.tun_setup()
+        t.setup()
         mote_fd = os.open(device, os.O_RDWR)
         try:
             while True:
@@ -189,8 +220,8 @@ def main():
                     # compress and send to the serial interface
                     pass
                 elif mote_fd in ro:
-                    # reconstruct and
-                    pass
+                    # reconstruct the packet
+                    pass_
 
         except KeyboardInterrupt:
             # use "with" instead if possible
@@ -198,4 +229,4 @@ def main():
             os.close(mote_fd)
 
 if __name__ == '__main__':
-    main()
+    test_mtu_speed()

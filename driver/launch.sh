@@ -3,7 +3,7 @@
 # there could be some options
 
 function usage {
-    echo "./launch <tap device> <eth device> <local address>"
+    echo "./launch <tap device> <eth device> <local address> <mtu>"
     exit 1
 }
 
@@ -12,22 +12,21 @@ if [ $# -lt 3 ] ; then
     exit 0
 fi
 
-set -x
 TAP=$1
 ETH=$2
 ADDR=$3
+MTU=$4
 
 function brup {
     "setting up the bridge"
     brctl addbr $TAP
     brctl addif $TAP $ETH
     ifconfig $ETH down
-    ifconfig $TAP $ADDR
+    ifconfig $TAP $ADDR mtu $MTU
 }
 
 # FIXME: still some problems with setting up the metric
 function brdown {
-# TODO: do we need to trap C-c at this level?
 # and now we can undo all the settings
     echo "unsetting the bridge"
     ifconfig $TAP down
@@ -39,6 +38,7 @@ function brdown {
     /etc/rc.d/network restart
 }
 
+set -x
 # now we can execute our program
 brup
 # when we quit with C-c it will clean automatically
