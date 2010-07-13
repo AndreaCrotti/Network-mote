@@ -134,5 +134,5 @@ Every exchanged packet has the header containing the following fields
                                    indicating an ill formatted packet.
         -  8 bits: payload length: The length of the IPv6 packet.
         A payload of 0 to 2^8-1 bytes is allowed. The payload should not
-        exceed 2^7 Payloads of 2^7+1 byte or more may be dropped. Dropped
+        exceed 2^7. Payloads of 2^7+1 byte or more may be dropped. Dropped
         packets must be handled as an error, issuing an MCCMP packet.

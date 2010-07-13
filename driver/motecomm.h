@@ -11,13 +11,26 @@
 #include "motecomm.sizes.h"
 #include "hostname.h"
 
+#ifdef _TOS_MOTECOMM
+typedef void* serial_source;
+typedef void* serial_source_msg;
+#else
 #include <serialsource.h>
+#endif
+#include <stdint.h>
 
 #define ARCHITECTURE_IDENTIFICATION ((stream_t const* const)HOSTNAME)
 #define ARCHITECTURE_IDENTIFICATION_SIZE sizeof(ARCHITECTURE_IDENTIFICATION)
 
+// for a not completely understood reason, nibbles in bitfields are interpreted
+// the wrong way around, hence, 15 is converted to 5,1 which is obviously not what we want.
+// However: if your architecture does it differently, pass it so as compile flag.
+#ifndef NX_SWAP_NIBBLES
+#define NX_SWAP_NIBBLES 1
+#endif
+
 #ifndef READ_NON_BLOCKING
-#define READ_NON_BLOCKING 1
+#define READ_NON_BLOCKING 0
 #endif
 
 /****************************************************************
@@ -27,7 +40,7 @@
 #define class(NAME_T,body) \
   typedef struct NAME_T NAME_T;\
   struct NAME_T {\
-    class_t __class;\
+    class_t _class;\
     body\
   }
 
@@ -35,8 +48,8 @@
 
 typedef void (*dtor_t)(void*);
 
-#define CTOR(objPtr) __class_t__ctor((void**)&objPtr,sizeof(*objPtr))
-#define DTOR(objPtr) __class_t__dtor((void**)&objPtr)
+#define CTOR(objPtr) _class_t_ctor((void**)&objPtr,sizeof(*objPtr))
+#define DTOR(objPtr) _class_t_dtor((void**)&objPtr)
 #define SETDTOR(classPtr) (classPtr)->dtor = (dtor_t)
 
 #define virtual
@@ -46,19 +59,14 @@ typedef struct {
   void (*dtor)(void* this);
 } class_t;
 
-class_t* __class_t__ctor(void** obj, unsigned typesz);
-void __class_t__dtor(void** obj);
-
-typedef unsigned char stream_t;
-typedef unsigned int streamlen_t;
-
-typedef struct {
-  stream_t const* stream;
-  streamlen_t len;
-} payload_t;
+class_t* _class_t_ctor(void** obj, unsigned typesz);
+void _class_t_dtor(void** obj);
 
 payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* const second);
 
+forward(mcp_t);
+forward(serialif_t);
+forward(mcp_t)* openMcpConnection(char const* const dev, char* const platform, forward(serialif_t)** sif);
 
 /****************************************************************
  *  serialif_t                                                  *
@@ -68,7 +76,8 @@ class (serialif_t,
   serial_source source;
   serial_source_msg msg;
   int (*send)(serialif_t* this, payload_t const payload);
-  void (*read)(serialif_t* this, payload_t** const payload);
+  void (*read)(serialif_t* this, payload_t* const payload);
+  void (*ditch)(serialif_t* this, payload_t** payload);
 );
 
 /**
@@ -97,7 +106,7 @@ class (motecomm_t,
 );
 
 // motecomm_t constructor
-motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interface);
+motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf);
 
 /****************************************************************
  *  mcp_t                                                       *
@@ -108,7 +117,7 @@ motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interface);
 typedef enum {
   MCP_NONE = 0,
   MCP_MCCMP = 1,
-  MCP_LEAP = 2,
+  MCP_LAEP = 2,
   MCP_IFP = 4
 } mcp_type_t;
 
@@ -128,6 +137,7 @@ class (mcp_t,
   mcp_handler_t handler[MCP_TYPE_SIZE];
   void (*setHandler)(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd);
   void (*send)(mcp_t* this, mcp_type_t const type, payload_t const payload);
+  motecomm_t* (*getComm)(mcp_t* this);
 );
 
 // mcp_t constructor
@@ -165,26 +175,57 @@ class (mccmp_t,
   void (*setHandler)(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd);
 );
 
-mccmp_t* mccmp(mccmp_t* this, mcp_t* const mcp);
+mccmp_t* mccmp(mccmp_t* this, mcp_t* const _mcp);
 
 /****************************************************************
- *  leap_t                                                      *
+ *  laep_t                                                      *
  ****************************************************************/
 
-typedef struct leap_t {
-  mcp_handler_t parent;
-} leap_t;
+#define LAEP_VERSION 1
 
-void leap(leap_t* this, mcp_t* const mcp);
+typedef uint64_t la_t;
+
+typedef enum {
+  LAEP_REPLY = 0,
+  LAEP_REQUEST = 1
+} laep_msg_t;
+
+#define LAEP_HANDLER_SIZE 2
+
+typedef struct laep_handler_t {
+  void* p;
+  void (*handle)(struct laep_handler_t* this, la_t const address);
+} laep_handler_t;
+
+class (laep_t,
+  mcp_handler_t parent;
+  mcp_t* mcp;
+  laep_handler_t handler[LAEP_HANDLER_SIZE];
+  void (*request)(laep_t* this);
+  void (*setHandler)(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd);
+);
+
+laep_t* laep(laep_t* this, mcp_t* const _mcp);
 
 /****************************************************************
  *  ifp_t                                                       *
  ****************************************************************/
 
-typedef struct ifp_t {
-  mcp_handler_t parent;
-} ifp_t;
+#define IFP_VERSION 1
 
-void ifp(ifp_t* this, mcp_t* const mcp);
+typedef struct ifp_handler_t {
+  void* p;
+  void (*handle)(struct ifp_handler_t* this, payload_t const payload);
+} ifp_handler_t;
+
+class (ifp_t,
+  mcp_handler_t parent;
+  mcp_t* mcp;
+  ifp_handler_t handler;
+  void (*send)(ifp_t* this, payload_t const payload);
+  void (*setHandler)(ifp_t* this, ifp_handler_t const hnd);
+);
+
+ifp_t* ifp(ifp_t* this, mcp_t* const _mcp);
 
 #endif

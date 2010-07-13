@@ -1,11 +1,13 @@
 BLIP = $(TOSROOT)/support/sdk/c/blip
 SF = $(TOSROOT)/support/sdk/c/sf
+6LOWPANCARRIED = 128
 
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
-CFLAGS = -D_GNU_SOURCE -DPC
+# this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
+CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(6LOWPANCARRIED)
 FLAGS = -Wall -Wextra
 
-OBJECTS = tunnel.o split.o  #config.o tun_dev.o routing.o motecomm.o
+OBJECTS = tunnel.o split.o motecomm.o #config.o tun_dev.o routing.o 
 #OBJECTS = 
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
@@ -31,6 +33,9 @@ routing.o: routing.c
 
 motecomm.o: motecomm.c motecomm.h motecomm.sizes.h
 	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -o motecomm.o
+
+motecomm: motecomm.c motecomm.h motecomm.sizes.h
+	gcc $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) $(CFLAGS) $(INCLUDE) -ggdb -O0 -o motecomm
 
 motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -E -o motecomm.pre

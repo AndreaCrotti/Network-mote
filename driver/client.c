@@ -1,5 +1,6 @@
 /**
  * Macro to see if we're working on OSX is __APPLE__
+ * TODO: when we have a TAP device it doesn't make sense to create 
  */
 
 // Includes
@@ -49,6 +50,8 @@ int main(int args, char** arg) {
     // The IP address
     char *ip_address_str = "10.0.0.1";
 
+    // TODO: here we only need to open the device FD and pass it to motecomm program
+
     // Open serial
     /* int ser_src = open_serial_source(argv[optind], platform_baud_rate(argv[optind + 1]), */
     /*                              1, stderr_msg); */
@@ -88,28 +91,18 @@ int main(int args, char** arg) {
     /* struct split_ip_msg *msg = (struct split_ip_msg *)buf; */
     int len;
     (void)len;
-    
-    while (1) {
-        // Read one Ethernet packet
-        //len = tun_read(fd, (void *)(&msg->pi), INET_MTU + sizeof(struct ip6_hdr));
-      
-        /* if (len > 0) { */
-        /*     printf("tun_read: read 0x%x bytes\n", len); */
 
-        /*     /\* if ((msg->hdr.vlfc[0] >> 4) != IPV6_VERSION) { *\/ */
-        /*     /\*     printf("tun_read: discarding non-ip packet\n"); *\/ */
-        /*     /\* } else *\/  */
-        /*     if (ntohs(msg->hdr.plen) > INET_MTU - sizeof(struct ip6_hdr)) { */
-        /*         printf("tun_input: dropping packet due to length: 0x%x\n", ntohs(msg->hdr.plen)); */
-        /*     } else if (msg->hdr.nxt_hdr == 0) { */
-        /*         printf("tun_input: dropping packet with IPv6 options\n"); */
-        /*     } */
-        /* } */
-
-        fflush(stdout);
-        usleep(100);
+    int size = 200;
+    char *buff = malloc(size);
+    while(1) {
+        memset(buff, 0, size);
+        len = tun_read(tun_fd, buff, size);
+        if (len > 0) {
+            printf("got a message of length %d\n", len);
+        } else {
+            perror("not receiving anything\n");
+        }
     }
-
     return 0;
 }
 

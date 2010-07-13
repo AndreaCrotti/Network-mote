@@ -58,6 +58,9 @@
    | IPv6     |        | 65k         |
    | ethernet |        |             |
 
+* IPv6
+  - [[http://www.cisco.com/web/about/ac123/ac147/archived_issues/ipj_7-2/ipv6_autoconfig.html][ipv6 autoconfig]], ipv6 can setup automatically unicast addresses
+
 * Routing
   Routing must be done bidirectionally, in tinyos is already present *CTP*, one idea is to use it twice in both directions.
 
@@ -116,3 +119,18 @@
    two interfaces:
    - /dev/tapX	- character device;
    - tapX	- virtual Ethernet interface.
+
+** Differences Unix/Linux
+   In the Linux/Unix/Solaris world, the TUN/TAP driver presents
+   a single character device in the /dev directory (either
+   /dev/tun or /dev/tap).  Opening this creates a NEW device
+   (/dev/tun0, tun1, etc) using the next available name, and
+   returns a filehandle to it. An associated pseudo-network
+   device is created at the time of the open.
+
+   In the OSX TUN/TAP driver, a preset number of tun and tap
+   char devices (/dev/tun0 - /dev/tun15 and /dev/tap0 - /dev/tap15)
+   are PRECREATED when the driver is installed.  You must open
+   the specific char device you want in order to get a filehandle
+   to it.  An associated pseudo-network device is created at
+   the time of the open.

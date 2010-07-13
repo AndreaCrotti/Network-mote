@@ -80,6 +80,7 @@ int tun_open(char *dev, int flags){
     return fd;
 }
 
+// TODO: remove all the stuff ifconfig-related, will be done in a script instead
 /** 
  * This function is used to restore the gateway before the program stops. 
  */
@@ -116,9 +117,10 @@ int tun_setup(char *dev, char *addr){
     struct ifreq ifr;
     struct rtentry rte;
     struct sockaddr_in sock_addr;
-    int err;
+    int fd, err;
     int mtu = 1280;
     
+    // TODO: what do we need a socket for when we setup the device??
     // Getting the device identifier with the socket command
     if( (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
         perror("Getting socket");
@@ -224,7 +226,7 @@ int tun_setup(char *dev, char *addr){
         saved_entry.rt_dev = ifname;
     }
 
-    
+  
     // Delete the current standard entry
     if(stored_gw){
         memset(&rte, 0, sizeof(struct rtentry));
