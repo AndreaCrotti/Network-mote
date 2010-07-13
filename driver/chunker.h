@@ -1,3 +1,6 @@
+#include <netinet/ip6.h>
+#include <stdint.h>
+
 // measures in bytes
 #define SIZE_IPV6_HEADER 40
 #define MAX_CARRIED 127

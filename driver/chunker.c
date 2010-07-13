@@ -7,8 +7,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <netinet/ip6.h>
-#include <stdint.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <assert.h>

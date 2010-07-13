@@ -28,6 +28,7 @@
 #include "client.h"
 
 #include "motecomm.h"
+#include "chunker.h"
 
 #include "glue.h"
 
@@ -37,9 +38,18 @@ void mcpReceive(fdglue_handler_t* that) {
   this->getComm(this)->read(this->getComm(this));
 }
 
+#define ETHERNET_FRAME_SIZE 4242
+
 void tunReceive(fdglue_handler_t* that) {
-  void* this = that->p;
-  //call what?
+  int fd = *(int*)(that->p);
+  static char buf[ETHERNET_FRAME_SIZE];
+  memset(buf,0,ETHERNET_FRAME_SIZE);
+  int size = tun_read(fd,buf,ETHERNET_FRAME_SIZE);
+  assert(size);
+  static int seqno = 0;
+  ipv6Packet* ipv6 = genIpv6Packets(buf, size, ++seqno);
+
+  //
 }
 
 
@@ -125,7 +135,7 @@ int main(int args, char** arg) {
                                                   .p = mcp,
                                                   .handle = mcpReceive},FDGHR_APPEND);
     fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){
-                                                  .p = NULL,
+                                                  .p = &tun_fd,
                                                   .handle = NULL},FDGHR_APPEND); //TODO
     for (;;) {
       fdg.listen(&fdg,3600);
