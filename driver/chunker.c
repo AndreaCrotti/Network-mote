@@ -18,23 +18,6 @@
 // TODO: is this the best way to solve this problem?
 int MAX_PAYLOAD_SIZE = MAX_CARRIED - sizeof(myPacketHeader) - sizeof(struct ip6_hdr);
 
-int main(int argc, char **argv) {
-    ipv6Packet v6;
-    printf("v6 = %ld\n", sizeof(v6));
-    // now we try to send the packet and see if it's sniffable
-    int i;
-
-    int *arr = calloc(sizeof(int), 1000);
-    for (i = 0; i < 1000; i++) {
-        arr[i] = i;
-    }
-    int num_chunks = (int)(1000 / MAX_PAYLOAD_SIZE) + 1;
-    printf("total length of packet %ld\n", TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
-    /* dataToLocalhost(arr, num_chunks, 0); */
-    testWithMemset();
-    return 0;
-}
-
 void testWithMemset(void) {
     unsigned char *buff = calloc(MAX_CARRIED, sizeof(unsigned char));
     ip6_hdr *header = genIpv6Header(100);
@@ -52,7 +35,7 @@ ip6_hdr *genIpv6Header(size_t payload_len) {
     header->ip6_src = in6addr_loopback;
     header->ip6_dst = in6addr_loopback;
     // 16 bit file
-    header->ip6_ctlun.ip6_un1.ip6_un1_plen = htons(payload_len);
+    header->ip6_ctlun.ip6_un1.ip6_un1_plen = payload_len;
     printf("payload len = %x, after htons %x\n", payload_len, htons(payload_len));
     header->ip6_ctlun.ip6_un2_vfc = 6;
     /* header->ip6_src = 0; */
@@ -74,7 +57,7 @@ sockaddr_in6 *localhostDest(void) {
 }
 
 void sendDataTo(void *buffer, struct sockaddr *dest, size_t size, int raw_sock) {
-    // TODO: the sizes are different, how can we manage it?
+    // TODO: the sizes are different, how does it manage automatically
     printf("norm %ld, 6version %ld,\n", sizeof(struct sockaddr), sizeof(sockaddr_in6));
     int result = sendto(raw_sock,
                         &buffer,
@@ -144,7 +127,8 @@ ipv6Packet *genIpv6Packets(void *data, int num_chunks, int seq_no) {
     ipv6Packet original;
     ip6_hdr *header = genIpv6Header(sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE);
     memcpy(&(original.ip6_hdr), header, sizeof(ip6_hdr));
-    // the header is actually correct
+    // check that the payload length is set correctly
+    printf("%d instead of %d\n", original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen, (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
     assert(original.ip6_hdr.ip6_ctlun.ip6_un1.ip6_un1_plen == (sizeof(myPacketHeader) + MAX_PAYLOAD_SIZE));
     // set up some common fields
     myPacketHeader pkt_header = original.packetHeader;
@@ -196,3 +180,20 @@ unsigned short csum(unsigned short *buf, int nwords) {
     return (unsigned short)(~sum);
 }
 
+
+int main(int argc, char **argv) {
+    ipv6Packet v6;
+    printf("v6 = %ld\n", sizeof(v6));
+    // now we try to send the packet and see if it's sniffable
+    int i;
+
+    int *arr = calloc(sizeof(int), 1000);
+    for (i = 0; i < 1000; i++) {
+        arr[i] = i;
+    }
+    int num_chunks = (int)(1000 / MAX_PAYLOAD_SIZE) + 1;
+    printf("total length of packet %ld\n", TOT_PACKET_SIZE(MAX_PAYLOAD_SIZE));
+    dataToLocalhost(arr, num_chunks, 0);
+    /* testWithMemset(); */
+    return 0;
+}
