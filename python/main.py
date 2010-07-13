@@ -74,10 +74,41 @@ class TunTap(object):
 # s.sendto(MAGIC_WORD, peer)
 
 class Splitter(object):
-    """ Class used for splitting our data """
-    def __init__(self, compression=True):
+    """
+    Class used for splitting our data, argument must be a string or serializable
+    """
+    def __init__(self, data, proto=6, compression=True):
+        self.proto = proto
+        if compression:
+            self.data = zlib.compress(data)
+        else:
+            self.data = data
+    
+    def __iter__(self):
+        # we can also compress while we execute
         pass
 
+    def split(self):
+        pass
+
+class Header(object):
+    "encapsulating my header"
+    fields = {
+        'seq_no' : 'H',
+        'ord_no' : 'H',
+        'chk' : 'L'
+    }
+    order = ('seq_no', 'ord_no', 'chk')
+    vals = [Header.fields[x] for x in Header.order]
+
+    @staticmethod
+    def len():
+        return struct.calcsize(''.join(Header.vals))
+    
+    @staticmethod
+    def make_struct(data):
+        "pass a list of values to pack together"
+        return struct.pack(Header.vals + s, *data)
 
 def compress(packet, seq, dst, size=100):
     # seqno, ordnumber, checksum
@@ -174,17 +205,6 @@ def test_usb_writing():
     fd = os.open(dev, os.O_RDWR)
     # try to read and write from that and see what happens
 
-
-# pkts = compress(payload, 1, "::1")
-# for p in pkts:
-#     print p.show()
-# rec = reconstruct(pkts)
-
-# print "%s --> \n%s" % (rec, payload)
-# assert(rec == payload)
-
-# for x in pkts:
-#     print x.show(), len(x)
 
 # rewrite this using only scapy
 def test_mtu_speed():
