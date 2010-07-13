@@ -88,7 +88,7 @@ int main(int args, char** arg) {
     /* struct split_ip_msg *msg = (struct split_ip_msg *)buf; */
     int len;
     (void)len;
-
+    
     while (1) {
         // Read one Ethernet packet
         //len = tun_read(fd, (void *)(&msg->pi), INET_MTU + sizeof(struct ip6_hdr));
