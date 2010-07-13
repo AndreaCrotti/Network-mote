@@ -109,7 +109,7 @@ def proof():
             else:
                 # otherwise we write something on both
                 for x in wr:
-                    print "writing the payload to %d" % x
+                    print "writing the payload to %d" % xb
                     os.write(x, payload)
                     # sending with a socket to the other address
                     other = devs[(devs.index(x) + 1) % 2]
@@ -119,21 +119,50 @@ def proof():
             print "closing %d" % d
             os.close(d)
 
+def test_select():
+    # trying out a select using a couple of devices
+    sock1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock3 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # 1 is the client and we do the selection on 2 and 3
+    addr1, addr2 = (("", 10000), ("", 100000))
+    sock2.bind(addr1)
+    sock3.bind(addr2)
+
+    # this select stuff with sockets works pretty well
+    from random import random
+    while True:
+        if random() > 0.5:
+            sock1.sendto("ciao ", addr1)
+        else:
+            sock1.sendto("ciao ", addr2)
+        r, w, _ = select([sock2, sock3], [], [])
+        print r,w
+        for x in r:
+            print "reading data %s" % str(x.recv(1024))
+
+
 from string import ascii_letters
 from random import choice
 
 def rand_string(dim):
     return "".join([choice(ascii_letters) for _ in range(dim)])
 
+def test_usb_writing():
+    dev = "/dev/ttyUSB0"
+    fd = os.open(dev, os.O_RDWR)
+    # try to read and write from that and see what happens
+
 
 payload = rand_string(1000)
 pkts = compress(payload, 1, "::1")
 for p in pkts:
     print p.show()
-rec = reconstruct(pkts)
+# rec = reconstruct(pkts)
 
-print "%s --> \n%s" % (rec, payload)
-assert(rec == payload)
+# print "%s --> \n%s" % (rec, payload)
+# assert(rec == payload)
 
+test_select()
 # for x in pkts:
 #     print x.show(), len(x)
