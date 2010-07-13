@@ -5,7 +5,7 @@ SF = $(TOSROOT)/support/sdk/c/sf
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 # this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(6LOWPANCARRIED)
-FLAGS = -Wall -Wextra
+FLAGS = -Wall -Wextra $(INCLUDE) $(CFLAGS)
 
 OBJECTS = tunnel.o split.o motecomm.o util.o glue.o #config.o tun_dev.o routing.o 
 #OBJECTS = 
@@ -17,40 +17,37 @@ SRC = client.c
 
 # TODO: refactoring of those redundant objects
 tuntest: autogen $(OBJECTS) client.c
-	gcc $(FLAGS) $(OBJECTS) $(EXTERNALS)  client.c $(CFLAGS) $(INCLUDE) -o tuntest
+	gcc $(FLAGS) $(OBJECTS) $(EXTERNALS)  client.c $(CFLAGS) -o tuntest
 
 tuntest.pre: $(OBJECTS) client.c
-	gcc $(FLAGS) $(OBJECTS) client.c $(CFLAGS) $(INCLUDE) -E -o tuntest.pre
+	gcc $(OBJECTS) client.c $(CFLAGS) -E -o tuntest.pre
 
 tunnel.o: tunnel.c
-	gcc $(FLAGS) -c tunnel.c $(CFLAGS) $(INCLUDE) -o tunnel.o
+	gcc $(FLAGS) -c tunnel.c -o tunnel.o
 
 tun_dev.o: tun_dev.c
-	gcc $(FLAGS) -c tun_dev.c $(CFLAGS) $(INCLUDE) -o tun_dev.o
+	gcc $(FLAGS) -c tun_dev.c -o tun_dev.o
 
 routing.o: routing.c
-	gcc $(FLAGS) -c routing.c $(CFLAGS) $(INCLUDE) -o routing.o
+	gcc $(FLAGS) -c routing.c -o routing.o
 
 glue.o: glue.h glue.c
-	gcc $(FLAGS) -c glue.c $(CFLAGS) $(INCLUDE) -o glue.o
+	gcc $(FLAGS) -c glue.c -o glue.o
 
 util.o: util.h util.c
-	gcc $(FLAGS) -c util.c $(CFLAGS) $(INCLUDE) -o util.o
+	gcc $(FLAGS) -c util.c -o util.o
 
 motecomm.o: motecomm.c motecomm.h motecomm.sizes.h
-	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -o motecomm.o
+	gcc $(FLAGS) -c motecomm.c -o motecomm.o
 
 motecomm: motecomm.c motecomm.h motecomm.sizes.h
-	gcc $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) $(CFLAGS) $(INCLUDE) -ggdb -O0 -o motecomm
+	gcc $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) -ggdb -O0 -o motecomm
 
 motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
-	gcc $(FLAGS) -c motecomm.c $(CFLAGS) $(INCLUDE) -E -o motecomm.pre
+	gcc $(FLAGS) -c motecomm.c -E -o motecomm.pre
 
 split.o: split.c
 	gcc -lm -c split.c -o split.o
-
-#config.o: config.c
-#	gcc $(FLAGS) -c config.c $(CFLAGS) $(INCLUDE) -o config.o
 
 hostname.h: hostname.sh
 	bash hostname.sh
