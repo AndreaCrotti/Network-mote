@@ -1,5 +1,9 @@
+#include <netinet/ip6.h>
+#include <stdint.h>
+
+// measures in bytes
+#define SIZE_IPV6_HEADER 40
 #define MAX_CARRIED 128
-// just for debugging
 #define TOT_PACKET_SIZE(payload_len) (sizeof(ip6_hdr) + sizeof(myPacketHeader) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet)))
 
