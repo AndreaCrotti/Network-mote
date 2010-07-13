@@ -40,66 +40,41 @@ void mcpReceive(fdglue_handler_t* that) {
 
 #define ETHERNET_FRAME_SIZE 4242
 
+struct TunHandlerInfo {
+  int fd;
+  ifp_t* ifp;
+};
+
 void tunReceive(fdglue_handler_t* that) {
-  int fd = *(int*)(that->p);
-  static char buf[ETHERNET_FRAME_SIZE];
+  struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
+  static stream_t buf[ETHERNET_FRAME_SIZE];
   memset(buf,0,ETHERNET_FRAME_SIZE);
-  int size = tun_read(fd,buf,ETHERNET_FRAME_SIZE);
+  int size = tun_read(this->fd,(char*)buf,ETHERNET_FRAME_SIZE);
   assert(size);
   static int seqno = 0;
-  unsigned count;
-  ipv6Packet* ipv6 = genIpv6Packets(buf, size, ++seqno, &count);
-  for (;--count; ipv6++) {
-    int ssi = sizeof(struct ipv6PacketHeader);
-    int totalsize = ipv6->plsize + ssi
-    stream_t* b = malloc(totalsize);
-    memcpy(b,&(ipv6->header),ssi);
-    memcpy(b+ssi,ipv6->payload,ipv6->plsize);
-    payload_t payload = {.len = totalsize, .stream = b};
+  ++seqno;
+  payload_t payload = {.stream = buf, .len = size};
+  ipv6Packet ipv6;
+  while (genIpv6Packet(&payload,&ipv6,seqno)) {
+    this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = ipv6.sendsize});
   }
 }
 
+la_t localAddress = {{ 0,0,0,0 }};
+
+void laSet(laep_handler_t* this, la_t const address) {
+  (void)this;
+  localAddress = address;
+}
 
 int main(int args, char** arg) {
     (void)args;
     (void)arg;
 
     char tun_name[IFNAMSIZ];
-    char input[20];
-    (void)input;
-
-    // Variables to pass to the serial forwarder
-    /* char* sf_host = "127.0.0.1"; */
-    /* int sf_port = 1000; */
-
-    //Variables for a direct serial connection
-    /*char *device = "/dev/ttyUSB0";
-    (void)device;
-    int baud_rate = 115200;
-    (void)baud_rate;
-    serial_source ser_src;
-    (void)ser_src;*/
 
     // The IP address
     char *ip_address_str = "10.0.0.1";
-
-    // TODO: here we only need to open the device FD and pass it to motecomm program
-
-    // Open serial
-    /* int ser_src = open_serial_source(argv[optind], platform_baud_rate(argv[optind + 1]), */
-    /*                              1, stderr_msg); */
-    /* ser_src = open_serial_source(device, baud_rate, 1, stderr_msg); */
-    /* if (!ser_src) { */
-    /*   printf("Couldn't open serial port at device %s with baudrate %d\n", device, baud_rate); */
-    /*   exit(1); */
-    /* } */
-
-    //Connect to mote using serial forwarder
-    /* int sf_fd = open_sf_source(sf_host, sf_port); */
-    /* if (sf_fd < 0) { */
-    /*     printf("Couldn't connect to serial forwarder sf@%s:%d\n", sf_host, sf_port); */
-    /*     exit(1); */
-    /* } */
 
     // a new device should be opened!
     tun_name[0] = 0;    
@@ -135,14 +110,20 @@ int main(int args, char** arg) {
     char const* dev = arg[1];
     serialif_t* sif = NULL;
     mcp_t* mcp = openMcpConnection(dev,mote,&sif);
+    ifp_t _ifp;
+    ifp(&_ifp,mcp);
+    laep_t _laep;
+    laep(&_laep,mcp);
+    _laep.setHandler(&_laep,LAEP_REPLY,(laep_handler_t){.handle = laSet, .p = NULL});
     if (!mcp) {
       printf("There was an error opening the connection to %s over device %s.",mote,dev);
     }
+    struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp};
     fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){
                                                   .p = mcp,
                                                   .handle = mcpReceive},FDGHR_APPEND);
     fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){
-                                                  .p = &tun_fd,
+                                                  .p = &thi,
                                                   .handle = tunReceive},FDGHR_APPEND); //TODO
     for (;;) {
       fdg.listen(&fdg,3600);

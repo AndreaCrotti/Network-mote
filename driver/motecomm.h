@@ -169,7 +169,9 @@ mccmp_t* mccmp(mccmp_t* this, mcp_t* const _mcp);
 
 #define LAEP_VERSION 1
 
-typedef uint64_t la_t;
+typedef struct {
+  unsigned char byte[16];
+} la_t;
 
 typedef enum {
   LAEP_REPLY = 0,

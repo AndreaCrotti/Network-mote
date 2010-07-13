@@ -37,29 +37,6 @@ struct serial_source_t {
 };
 
 
-/* deprecated and not used
-payload_t* gluePayloadMalloc(payload_t const* const first, payload_t const* const second) {
-  if (second && second->len && (!first || !first->len))
-    return gluePayloadMalloc(second,NULL);
-  payload_t* tar = (payload_t*)malloc(sizeof(payload_t));
-  stream_t f, s;
-  payload_t fp = {.len = 0, .stream = &f};
-  payload_t sp = {.len = 0, .stream = &s};
-  if (first) {
-    fp = *first;
-  }
-  if (second) {
-    sp = *second;
-  }
-  tar->len = fp.len + sp.len;
-  if (tar->len) {
-    tar->stream = malloc(tar->len*sizeof(stream_t));
-    memcpy((void*)(tar->stream),(void*)fp.stream,fp.len);
-    memcpy((void*)(tar->stream)+fp.len,(void*)sp.stream,sp.len);
-  }
-  return tar;
-}*/
-
 mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t** sif) {
   serialif_t* _sif;
 #if !DYNAMIC_MEMORY
@@ -500,12 +477,9 @@ void _laep_t_receive(mcp_handler_t* that, payload_t const payload) {
     {
       laep_handler_t* hnd = &(this->handler[h.header->type]);
       if (hnd->handle) {
-        la_t addr = 0;
-        unsigned i;
-        for (i = 0; i < h.header->payload; ++i) {
-          addr <<= 8;
-          addr |= payload.stream[i+LAEP_HEADER_BYTES];
-        }
+        la_t addr;
+        memset(&addr,0,sizeof(la_t));
+        memcpy((&addr)+sizeof(la_t)-payload.len,payload.stream+LAEP_HEADER_BYTES,payload.len);
         hnd->handle(hnd,addr);
       }
     }
