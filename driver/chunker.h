@@ -1,35 +1,38 @@
-#include <netinet/ip6.h>
+#ifndef __CHUNKER_H
+#define __CHUNKER_H
 #include <stdint.h>
+#include "util.h"
+#include <netinet/ip6.h>
 
 // measures in bytes
 #define SIZE_IPV6_HEADER 40
 #define MAX_CARRIED 128
-#define TOT_PACKET_SIZE(payload_len) (sizeof(ip6_hdr) + sizeof(myPacketHeader) + payload_len)
-#define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet)))
+#define TOT_PACKET_SIZE(payload_len) (sizeof(ipv6PacketHeader) + payload_len)
+#define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
 
 typedef struct in6_addr in6_src;
 typedef struct in6_addr in6_dst;
 
 // also the internal struct should be packed
-struct myPacketHeader {
+typedef struct myPacketHeader {
     uint8_t seq_no;
     uint8_t ord_no;
     unsigned short checksum;
-} __attribute__((__packed__));
-
-typedef struct myPacketHeader myPacketHeader;
+} __attribute__((__packed__)) myPacketHeader;
 
 // only the final ipv6 packet must be "__packed__".
-struct ipv6Packet {
+typedef struct ipv6Packet {
+    // sent data ...
     struct ipv6PacketHeader{ 
       struct ip6_hdr ip6_hdr;
       myPacketHeader packetHeader;
     } __attribute__((__packed__)) header;
+    stream_t payload[MAX_CARRIED];
+    // END OF sent data.
+    // extra data ...
+    unsigned sendsize;
     unsigned plsize;
-    void *payload;
-} __attribute__((__packed__));
-
-typedef struct ipv6Packet ipv6Packet;
+} __attribute__((__packed__)) ipv6Packet;
 
 // just for more ease of writing
 typedef struct sockaddr_in6 sockaddr_in6;
@@ -44,7 +47,7 @@ typedef struct ip6_hdr ip6_hdr;
  * 
  * @return 
  */
-ipv6Packet *genIpv6Packets(void *, int, int);
+int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const seq_no);
 
 /** 
  * Reconstruct the stream of data given the ipv6 packets
@@ -52,18 +55,21 @@ ipv6Packet *genIpv6Packets(void *, int, int);
  * 
  * @return 
  */
-void *reconstruct(ipv6Packet *, int);
+void *reconstruct(ipv6Packet *data, int len);
 
-unsigned short csum(unsigned short *, int);
+/*
+
 
 void dataToLocalhost(void *, int, int);
 
-ip6_hdr *genIpv6Header(size_t);
+void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
 
 sockaddr_in6 *localhostDest(void);
 
-void testWithMemset(void);
+//void testWithMemset(void);
 
 void sendToLocalhost(void *, size_t);
 
 void sendDataTo(void *, struct sockaddr *, size_t, int);
+*/
+#endif

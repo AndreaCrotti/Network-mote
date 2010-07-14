@@ -1,15 +1,9 @@
 #ifndef _MOTECOMM_SIZES_H
 #define _MOTECOMM_SIZES_H
 
+#include "util.h"
+
 /** util **/
-
-typedef unsigned char stream_t;
-typedef unsigned int streamlen_t;
-
-typedef struct {
-  stream_t const* stream;
-  streamlen_t len;
-} payload_t;
 
 #define HD_BYTES_FROM_BITS(bits) (((bits)+7)/8)
 #define MAX_PAYLOAD_SIZE(PROT) (1<<PROT##_HD_PAYLOAD)

@@ -7,7 +7,8 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(6LOWPANCARRIED)
 FLAGS = -Wall -Wextra $(INCLUDE) $(CFLAGS)
 
-OBJECTS = tunnel.o split.o motecomm.o util.o glue.o #config.o tun_dev.o routing.o 
+OBJECTS = tunnel.o split.o motecomm.o util.o glue.o chunker.o
+          #config.o tun_dev.o routing.o 
 #OBJECTS = 
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
@@ -36,6 +37,9 @@ glue.o: glue.h glue.c
 
 util.o: util.h util.c
 	gcc $(FLAGS) -c util.c -o util.o
+
+chunker.o: chunker.c chunker.h
+	gcc $(FLAGS) -c chunker.c -o chunker.o
 
 motecomm.o: motecomm.c motecomm.h motecomm.sizes.h
 	gcc $(FLAGS) -c motecomm.c -o motecomm.o
