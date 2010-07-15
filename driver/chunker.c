@@ -131,10 +131,12 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const 
     assert(payload);
     assert(payload->len > 0);
     static struct myPacketHeader pkt = {.seq_no = 0xFF, .ord_no = 0xFF, .checksum = 0};
+
     if (pkt.seq_no != seq_no) {
       pkt.seq_no = seq_no;
       pkt.ord_no = 0;
     }
+
     genIpv6Header(&(packet->header.ip6_hdr),sizeof(myPacketHeader) + MAX_CARRIED /* FIXME: is this actually correct?*/);
     packet->header.packetHeader = pkt;
     pkt.ord_no++;
@@ -144,7 +146,7 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const 
     payload->len -= packet->plsize;
     payload->stream += packet->plsize;
     return (payload->len+MAX_CARRIED-1)/MAX_CARRIED -1;
-} 
+}
 
 /** 
  * Generate an array of ipv6Packet ready to send over the network

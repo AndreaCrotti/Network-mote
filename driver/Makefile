@@ -5,7 +5,8 @@ SF = $(TOSROOT)/support/sdk/c/sf
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 # this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(6LOWPANCARRIED)
-FLAGS = -Wall -Wextra $(INCLUDE) $(CFLAGS)
+WARN = -Wall -Wextra
+FLAGS = $(WARN) $(INCLUDE) $(CFLAGS)
 
 OBJECTS = tunnel.o split.o motecomm.o util.o glue.o chunker.o
           #config.o tun_dev.o routing.o 
@@ -28,6 +29,9 @@ tunnel.o: tunnel.c
 
 tun_dev.o: tun_dev.c
 	gcc $(FLAGS) -c tun_dev.c -o tun_dev.o
+
+mktun:
+	gcc $(WARN) -o mktun mktun.c
 
 routing.o: routing.c
 	gcc $(FLAGS) -c routing.c -o routing.o

@@ -5,7 +5,6 @@ TODO: make the compression an option which could be also disabled
 TODO: setup a nice logger
 """
 
-from scapy.all import *
 # from TOSSIM import Tossim, SerialForwarder, Throttle
 import os
 import zlib
@@ -15,6 +14,9 @@ import struct
 import sys
 import logging
 import subprocess
+from fcntl import ioctl
+from collections import namedtuple
+from scapy.all import IPv6
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -26,11 +28,6 @@ else:
     sys.path.append(sdk)
 
 from tinyos.tossim.TossimApp import NescApp
-
-# payload for the end of packet
-EOP = "eop"
-
-max_size = 0
 
 class TunTap(object):
     "Tun tap interface class management"
@@ -91,24 +88,36 @@ class Splitter(object):
     def split(self):
         pass
 
-class Header(object):
-    "encapsulating my header"
-    fields = {
-        'seq_no' : 'H',
-        'ord_no' : 'H',
-        'chk' : 'L'
-    }
-    order = ('seq_no', 'ord_no', 'chk')
-    vals = [Header.fields[x] for x in Header.order]
+    # add something to see the header
+class Packer(object): 
+    def __init__(self, *header):
+        # TODO make it configurable
+        self.order = "!"
+        self.fmt = self.order + ''.join(h[1] for h in header) 
+        self.tup = collections.namedtuple('header', (h[0] for h in header))
 
-    @staticmethod
-    def len():
-        return struct.calcsize(''.join(Header.vals))
-    
-    @staticmethod
-    def make_struct(data):
-        "pass a list of values to pack together"
-        return struct.pack(Header.vals + s, *data)
+    def __str__(self):
+        return self.fmt
+
+    def pack(self, *data): 
+        return struct.pack(self.fmt, *data)
+
+    def unpack(self, bytez): 
+        return self.tup(*struct.unpack(self.fmt, bytez))
+
+
+class (object):
+    """
+    Class of packet type
+    """
+    def __init__(self, seq, ord, chk, data_type, data):
+        # checksum is already computed from the 
+        self.packet = Packer(('seq', 'h'), ('ord', 'h'), ('chk', 'q'), data_type)
+        self.bytez = self.packet.pack((seq, ord, chk, data))
+
+    def __str__(self):
+        return self.bytez
+
 
 def compress(packet, seq, dst, size=100):
     # seqno, ordnumber, checksum
@@ -144,8 +153,6 @@ def reconstruct(packets):
     # now we can finally uncompress the data
     # orig = zlib.decompress(data)
     return data
-
-from collections import namedtuple
 
 def test_compress():
     p = sniff(count=10)
