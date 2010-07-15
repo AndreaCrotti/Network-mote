@@ -173,6 +173,8 @@ typedef struct {
   unsigned char byte[16];
 } la_t;
 
+#define DEFAULT_LOCAL_ADDRESS {{0,0,0,0}}
+
 typedef enum {
   LAEP_REPLY = 0,
   LAEP_REQUEST = 1
