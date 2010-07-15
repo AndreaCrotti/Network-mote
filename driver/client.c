@@ -60,7 +60,7 @@ void tunReceive(fdglue_handler_t* that) {
   }
 }
 
-la_t localAddress = {{ 0,0,0,0 }};
+la_t localAddress = DEFAULT_LOCAL_ADDRESS;
 
 void laSet(laep_handler_t* this, la_t const address) {
   (void)this;
