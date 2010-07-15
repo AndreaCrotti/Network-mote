@@ -20,7 +20,6 @@ from collections import namedtuple
 from scapy.all import IPv6
 
 DEFCOMPRESS = True
-MYHEADER = 'Hhl'
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
 
 TOSROOT = os.getenv("TOSROOT")
@@ -116,7 +115,7 @@ class Packer(object):
     def __init__(self, *header):
         # TODO: make it configurable
         self.order = "!"
-        self.fmt = self.order + ''.join(h[1] for h in header)
+        self.fmt = ''.join(h[1] for h in header)
         self.tup = namedtuple('header', (h[0] for h in header))
 
     def __str__(self):
@@ -124,10 +123,18 @@ class Packer(object):
 
     def __len__(self):
         return struct.calcsize(self.fmt)
+
+    def __add__(self, y):
+        assert(self.order == y.order)
+        ret = deepcopy(self)
+        ret.fmt += y.fmt
+        # do something also with the namedtuple
+        ret.tup = namedtuple('header', self.tup._fields + y.tup._fields)
+        return ret
     
     def pack(self, *data):
         try:
-            return struct.pack(self.fmt, *data)
+            return struct.pack(self.order + self.fmt, *data)
         except struct.error:
             # TODO: add some better error here
             print "Error in formatting\n format %s, data %s" % (self.fmt, str(*data))
@@ -142,6 +149,7 @@ class MyPacket(object):
     Class of packet type
     TODO: when the data is changing also the checksum should change automatically
     """
+    HEADER = Packer(('seq', 'H'), ('ord', 'H'), ('chk', 'L'))
     def __init__(self, seq, ord, data, chk_function=zlib.crc32):
         # we can pass any checksum function that gives a 32 bit result
         # checksum might be also disable maybe
@@ -149,7 +157,7 @@ class MyPacket(object):
         self.ord = ord
         self.data = data
         self.chk = chk_function(data)
-        self.packet = Packer(('seq', 'H'), ('ord', 'H'), ('chk', 'L'), ('data', '%ds' % len(self.data)))
+        self.packet = MyPacket.HEADER + Packer(('data', '%ds' % len(self.data)))
 
     def __str__(self):
         return self.bytez
@@ -165,15 +173,28 @@ class MyPacket(object):
         return self.packet.unpack(bytez)
 
 class Merger(object):
-    "reconstructing original data"
+    """
+    reconstructing original data, it's automatically protocol agnostic since we can use directly the payload
+    (we just need the len attribute being set
+    """
     def __init__(self, packets, compression=DEFCOMPRESS):
         self.packets = packets
         self.compression = compression
-
+        self.merge()
+        
     # see how we can decompress not knowing the dimension
     # we can decompress on the fly or create the big chunk and decompress in the end
     def merge(self):
-        pass
+        self.raw_data = []
+        # data length is given by the ip header
+        for x in self.packets:
+            # FIXME: check here why we can get a wrong value of size
+            data_length = len(x.payload) - len(MyPacket.HEADER)
+            print "data_length found = %d" % data_length
+            unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
+            self.raw_data.append(unpacker.unpack(x.payload))
+
+        return self.raw_data
 
 def usage():
     print "usage: ./main.py <device>"
@@ -205,4 +226,4 @@ def main():
             os.close(mote_fd)
 
 if __name__ == '__main__':
-    test_mypacket()
+    pass
