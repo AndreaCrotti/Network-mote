@@ -14,9 +14,13 @@ import struct
 import sys
 import logging
 import subprocess
+from copy import deepcopy
 from fcntl import ioctl
 from collections import namedtuple
 from scapy.all import IPv6
+
+DEFCOMPRESS = True
+MYHEADER = 'Hhl'
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -74,72 +78,100 @@ class Splitter(object):
     """
     Class used for splitting our data, argument must be a string or serializable
     """
-    def __init__(self, data, proto=6, compression=True):
-        self.proto = proto
+    def __init__(self, data, seq, max_size, ip_header, compression=DEFCOMPRESS):
+        self.ip_header = ip_header
+        self.seq = seq
+        self.max_size = max_size
         if compression:
             self.data = zlib.compress(data)
         else:
             self.data = data
-    
-    def __iter__(self):
-        # we can also compress while we execute
-        pass
+        self.packets = self.split()
+
+    def __len__(self):
+        return len(self.packets)
 
     def split(self):
-        pass
+        "Returns all the packets encapsulated in the two layers"
+        res = []
+        count = 0
+        idx = 0
+        tot_len = len(self.data)
+        while idx < tot_len:
+            # we get an external already configured header and we add the payload
+            head = deepcopy(self.ip_header)
+            # don't have to worry about overflows!
+            pkt = MyPacket(self.seq, count, self.data[idx:idx + self.max_size])
+            # the len is automatically set by scapy!!
+            head.add_payload(pkt.pack())
+            res.append(head)
+            count += 1
+            idx += self.max_size
 
-    # add something to see the header
-class Packer(object): 
+        return res
+
+# add something to see the header
+class Packer(object):
     def __init__(self, *header):
-        # TODO make it configurable
+        # TODO: make it configurable
         self.order = "!"
-        self.fmt = self.order + ''.join(h[1] for h in header) 
-        self.tup = collections.namedtuple('header', (h[0] for h in header))
+        self.fmt = self.order + ''.join(h[1] for h in header)
+        self.tup = namedtuple('header', (h[0] for h in header))
 
     def __str__(self):
         return self.fmt
 
-    def pack(self, *data): 
-        return struct.pack(self.fmt, *data)
+    def __len__(self):
+        return struct.calcsize(self.fmt)
+    
+    def pack(self, *data):
+        try:
+            return struct.pack(self.fmt, *data)
+        except struct.error:
+            # TODO: add some better error here
+            print "Error in formatting\n format %s, data %s" % (self.fmt, str(*data))
+            return None
 
-    def unpack(self, bytez): 
-        return self.tup(*struct.unpack(self.fmt, bytez))
+    def unpack(self, bytez):
+        return struct.unpack(self.fmt, bytez)
 
-
-class (object):
+# TODO: use some metaprogramming to create the right class
+class MyPacket(object):
     """
     Class of packet type
+    TODO: when the data is changing also the checksum should change automatically
     """
-    def __init__(self, seq, ord, chk, data_type, data):
-        # checksum is already computed from the 
-        self.packet = Packer(('seq', 'h'), ('ord', 'h'), ('chk', 'q'), data_type)
-        self.bytez = self.packet.pack((seq, ord, chk, data))
+    def __init__(self, seq, ord, data, chk_function=zlib.crc32):
+        # we can pass any checksum function that gives a 32 bit result
+        # checksum might be also disable maybe
+        self.seq = seq
+        self.ord = ord
+        self.data = data
+        self.chk = chk_function(data)
+        self.packet = Packer(('seq', 'H'), ('ord', 'H'), ('chk', 'L'), ('data', '%ds' % len(self.data)))
 
     def __str__(self):
         return self.bytez
 
+    def __len__(self):
+        return len(self.packet)
 
-def compress(packet, seq, dst, size=100):
-    # seqno, ordnumber, checksum
-    header = "!hHL"
-    # add the needed fields
-    print "we need %d bytes for the added info" % struct.calcsize(header)
-    # maybe we can also sniff instead of reading on the device
-    # compressed = zlib.compress(packet)
-    compressed = packet
-    global max_size
-    max_size = size - (struct.calcsize(header) + len(IPv6()))
-    print "max size for the payload = %d" % max_size
-    inner = lambda s, ord, chk: struct.pack(header + "s", seq, ord, chk, s)
-    # get the slicing
-    splits = []
-    count = 0
-    for x in range(0, len(compressed), max_size):
-        splits.append(inner(compressed[x:x+max_size], count, 0))
-        count += 1
+    # TODO: add some smart check of the input?
+    def pack(self):
+        return self.packet.pack(self.seq, self.ord, self.chk, self.data)
 
-    print "returning %d packets" % len(splits)
-    return [IPv6(dst=dst) / x for x in splits]
+    def unpack(self, bytez):
+        return self.packet.unpack(bytez)
+
+class Merger(object):
+    "reconstructing original data"
+    def __init__(self, packets, compression=DEFCOMPRESS):
+        self.packets = packets
+        self.compression = compression
+
+    # see how we can decompress not knowing the dimension
+    def merge(self):
+        pass
 
 def reconstruct(packets):
     "Reconstruct the original data from the compressed packets"
@@ -256,4 +288,4 @@ def main():
             os.close(mote_fd)
 
 if __name__ == '__main__':
-    test_mtu_speed()
+    test_mypacket()
