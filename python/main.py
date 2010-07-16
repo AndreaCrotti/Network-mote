@@ -52,7 +52,7 @@ class TunTap(object):
         ifs = ioctl(self.fd, TunTap.TUNSETIFF,
                     struct.pack("16sH", "tap%d", TUNMODE))
         ifname = ifs[:16].strip("\x00")
-        logging.debug("Allocated interface %s. Configure it and use it" % ifname)
+        logging.debug("Allocated interface %s" % ifname)
 
     def close(self):
         os.close(self.fd)
@@ -106,6 +106,7 @@ class Splitter(object):
 
 class Packer(object):
     "Class to easily pack and unpack data using namedtuples"
+
     def __init__(self, *header):
         # TODO: make it configurable
         self.fmt = ''.join(h[1] for h in header)
@@ -135,11 +136,9 @@ class Packer(object):
     def unpack(self, bytez):
         return struct.unpack(ORDER + self.fmt, bytez)
 
-# TODO: use some metaprogramming to create the right class
+
 class MyPacket(object):
-    """
-    Class of packet type
-    """
+
     HEADER = Packer(('seq_no', 'H'), ('ord_no', 'H'),
                     ('parts', 'h'), ('chk', 'L'))
 
@@ -153,9 +152,6 @@ class MyPacket(object):
         self.chk = CHK(data)
         # TODO: try to use the struct "p" (pascal)
         self.packet = MyPacket.HEADER + Packer(('data', '%ds' % len(data)))
-
-    def __str__(self):
-        return self.bytez
 
     def __len__(self):
         return len(self.packet)
@@ -186,6 +182,7 @@ class Merger(object):
                 self.add(p)
 
     def add(self, packet):
+        "Add a new packet, manipulating the dictionaries"
         # check that this is actually what we expect to have
         data_length = len(packet.payload) - len(MyPacket.HEADER)
         unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
@@ -233,7 +230,7 @@ def main():
     opts, _ = getopt.getopt(sys.argv[1:], 'vcgd:', ['--verbose', '--client', '--gateway', '--device'])
     # setting the logger
     logger = logging.getLogger()
-    
+
     device = None
     for o, v in opts:
         if o == '-d':
