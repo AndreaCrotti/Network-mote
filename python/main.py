@@ -24,6 +24,7 @@ DEFCOMPRESS = True
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
 ORDER = "!"
 CHK = zlib.crc32
+MAX_ETHER = 10 * 1024
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -218,7 +219,8 @@ def main():
         usage()
     else:
         device = "/dev/ttyUSB%s" % sys.argv[1]
-        t = TunTap('tap')
+        # pass the max size of reading also
+        t = TunTap('tap', MAX_ETHER)
         t.setup()
         mote_fd = os.open(device, os.O_RDWR)
         try:

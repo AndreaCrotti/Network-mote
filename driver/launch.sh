@@ -46,5 +46,5 @@ function brdown {
 
 set -x
 brup
-# sleep 10
-# brdown
+sleep 10
+brdown
