@@ -19,9 +19,10 @@ from fcntl import ioctl
 from collections import namedtuple
 from scapy.all import IPv6
 
-DEFCOMPRESS = True
+DEFCOMPRESS = False
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
 ORDER = "!"
+CHK = zlib.crc32
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -149,13 +150,13 @@ class MyPacket(object):
     TODO: when the data is changing also the checksum should change automatically
     """
     HEADER = Packer(('seq', 'H'), ('ord', 'H'), ('chk', 'L'))
-    def __init__(self, seq, ord, data, chk_function=zlib.crc32):
+    def __init__(self, seq, ord, data):
         # we can pass any checksum function that gives a 32 bit result
         # checksum might be also disable maybe
         self.seq = seq
         self.ord = ord
         self.data = data
-        self.chk = chk_function(data)
+        self.chk = CHK(data)
         self.packet = MyPacket.HEADER + Packer(('data', '%ds' % len(self.data)))
 
     def __str__(self):
@@ -185,17 +186,17 @@ class Merger(object):
     # see how we can decompress not knowing the dimension
     # we can decompress on the fly or create the big chunk and decompress in the end
     def merge(self):
-        self.raw_data = []
+        self.raw_data = [None] * len(self.packets)
         # data length is given by the ip header
         for x in self.packets:
-            # FIXME: check here why we can get a wrong value of size
-            # import pdb
-            # pdb.set_trace()
             # where is that +8 coming from?
-            data_length = len(x.payload) - len(MyPacket.HEADER) + 8
+            data_length = len(x.payload) -8 # - len(MyPacket.HEADER) + 8
             # maybe I could subtract the header from the struct
             unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
-            self.raw_data.append(unpacker.unpack(str(x.payload)))
+            # compute the checksum to see if it's correct
+            seq, ord, chk, data = unpacker.unpack(str(x.payload))
+            self.raw_data[ord] = data
+            # print self.raw_data
 
     def get_data(self):
         data = "".join(x[-1] for x in self.raw_data)

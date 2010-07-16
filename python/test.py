@@ -30,17 +30,25 @@ class TestSplitter(unittest.TestCase):
         nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=False)
         print "compr = %d, nocompr = %d\n" % (len(compr), len(nocompr))
 
-class TestMerger(unittest.TestCase):
-    pass
-
 class TestCombined(unittest.TestCase):
     """ Check the Splitter-Merger couple working """
+
     def test_split_combine(self):
         orig_data = rand_string(1000)
         s = Splitter(orig_data, 0, 100, IPv6())
         m = Merger(s.packets)
         self.assertEquals(orig_data, m.get_data())
-        
+
+    def test_with_mixed_packets(self):
+        "Shuffling the packets arrival still works"
+        from random import shuffle
+        orig_data = rand_string(1000)
+        s = Splitter(orig_data, 0, 100, IPv6())
+        packets = s.packets
+        print packets
+        shuffle(packets)
+        m = Merger(packets)
+        self.assertEquals(orig_data, m.get_data())
 
 def rand_string(dim):
     return "".join([choice(ascii_letters) for _ in range(dim)])
