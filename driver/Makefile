@@ -6,7 +6,7 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 LOW6PAN_CARRIED=128
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)
 WARN = -Wall -Wextra
-FLAGS = $(WARN) $(INCLUDE) $(CFLAGS)
+FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) -ggdb -O0
 
 OBJECTS = tunnel.o split.o motecomm.o util.o glue.o chunker.o
           #config.o tun_dev.o routing.o 
@@ -49,7 +49,7 @@ motecomm.o: motecomm.c motecomm.h motecomm.sizes.h
 	gcc $(FLAGS) -c motecomm.c -o motecomm.o
 
 motecomm: motecomm.c motecomm.h motecomm.sizes.h
-	gcc $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) -ggdb -O0 -o motecomm
+	gcc $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) -o motecomm
 
 motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 	gcc $(FLAGS) -c motecomm.c -E -o motecomm.pre
