@@ -42,43 +42,47 @@ implementation{
 #include "../driver/util.c"
 #include "../driver/motecomm.c" // ! watch out, the c code is actually pasted here
 
-message_t ser_in;
-message_t* ser_in_consume;
-message_t ser_out;
+    message_t* ser_in_consume;
+    message_t ser_out;
 
-int _serialif_t_send(serialif_t* this, payload_t const payload) {
-  if (payload.len <= call SerialPacket.maxPayloadLength()) {
-    memcpy((void*)(call SerialPacket.getPayload(&ser_out,0)),payload.stream,payload.len);
-    call SerialSend.send[0xBF](AM_BROADCAST_ADDR, &ser_out, payload.len);
-    return 1;
-  } else {
-    return 0;
-  }
-}
-void _serialif_t_read(serialif_t* this, payload_t* const payload) {
-  if (ser_in_consume) {
-    payload->stream = (stream_t*)(call SerialPacket.getPayload(ser_in_consume,0));
-    payload->len = call SerialPacket.payloadLength(ser_in_consume);
-    ser_in_consume = 0;
-  }
-}
-void _serialif_t_dtor(serialif_t* this) {
-  (void)this;
-}
-void _serialif_t_ditch(serialif_t* this, payload_t** payload) {
-  (void)this;
-  (void)payload;
-}
-int _serialif_t_fd(serialif_t* this) {
-  (void)this;
-  return 0;
-}
-void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
-  (void)this;
-  (void)dev;
-  (void)platform;
-  (void)ssm;
-}
+    int _serialif_t_send(serialif_t* this, payload_t const payload) {
+        if (payload.len <= call SerialPacket.maxPayloadLength()) {
+            memcpy((void*)(call SerialPacket.getPayload(&ser_out,0)),payload.stream,payload.len);
+            if(call SerialSend.send[0xBF](AM_BROADCAST_ADDR, &ser_out, payload.len) 
+               == SUCCESS){
+                serialBlink();
+            }else{
+                dropBlink();
+            }
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    void _serialif_t_read(serialif_t* this, payload_t* const payload) {
+        if (ser_in_consume) {
+            payload->stream = (stream_t*)(call SerialPacket.getPayload(ser_in_consume,0));
+            payload->len = call SerialPacket.payloadLength(ser_in_consume);
+            ser_in_consume = 0;
+        }
+    }
+    void _serialif_t_dtor(serialif_t* this) {
+        (void)this;
+    }
+    void _serialif_t_ditch(serialif_t* this, payload_t** payload) {
+        (void)this;
+        (void)payload;
+    }
+    int _serialif_t_fd(serialif_t* this) {
+        (void)this;
+        return 0;
+    }
+    void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
+        (void)this;
+        (void)dev;
+        (void)platform;
+        (void)ssm;
+    }
 
     message_t packet;
     serialif_t if_sif;
@@ -87,6 +91,27 @@ void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, s
     mccmp_t if_mccmp;
     laep_t if_laep;
     ifp_t if_ifp;
+    struct split_ip_msg ip_out;
+    uint8_t ip_out_data[TOSH_DATA_LENGTH];  
+
+    /************/
+    /* Handlers */
+    /************/
+    void payload_rec_handler(ifp_handler_t* that, payload_t const payload){
+               
+        // Check whether the packet is not to small
+        if(payload.len < sizeof(struct split_ip_msg)){
+            failBlink();
+            return;
+        }
+
+        ip_out = *(struct split_ip_msg*)(payload.stream);
+        ip_out.data = ip_out_data;
+        memcpy(ip_out_data, (void*)payload.stream + sizeof(struct split_ip_msg), 
+               payload.len - sizeof(struct split_ip_msg) );
+
+        call IP.send(&ip_out);
+    }
 
     /*************/
     /* Functions */
@@ -98,6 +123,7 @@ void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, s
         call Leds.led0Toggle();
     }
     /** 
+
      * Toggles a LED when a message is send to the serial. 
      */
     void serialBlink(){
@@ -110,6 +136,16 @@ void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, s
         call Leds.led2Toggle();
     }
 
+    /*********/
+    /* Tasks */
+    /*********/
+    /* task void sendIPPacket(){ */
+
+    /* } */
+
+    /**********/
+    /* Events */
+    /**********/
     event void Boot.booted() {
         ser_in_consume = 0;
         serialif(&if_sif,0,0,0);
@@ -118,8 +154,9 @@ void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, s
         mccmp(&if_mccmp,&if_mcp);
         laep(&if_laep,&if_mcp);
         ifp(&if_ifp,&if_mcp);
+        if_ifp.setHandler(&if_ifp, (ifp_handler_t){.p = 0, .handle=payload_rec_handler});
 
-		// Initialize devices
+        // Initialize devices
         call RadioControl.start();
         call SerialControl.start();
     }
@@ -138,11 +175,7 @@ void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, s
         // Get the transmitted payload length
         uint16_t payload_len = iph->plen;
         // Send the Payload over the serial 
-        if(call SerialSend.send(AM_BROADCAST_ADDR, payload, payload_len) == SUCCESS){
-            serialBlink();
-        }else{
-            failBlink();
-        }
+        if_ifp.send(&if_ifp, (payload_t){.stream = payload, .len = payload_len});
     }
 
     event void SerialControl.startDone(error_t err) {
@@ -158,7 +191,9 @@ void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, s
     }
     
     event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len) {
-        call Leds.led1Toggle();
+        ser_in_consume = m;
+        if_motecomm.read(&if_motecomm);
+
         return m;
     }
 

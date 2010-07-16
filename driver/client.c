@@ -38,7 +38,7 @@ void mcpReceive(fdglue_handler_t* that) {
   this->getComm(this)->read(this->getComm(this));
 }
 
-#define ETHERNET_FRAME_SIZE 4242
+#define MAX_ETHERNET_FRAME_SIZE 2048
 
 struct TunHandlerInfo {
   int fd;
