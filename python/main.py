@@ -82,9 +82,9 @@ class Splitter(object):
     """
     Class used for splitting our data, argument must be a string or serializable
     """
-    def __init__(self, data, seq, max_size, ip_header, compression=DEFCOMPRESS):
+    def __init__(self, data, seq_no, max_size, ip_header, compression=DEFCOMPRESS):
         self.ip_header = ip_header
-        self.seq = seq
+        self.seq_no = seq_no
         self.max_size = max_size
         if compression:
             self.data = zlib.compress(data)
@@ -105,7 +105,7 @@ class Splitter(object):
             # we get an external already configured header and we add the payload
             head = deepcopy(self.ip_header)
             # don't have to worry about overflows!
-            pkt = MyPacket(self.seq, x, num_packets, self.data[idx:idx + self.max_size])
+            pkt = MyPacket(self.seq_no, x, num_packets, self.data[idx:idx + self.max_size])
             # the len is automatically set by scapy!!?? Not done this at the moment
             head.add_payload(pkt.pack())
             res.append(head)
@@ -150,12 +150,12 @@ class MyPacket(object):
     Class of packet type
     TODO: when the data is changing also the checksum should change automatically
     """
-    HEADER = Packer(('seq', 'H'), ('ord', 'H'), ('parts', 'h'), ('chk', 'L'))
-    def __init__(self, seq, ord, parts, data):
+    HEADER = Packer(('seq_no', 'H'), ('ord_no', 'H'), ('parts', 'h'), ('chk', 'L'))
+    def __init__(self, seq_no, ord_no, parts, data):
         # we can pass any checksum function that gives a 32 bit result
         # checksum might be also disable maybe
-        self.seq = seq
-        self.ord = ord
+        self.seq_no = seq_no
+        self.ord_no = ord_no
         self.data = data
         self.parts = parts
         self.chk = CHK(data)
@@ -171,7 +171,7 @@ class MyPacket(object):
     # TODO: add some smart check of the input?
     def pack(self):
         # TODO: make this list automatically generable somehow
-        return self.packet.pack(self.seq, self.ord, self.parts, self.chk, self.data)
+        return self.packet.pack(self.seq_no, self.ord_no, self.parts, self.chk, self.data)
 
     def unpack(self, bytez):
         return self.packet.unpack(bytez)
@@ -180,28 +180,41 @@ class Merger(object):
     """
     reconstructing original data, it's automatically protocol agnostic since we can use directly the payload
     (we just need the len attribute being set
-    Merger must always take data in an order which is not the default
+    Merger should keep all the packets until it didn't construct something
     """
-    def __init__(self, packets, compression=DEFCOMPRESS):
-        self.packets = packets
+    def __init__(self, packets=None, compression=DEFCOMPRESS):
+        self.temp = {} # dict of packets in construction
+        self.completed = {} # dict of successfully built packets
+        # make it simpler
         self.compression = compression
-        self.merge()
-        
-    # see how we can decompress not knowing the dimension
-    # we can decompress on the fly or create the big chunk and decompress in the end
-    def merge(self):
-        self.raw_data = [None] * len(self.packets)
-        # data length is given by the ip header
-        for x in self.packets:
-            # where is that +8 coming from?
-            data_length = len(x.payload) - len(MyPacket.HEADER)
-            # maybe I could subtract the header from the struct
-            unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
-            # compute the checksum to see if it's correct
-            seq, ord, chk, data = unpacker.unpack(str(x.payload))
-            self.raw_data[ord] = data[:]
-            print "filling position %d" % ord
-            # print self.raw_data
+        if packets:
+            for p in packets:
+                self.add(p)
+
+    def add(self, packet):
+        # check that this is actually what we expect to have
+        data_length = len(packet.payload) - len(MyPacket.HEADER)
+        unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
+        # compute the checksum to see if it's correct
+        seq_no, ord_no, parts, chk, data = unpacker.unpack(str(packet.payload))
+        if chk != CHK(data):
+            print "cheksum on the packet is not correct"
+        else:
+            # we can actually add it to temp
+            if seq not in self.temp:
+                self.temp = [None] * parts
+            else:
+                # it should not happen that we get the same message twice
+                assert(ord_no not in self.temp[seq])
+                self.temp[ord_no] = data
+                self.update_if_completed(seq)
+
+    def update_if_completed(self, seq):
+        if (seq in self.temp) and (None not in self.temp[seq]):
+            print "all the chunks for packet %d are arrived" % seq
+            # TODO: check if deepcopy is really needed there?
+            self.completed[seq] = deepcopy(self.temp[seq])
+            del self.temp[seq]
 
     def get_data(self):
         data = "".join(self.raw_data)
