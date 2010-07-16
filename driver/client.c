@@ -75,9 +75,6 @@ int main(int args, char** arg) {
 
     char tun_name[IFNAMSIZ];
 
-    // The IP address
-    char *ip_address_str = "10.0.0.1";
-
     // a new device should be opened!
     tun_name[0] = 0;    
     // create the tap-device
@@ -89,12 +86,6 @@ int main(int args, char** arg) {
         printf("created tunnel device: %s\n", tun_name);
     }
 
-    // Setup the tunnel (Beneath other things, this sets the ip address)
-    if (tun_setup(tun_name, ip_address_str) < 0) {
-        printf("configuring the tun failed; aborting\n");
-        return 1;
-    }
-    
     fflush(stdout);
 
     /* uint8_t buf[sizeof(struct split_ip_msg) + INET_MTU]; */
@@ -130,7 +121,7 @@ int main(int args, char** arg) {
     for (;;) {
       fdg.listen(&fdg,3600);
     }
-    /*
+    
     while(1) {
         memset(buff, 0, size);
         len = tun_read(tun_fd, buff, size);
@@ -139,7 +130,7 @@ int main(int args, char** arg) {
         } else {
             perror("not receiving anything\n");
         }
-    }*/
+    }
     return 0;
 }
 

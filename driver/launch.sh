@@ -3,14 +3,14 @@
 # there could be some options
 # see http://openvpn.net/index.php/open-source/documentation/miscellaneous/76-ethernet-bridging.html
 # for an example of bridge-start/bridge-stop
+# Maybe for some more tricks we could also use iptables
 
 function usage {
     echo "./launch <tap device> <eth device> <local address> <mtu>"
-    exit 1
+    return 1
 }
 if [ $# -lt 4 ] ; then
     usage
-    return 0
 fi
 
 TAP=$1
@@ -32,7 +32,7 @@ function brup {
     # now set up the default routing
     route add default gw $ADDR
 }
-
+<
 # FIXME: the table is messed up after this
 function brdown {
 # and now we can undo all the settings

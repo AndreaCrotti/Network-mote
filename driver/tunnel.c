@@ -4,6 +4,7 @@
 /* This file contains a new and simple implementation for the tun/tap drivers  */
 /* WITH COMMENTS!                                                              */
 /*******************************************************************************/
+// Probably is not needed to use a socket at all, we can setup everything in a script
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,14 +23,8 @@
 
 #include "tunnel.h"
 
-// Variables to store a route configuration
-char stored_gw = 0;
-struct rtentry saved_entry;
 // The name of the interface 
 char *ifname;
-
-// Storage for our socket identifier
-int sock = 0;
 
 /** 
  * Creates a new tun/tap device, or connects to a already existent one depending
@@ -78,48 +73,6 @@ int tun_open(char *dev, int flags){
     ifname = malloc(10);
 
     return fd;
-}
-
-// TODO: remove all the stuff ifconfig-related, will be done in a script instead
-/** 
- * This function is used to restore the gateway before the program stops. 
- */
-void restore_gateway(int param){
-    (void) param;
-
-    int fd, err; 
-
-    // Getting the device identifier with the socket command
-    if( (fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
-        perror("Getting socket");
-    }
-
-    printf("Restoring the standard route over '%s'\n", saved_entry.rt_dev);
-
-    // Restore the old gateway
-    if( (err = ioctl(fd, SIOCADDRT, &saved_entry)) < 0){
-        perror("Restoring routing entry");
-    }
-
-    exit(0);
-}
-
-/** 
- * Sets up the tunnel interface and assigns a MTU and a IPv4 address.
- * 
- * @param dev The device name.
- * @param addr An IPv4 address (As a string).
- * 
- * @return Error-code.
- */
-int tun_setup(char *dev, char *addr){
-    // TODO: what do we need a socket for when we setup the device??
-    // Getting the device identifier with the socket command
-    if( (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
-        perror("Getting socket");
-        return sock;
-    }
-    return 0;
 }
 
 /** 
