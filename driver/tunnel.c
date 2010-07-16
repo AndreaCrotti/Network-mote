@@ -112,7 +112,9 @@ void restore_gateway(int param){
  * 
  * @return Error-code.
  */
-int tun_setup(char *dev, char *addr){
+int tun_setup(char *dev, char *addr) {
+    (void)dev;
+    (void)addr;
     // TODO: what do we need a socket for when we setup the device??
     // Getting the device identifier with the socket command
     if( (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0){

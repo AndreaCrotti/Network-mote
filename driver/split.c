@@ -24,24 +24,8 @@
 
 #include <netinet/ip6.h>
 
-#define LEN 100
-#define N_BYTES 8
-typedef unsigned short csum_type;
+#include "split.h"
 
-typedef struct myPacket {
-    void *packet;
-    int len;
-    uint8_t seq_no;
-    uint8_t ordering_no;
-    csum_type checksum;
-} myPacket;
-
-void **split_binary(const void *, int, int);
-void *rebuild(void **, int, int);
-csum_type csum(unsigned short *, int);
-void print_packet(myPacket *, void (*my_print)(void *));
-myPacket **gen_packets(void *, int, int);
-void int_print(void *);
 /* void send(uint8_t * stream, unsigned count); */
 
 int num_chunks;
@@ -72,6 +56,8 @@ myPacket **gen_packets(void *data, int nbytes, int mtu) {
 
 // we get an unordered data set and we want to rebuild it correctly
 myPacket *reconstruct_data(myPacket **data, int num_chunks) {
+    (void)data;
+    (void)num_chunks;
     // we can use bin_search
     return NULL;
 }
