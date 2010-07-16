@@ -26,7 +26,9 @@ class TestMyPacket(unittest.TestCase):
         p = MyPacket(*st)
         packed = p.pack()
         print "we need %d bytes for the packet" % len(p)
-        # self.assertEquals(st, p.unpack(packed))
+        unpacked = p.unpack(packed)
+        print unpacked
+        self.assertEquals(st[-1], unpacked[-1])
 
 class TestPacker(unittest.TestCase):
     def test_adding(self):

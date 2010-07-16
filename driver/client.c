@@ -34,39 +34,39 @@
 
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void mcpReceive(fdglue_handler_t* that) {
-  mcp_t* this = (mcp_t*)(that->p);
-  this->getComm(this)->read(this->getComm(this));
+    mcp_t* this = (mcp_t*)(that->p);
+    this->getComm(this)->read(this->getComm(this));
 }
 
 #define MAX_ETHERNET_FRAME_SIZE 2048
 
 struct TunHandlerInfo {
-  int fd;
-  ifp_t* ifp;
+    int fd;
+    ifp_t* ifp;
 };
 
 void tunReceive(fdglue_handler_t* that) {
     printf("tunReceive called");
     
-  struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
-  static stream_t buf[MAX_ETHERNET_FRAME_SIZE];
-  memset(buf,0,MAX_ETHERNET_FRAME_SIZE);
-  int size = tun_read(this->fd,(char*)buf,MAX_ETHERNET_FRAME_SIZE);
-  assert(size);
-  static int seqno = 0;
-  ++seqno;
-  payload_t payload = {.stream = buf, .len = size};
-  ipv6Packet ipv6;
-  while (genIpv6Packet(&payload,&ipv6,seqno)) {
-    this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = ipv6.sendsize});
-  }
+    struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
+    static stream_t buf[MAX_ETHERNET_FRAME_SIZE];
+    memset(buf,0,MAX_ETHERNET_FRAME_SIZE);
+    int size = tun_read(this->fd,(char*)buf,MAX_ETHERNET_FRAME_SIZE);
+    assert(size);
+    static int seqno = 0;
+    ++seqno;
+    payload_t payload = {.stream = buf, .len = size};
+    ipv6Packet ipv6;
+    while (genIpv6Packet(&payload,&ipv6,seqno)) {
+        this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = ipv6.sendsize});
+    }
 }
 
 la_t localAddress = DEFAULT_LOCAL_ADDRESS;
 
 void laSet(laep_handler_t* this, la_t const address) {
-  (void)this;
-  localAddress = address;
+    (void)this;
+    localAddress = address;
 }
 
 int main(int args, char** arg) {
@@ -109,70 +109,28 @@ int main(int args, char** arg) {
     laep(&_laep,mcp);
     _laep.setHandler(&_laep,LAEP_REPLY,(laep_handler_t){.handle = laSet, .p = NULL});
     if (!mcp) {
-      printf("There was an error opening the connection to %s over device %s.",mote,dev);
+        printf("There was an error opening the connection to %s over device %s.",mote,dev);
     }
     struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp};
     fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){
-                                                  .p = mcp,
-                                                  .handle = mcpReceive},FDGHR_APPEND);
+            .p = mcp,
+                .handle = mcpReceive},FDGHR_APPEND);
     fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){
-                                                  .p = &thi,
-                                                  .handle = tunReceive},FDGHR_APPEND); //TODO
+            .p = &thi,
+                .handle = tunReceive},FDGHR_APPEND); //TODO
+
     for (;;) {
-      fdg.listen(&fdg,3600);
+        fdg.listen(&fdg,3600);
     }
     
-    while(1) {
-        memset(buff, 0, size);
-        len = tun_read(tun_fd, buff, size);
-        if (len > 0) {
-            printf("got a message of length %d\n", len);
-        } else {
-            perror("not receiving anything\n");
-        }
-    }
-    return 0;
+    /* while(1) { */
+    /*     memset(buff, 0, size); */
+    /*     len = tun_read(tun_fd, buff, size); */
+    /*     if (len > 0) { */
+    /*         printf("got a message of length %d\n", len); */
+    /*     } else { */
+    /*         perror("not receiving anything\n"); */
+    /*     } */
+    /* } */
+    /* return 0; */
 }
-
-/** 
- * Function to print out the contents of an IP packet.
- *
- * Taken from support/sdk/c/blib/driver/serial_tun.c
- * 
- * @param msg 
- */
-/* void print_ip_packet(struct split_ip_msg *msg) { */
-/*     int i; */
-/*     struct generic_header *g_hdr; */
-/*     //if (log_getlevel() > LOGLVL_DEBUG) return; */
-
-/*     printf("  nxthdr: 0x%x hlim: 0x%x plen: %i\n", msg->hdr.nxt_hdr, msg->hdr.hlim, ntohs(msg->hdr.plen)); */
-/*     printf("  src: "); */
-/*     for (i = 0; i < 16; i++) printf("0x%x ", msg->hdr.ip6_src.s6_addr[i]); */
-/*     printf("\n"); */
-/*     printf("  dst: "); */
-/*     for (i = 0; i < 16; i++) printf("0x%x ", msg->hdr.ip6_dst.s6_addr[i]); */
-/*     printf("\n"); */
-
-/*     g_hdr = msg->headers; */
-/*     while (g_hdr != NULL) { */
-/*         printf("header [%i]: ", g_hdr->len); */
-/*         for (i = 0; i < g_hdr->len; i++) */
-/*             printf("0x%x ", g_hdr->hdr.data[i]); */
-/*         printf("\n"); */
-/*         g_hdr = g_hdr->next; */
-/*     } */
-
-/*     printf("data [%i]:\n\t", msg->data_len); */
-/*     for (i = 0; i < msg->data_len; i++) { */
-/*         if (i == 0x40) { */
-/*             printf (" ...\n"); */
-/*             break; */
-/*         } */
-/*         printf("0x%x ", msg->data[i]); */
-/*         if (i % 16 == 15) printf("\n\t"); */
-/*         if (i % 16 == 7) printf ("  "); */
-/*     } */
-/*     printf("\n"); */
-/* } */
-

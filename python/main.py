@@ -14,6 +14,7 @@ import struct
 import sys
 import logging
 import subprocess
+import getopt
 from math import ceil
 from copy import deepcopy
 from fcntl import ioctl
@@ -229,30 +230,41 @@ def usage():
     sys.exit(os.EX_USAGE)
 
 def main():
-    if len(sys.argv) < 2:
-        usage()
-    else:
-        device = "/dev/ttyUSB%s" % sys.argv[1]
-        # pass the max size of reading also
-        t = TunTap('tap', MAX_ETHER)
-        t.setup()
-        mote_fd = os.open(device, os.O_RDWR)
-        try:
-            while True:
-                ro, wr, ex = select([t.fd, mote_fd], [t.fd, mote_fd], [])
-                # now we read the ethernet packets from the tap device and send
-                # them to the mote writing them out
-                if t.fd in ro:
-                    # compress and send to the serial interface
-                    pass
-                elif mote_fd in ro:
-                    # reconstruct the packet
-                    pass_
+    opts, args = getopt.getopt(sys.argv[1:], 'vcgd:', ['--verbose', '--client', '--gateway', '--device'])
+    # setting the logger
+    logger = logging.getLogger()
+    
+    device = None
+    for o, v in opts:
+        if o == '-d':
+            device = "/dev/ttyUSB%s" % v
+        if o == '-v':
+            logger.setLevel(logging.DEBUG)
 
-        except KeyboardInterrupt:
-            # use "with" instead if possible
-            t.close()
-            os.close(mote_fd)
+    if not device:
+        print "no device configured"
+        sys.exit(1)
+
+    # # pass the max size of reading also
+    # t = TunTap('tap', MAX_ETHER)
+    # t.setup()
+    # mote_fd = os.open(device, os.O_RDWR)
+    # try:
+    #     while True:
+    #         ro, wr, ex = select([t.fd, mote_fd], [t.fd, mote_fd], [])
+    #         # now we read the ethernet packets from the tap device and send
+    #         # them to the mote writing them out
+    #         if t.fd in ro:
+    #             # compress and send to the serial interface
+    #             pass
+    #         elif mote_fd in ro:
+    #             # reconstruct the packet
+    #             pass_
+
+    # except KeyboardInterrupt:
+    #     # use "with" instead if possible
+    #     t.close()
+    #     os.close(mote_fd)
 
 if __name__ == '__main__':
-    pass
+    main()
