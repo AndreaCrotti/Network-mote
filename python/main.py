@@ -5,7 +5,6 @@ TODO: make the compression an option which could be also disabled
 TODO: setup a nice logger
 """
 
-from scapy.all import *
 # from TOSSIM import Tossim, SerialForwarder, Throttle
 import os
 import zlib
@@ -15,6 +14,15 @@ import struct
 import sys
 import logging
 import subprocess
+from copy import deepcopy
+from fcntl import ioctl
+from collections import namedtuple
+from scapy.all import IPv6
+
+DEFCOMPRESS = False
+POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
+ORDER = "!"
+CHK = zlib.crc32
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -26,11 +34,6 @@ else:
     sys.path.append(sdk)
 
 from tinyos.tossim.TossimApp import NescApp
-
-# payload for the end of packet
-EOP = "eop"
-
-max_size = 0
 
 class TunTap(object):
     "Tun tap interface class management"
@@ -77,147 +80,130 @@ class Splitter(object):
     """
     Class used for splitting our data, argument must be a string or serializable
     """
-    def __init__(self, data, proto=6, compression=True):
-        self.proto = proto
+    def __init__(self, data, seq, max_size, ip_header, compression=DEFCOMPRESS):
+        self.ip_header = ip_header
+        self.seq = seq
+        self.max_size = max_size
         if compression:
             self.data = zlib.compress(data)
         else:
             self.data = data
-    
-    def __iter__(self):
-        # we can also compress while we execute
-        pass
+        self.packets = self.split()
+
+    def __len__(self):
+        return len(self.packets)
 
     def split(self):
-        pass
+        "Returns all the packets encapsulated in the two layers"
+        res = []
+        count = 0
+        idx = 0
+        tot_len = len(self.data)
+        while idx < tot_len:
+            # we get an external already configured header and we add the payload
+            head = deepcopy(self.ip_header)
+            # don't have to worry about overflows!
+            pkt = MyPacket(self.seq, count, self.data[idx:idx + self.max_size])
+            # the len is automatically set by scapy!!
+            head.add_payload(pkt.pack())
+            res.append(head)
+            count += 1
+            idx += self.max_size
 
-class Header(object):
-    "encapsulating my header"
-    fields = {
-        'seq_no' : 'H',
-        'ord_no' : 'H',
-        'chk' : 'L'
-    }
-    order = ('seq_no', 'ord_no', 'chk')
-    vals = [Header.fields[x] for x in Header.order]
+        return res
 
-    @staticmethod
-    def len():
-        return struct.calcsize(''.join(Header.vals))
+# add something to see the header
+class Packer(object):
+    def __init__(self, *header):
+        # TODO: make it configurable
+        self.fmt = ''.join(h[1] for h in header)
+        self.tup = namedtuple('header', (h[0] for h in header))
+
+    def __str__(self):
+        return self.fmt
+
+    def __len__(self):
+        return struct.calcsize(self.fmt)
+
+    def __add__(self, y):
+        ret = deepcopy(self)
+        ret.fmt += y.fmt
+        # do something also with the namedtuple
+        ret.tup = namedtuple('header', self.tup._fields + y.tup._fields)
+        return ret
     
-    @staticmethod
-    def make_struct(data):
-        "pass a list of values to pack together"
-        return struct.pack(Header.vals + s, *data)
+    def pack(self, *data):
+        try:
+            return struct.pack(ORDER + self.fmt, *data)
+        except struct.error:
+            # TODO: add some better error here
+            print "Error in formatting\n format %s, data %s" % (self.fmt, str(*data))
+            return None
 
-def compress(packet, seq, dst, size=100):
-    # seqno, ordnumber, checksum
-    header = "!hHL"
-    # add the needed fields
-    print "we need %d bytes for the added info" % struct.calcsize(header)
-    # maybe we can also sniff instead of reading on the device
-    # compressed = zlib.compress(packet)
-    compressed = packet
-    global max_size
-    max_size = size - (struct.calcsize(header) + len(IPv6()))
-    print "max size for the payload = %d" % max_size
-    inner = lambda s, ord, chk: struct.pack(header + "s", seq, ord, chk, s)
-    # get the slicing
-    splits = []
-    count = 0
-    for x in range(0, len(compressed), max_size):
-        splits.append(inner(compressed[x:x+max_size], count, 0))
-        count += 1
+    def unpack(self, bytez):
+        return struct.unpack(ORDER + self.fmt, bytez)
 
-    print "returning %d packets" % len(splits)
-    return [IPv6(dst=dst) / x for x in splits]
+# TODO: use some metaprogramming to create the right class
+class MyPacket(object):
+    """
+    Class of packet type
+    TODO: when the data is changing also the checksum should change automatically
+    """
+    HEADER = Packer(('seq', 'H'), ('ord', 'H'), ('chk', 'L'))
+    def __init__(self, seq, ord, data):
+        # we can pass any checksum function that gives a 32 bit result
+        # checksum might be also disable maybe
+        self.seq = seq
+        self.ord = ord
+        self.data = data
+        self.chk = CHK(data)
+        self.packet = MyPacket.HEADER + Packer(('data', '%ds' % len(self.data)))
 
-def reconstruct(packets):
-    "Reconstruct the original data from the compressed packets"
-    print "len = %d" % len(packets[0].payload)
-    restored = [struct.unpack("!hHL%ds" % max_size,  p.payload) for p in packets]
-    # grouping by sequential number and sorting by ord number after
-    data = ""
-    for v in sorted(restored, key=lambda x: x[1]):
-        print v
-        data += v[3]
-    # now we can finally uncompress the data
-    # orig = zlib.decompress(data)
-    return data
+    def __str__(self):
+        return self.bytez
 
-from collections import namedtuple
+    def __len__(self):
+        return len(self.packet)
 
-def test_compress():
-    p = sniff(count=10)
-    # print compress(str(p), "::1")
+    # TODO: add some smart check of the input?
+    def pack(self):
+        return self.packet.pack(self.seq, self.ord, self.chk, self.data)
 
-# proof of concept, create 2 virtual device, and start some multiprocessing magic with them
-def proof():
-    ipaddr = "10.0.0.%d"
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    devs = setup_device(ipaddr % 1), setup_device(ipaddr % 2)
-    try:
-        while True:
-            ro, wr, _ = select(devs, devs, [])
-            print ro, wr
-            # first try to read on one of them, otherwise write
-            if ro != []:
-                for x in ro:
-                    pkt = os.read(x, 1024)
-                    print "%d has received packet %s" % (x, str(pkt))
-            else:
-                # otherwise we write something on both
-                for x in wr:
-                    print "writing the payload to %d" % xb
-                    os.write(x, payload)
-                    # sending with a socket to the other address
-                    other = devs[(devs.index(x) + 1) % 2]
+    def unpack(self, bytez):
+        return self.packet.unpack(bytez)
 
-    except KeyboardInterrupt:
-        for d in devs:
-            print "closing %d" % d
-            os.close(d)
+class Merger(object):
+    """
+    reconstructing original data, it's automatically protocol agnostic since we can use directly the payload
+    (we just need the len attribute being set
+    Merger must always take data in an order which is not the default
+    """
+    def __init__(self, packets, compression=DEFCOMPRESS):
+        self.packets = packets
+        self.compression = compression
+        self.merge()
+        
+    # see how we can decompress not knowing the dimension
+    # we can decompress on the fly or create the big chunk and decompress in the end
+    def merge(self):
+        self.raw_data = [None] * len(self.packets)
+        # data length is given by the ip header
+        for x in self.packets:
+            # where is that +8 coming from?
+            data_length = len(x.payload) -8 # - len(MyPacket.HEADER) + 8
+            # maybe I could subtract the header from the struct
+            unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
+            # compute the checksum to see if it's correct
+            seq, ord, chk, data = unpacker.unpack(str(x.payload))
+            self.raw_data[ord] = data
+            # print self.raw_data
 
-def test_select():
-    # trying out a select using a couple of devices
-    sock1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock3 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # 1 is the client and we do the selection on 2 and 3
-    addr1, addr2 = (("", 10000), ("", 100000))
-    sock2.bind(addr1)
-    sock3.bind(addr2)
-
-    # this select stuff with sockets works pretty well
-    from random import random
-    while True:
-        if random() > 0.5:
-            sock1.sendto("ciao ", addr1)
+    def get_data(self):
+        data = "".join(x[-1] for x in self.raw_data)
+        if self.compression:
+            return zlib.decompress(data)
         else:
-            sock1.sendto("ciao ", addr2)
-        r, w, _ = select([sock2, sock3], [], [])
-        print r,w
-        for x in r:
-            print "reading data %s" % str(x.recv(1024))
-
-def test_usb_writing():
-    dev = "/dev/ttyUSB0"
-    fd = os.open(dev, os.O_RDWR)
-    # try to read and write from that and see what happens
-
-
-# rewrite this using only scapy
-def test_mtu_speed():
-    t = TunTap('tap', 1024)
-    t.setup()
-    addr = "10.0.1.1"
-    subprocess.Popen("/sbin/ifconfig tap0 %s" % addr, shell=True)
-    for mtu in range(50, 1000, 100):
-        print "\n\nfor mtu %d we have ping" % mtu
-        subprocess.Popen("ifconfig tap0 mtu %d" % mtu, shell=True)
-        os.popen("/sbin/ifconfig tap0 mtu %d" % mtu).read()
-        # then ping and see how fast it is
-        subprocess.Popen("ping -p ff -c 5 %s" % addr, shell=True)
+            return data
 
 def usage():
     print "usage: ./main.py <device>"
@@ -249,4 +235,4 @@ def main():
             os.close(mote_fd)
 
 if __name__ == '__main__':
-    test_mtu_speed()
+    pass

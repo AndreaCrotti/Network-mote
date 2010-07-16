@@ -1,46 +1,50 @@
 #!/bin/bash
 # an then all the traffic will go throgh the bridge automatically
 # there could be some options
+# see http://openvpn.net/index.php/open-source/documentation/miscellaneous/76-ethernet-bridging.html
+# for an example of bridge-start/bridge-stop
 
 function usage {
     echo "./launch <tap device> <eth device> <local address> <mtu>"
     exit 1
 }
-
-if [ $# -lt 3 ] ; then
+if [ $# -lt 4 ] ; then
     usage
-    exit 0
+    return 0
 fi
 
 TAP=$1
 ETH=$2
 ADDR=$3
 MTU=$4
+BR=br0
 
+
+# we also need to create the tap device first
 function brup {
-    "setting up the bridge"
-    brctl addbr $TAP
-    brctl addif $TAP $ETH
-    ifconfig $ETH down
-    ifconfig $TAP $ADDR mtu $MTU
+    openvpn --mktun --dev $TAP
+    brctl addbr $BR
+    brctl addif $BR $ETH
+    brctl addif $BR $TAP
+    ifconfig $TAP 0.0.0.0 promisc up
+    ifconfig $ETH 0.0.0.0 promisc up
+    ifconfig $BR $ADDR netmask 255.255.255.0 mtu $MTU
+    # now set up the default routing
+    route add default gw $ADDR
 }
 
-# FIXME: still some problems with setting up the metric
+# FIXME: the table is messed up after this
 function brdown {
 # and now we can undo all the settings
     echo "unsetting the bridge"
-    ifconfig $TAP down
-    brctl delif $TAP $ETH
-    brctl delbr $TAP
-    ifconfig $ETH up
-    ifconfig $ETH $ADDR
-    # hack for Arch only
-    /etc/rc.d/network restart
+    ifconfig $BR down
+    brctl delbr $BR
+    openvpn --rmtun --dev $TAP
+    echo "dns and rest are probably fucked up now"
+    dhcpcd $ETH
 }
 
 set -x
-# now we can execute our program
 brup
-# when we quit with C-c it will clean automatically
-trap "brdown" 2
-make && ./tuntest
+# sleep 10
+# brdown

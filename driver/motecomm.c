@@ -62,15 +62,16 @@ mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t
 
 /**** serialif_t ****/
 
-void _serialif_t_openMessage(serial_source_msg problem);
 int _serialif_t_send(serialif_t* this, payload_t const payload);
 void _serialif_t_read(serialif_t* this, payload_t* const payload);
 void _serialif_t_dtor(serialif_t* this);
-void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
 void _serialif_t_ditch(serialif_t* this, payload_t** payload);
 int _serialif_t_fd(serialif_t* this);
+void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
 
 #if INCLUDE_SERIAL_IMPLEMENTATION
+
+void _serialif_t_openMessage(serial_source_msg problem);
 
 int _serialif_t_fd(serialif_t* this) {
   assert(this);
@@ -155,7 +156,7 @@ serialif_t* serialif(serialif_t* this, char const* const dev, char* const platfo
   _serialif_t_open(this,dev,platform,ssm);
   if (!this->source) { // there was a problem
     DTOR(this);
-    this = NULL; // tell user there was something wrong. He can then theck the ssm he gave us (if he did so).
+    this = NULL; // tell user there was something wrong. He can then check the ssm he gave us (if he did so).
   }
   return this;
 }
