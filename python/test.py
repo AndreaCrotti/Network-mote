@@ -3,6 +3,7 @@ import unittest
 import zlib, bz2
 from string import ascii_letters
 from random import choice
+from select import select
 from main import *
 
 class TestMyPacket(unittest.TestCase):
@@ -44,12 +45,30 @@ class TestCombined(unittest.TestCase):
         print m.raw_data
         self.assertEquals(self.orig_data, m.get_data())
 
-    def test_with_mixed_packets(self):
-        "Shuffling the packets arrival still works"
-        from random import shuffle
-        shuffle(self.packets)
-        m = Merger(self.packets)
-        self.assertEquals(self.orig_data, m.get_data())
+    # def test_with_mixed_packets(self):
+    #     "Shuffling the packets arrival still works"
+    #     from random import shuffle
+    #     shuffle(self.packets)
+    #     m = Merger(self.packets)
+    #     self.assertEquals(self.orig_data, m.get_data())
+
+
+class TestTwoTapDevices(unittest.TestCase):
+    "Sending and reconstructing between two tap devices"
+    # to make the loop finally working add two bridges with them
+    t1 = TunTap('tap', MAX_ETHER)
+    t2 = TunTap('tap', MAX_ETHER)
+    t1.setup()
+    t2.setup()
+    m1, m2 = Merger(), Merger()
+    try:
+        # now give them an address and allows sending between each other via network
+        while True:
+            ro, wr, ex = select([t1.fd, t2.fd], [t1.fd, t2.fd], [])
+            if t1 in ro:
+                pass
+    except KeyboardInterrupt:
+        t1.close; t2.close()
 
 def rand_string(dim):
     return "".join([choice(ascii_letters) for _ in range(dim)])
