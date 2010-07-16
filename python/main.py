@@ -21,6 +21,7 @@ from scapy.all import IPv6
 
 DEFCOMPRESS = True
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
+ORDER = "!"
 
 TOSROOT = os.getenv("TOSROOT")
 if TOSROOT is None:
@@ -114,7 +115,6 @@ class Splitter(object):
 class Packer(object):
     def __init__(self, *header):
         # TODO: make it configurable
-        self.order = "!"
         self.fmt = ''.join(h[1] for h in header)
         self.tup = namedtuple('header', (h[0] for h in header))
 
@@ -125,7 +125,6 @@ class Packer(object):
         return struct.calcsize(self.fmt)
 
     def __add__(self, y):
-        assert(self.order == y.order)
         ret = deepcopy(self)
         ret.fmt += y.fmt
         # do something also with the namedtuple
@@ -134,14 +133,14 @@ class Packer(object):
     
     def pack(self, *data):
         try:
-            return struct.pack(self.order + self.fmt, *data)
+            return struct.pack(ORDER + self.fmt, *data)
         except struct.error:
             # TODO: add some better error here
             print "Error in formatting\n format %s, data %s" % (self.fmt, str(*data))
             return None
 
     def unpack(self, bytez):
-        return struct.unpack(self.fmt, bytez)
+        return struct.unpack(ORDER + self.fmt, bytez)
 
 # TODO: use some metaprogramming to create the right class
 class MyPacket(object):
@@ -176,6 +175,7 @@ class Merger(object):
     """
     reconstructing original data, it's automatically protocol agnostic since we can use directly the payload
     (we just need the len attribute being set
+    Merger must always take data in an order which is not the default
     """
     def __init__(self, packets, compression=DEFCOMPRESS):
         self.packets = packets
@@ -189,12 +189,20 @@ class Merger(object):
         # data length is given by the ip header
         for x in self.packets:
             # FIXME: check here why we can get a wrong value of size
-            data_length = len(x.payload) - len(MyPacket.HEADER)
-            print "data_length found = %d" % data_length
+            # import pdb
+            # pdb.set_trace()
+            # where is that +8 coming from?
+            data_length = len(x.payload) - len(MyPacket.HEADER) + 8
+            # maybe I could subtract the header from the struct
             unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
-            self.raw_data.append(unpacker.unpack(x.payload))
+            self.raw_data.append(unpacker.unpack(str(x.payload)))
 
-        return self.raw_data
+    def get_data(self):
+        data = "".join(x[-1] for x in self.raw_data)
+        if self.compression:
+            return zlib.decompress(data)
+        else:
+            return data
 
 def usage():
     print "usage: ./main.py <device>"

@@ -20,11 +20,13 @@ class TestPacker(unittest.TestCase):
         summed = s + s1
         self.assertEquals(len(s) + len(s1), len(summed))
         self.assertEquals(s.fmt + s1.fmt, summed.fmt)
+        packed_struct = s.pack(1, 2) + s1.pack(10)
+        self.assertEquals(summed.pack(1, 2, 10), packed_struct)
 
 class TestSplitter(unittest.TestCase):
     def test_splitter(self):
         rand_big = "ciao" * 1000
-        compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"))
+        compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=True)
         nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=False)
         print "compr = %d, nocompr = %d\n" % (len(compr), len(nocompr))
 
@@ -34,14 +36,11 @@ class TestMerger(unittest.TestCase):
 class TestCombined(unittest.TestCase):
     """ Check the Splitter-Merger couple working """
     def test_split_combine(self):
-        data = rand_string(1000)
-        s = Splitter(data, 0, 100, IPv6())
-        for x in s.packets:
-            print len(x.payload)
-
+        orig_data = rand_string(1000)
+        s = Splitter(orig_data, 0, 100, IPv6())
         m = Merger(s.packets)
-        print m.raw_data
-
+        self.assertEquals(orig_data, m.get_data())
+        
 
 def rand_string(dim):
     return "".join([choice(ascii_letters) for _ in range(dim)])
