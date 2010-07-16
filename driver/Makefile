@@ -1,10 +1,9 @@
 BLIP = $(TOSROOT)/support/sdk/c/blip
 SF = $(TOSROOT)/support/sdk/c/sf
-6LOWPANCARRIED = 128
 
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 # this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
-CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(6LOWPANCARRIED)
+CFLAGS = -D_GNU_SOURCE -DPC
 WARN = -Wall -Wextra
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS)
 
