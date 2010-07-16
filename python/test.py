@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import unittest
-import zlib, bz2
 from string import ascii_letters
 from random import choice
 from select import select
@@ -19,6 +18,7 @@ class TestTapDevice(unittest.TestCase):
         self.tap.write(msg)
         self.assertEquals(self.tap.read(msg), msg)
 
+
 class TestMyPacket(unittest.TestCase):
     def test_mypacket(self):
         # here parts is not really important
@@ -27,6 +27,7 @@ class TestMyPacket(unittest.TestCase):
         packed = p.pack()
         unpacked = p.unpack(packed)
         self.assertEquals(st[-1], unpacked[-1])
+
 
 class TestPacker(unittest.TestCase):
     def test_adding(self):
@@ -38,11 +39,15 @@ class TestPacker(unittest.TestCase):
         packed_struct = s.pack(1, 2) + s1.pack(10)
         self.assertEquals(summed.pack(1, 2, 10), packed_struct)
 
+
 class TestSplitter(unittest.TestCase):
     def test_splitter(self):
         rand_big = "ciao" * 1000
-        compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=True)
-        nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=False)
+        main.COMPRESSOIN = True
+        compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"))
+        main.compression = False
+        nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"))
+        self.assertTrue(len(compr) <= len(nocompr))
 
 class TestCombined(unittest.TestCase):
     """ Check the Splitter-Merger couple working """

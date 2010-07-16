@@ -21,11 +21,12 @@ from fcntl import ioctl
 from collections import namedtuple
 from scapy.all import IPv6
 
-DEFCOMPRESS = True
+COMPRESSION = True
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
 ORDER = "!"
 CHK = zlib.crc32
 MAX_ETHER = 10 * 1024
+
 
 class TunTap(object):
     "Tun tap interface class management"
@@ -39,8 +40,7 @@ class TunTap(object):
         self.max_size = max_size
 
     def setup(self):
-        # creating a tun device and sending data on it
-
+        "creating a tun device and sending data on it"
         if self.mode == 'tap':
             TUNMODE = TunTap.IFF_TAP
             # setup the bridge
@@ -65,15 +65,16 @@ class TunTap(object):
 
     # TODO: see if implementing fileno could be useful
 
+
 class Splitter(object):
     """
     Class used for splitting our data, argument must be a string or serializable
     """
-    def __init__(self, data, seq_no, max_size, ip_header, compression=DEFCOMPRESS):
+    def __init__(self, data, seq_no, max_size, ip_header):
         self.ip_header = ip_header
         self.seq_no = seq_no
         self.max_size = max_size
-        if compression:
+        if COMPRESSION:
             self.data = zlib.compress(data)
         else:
             self.data = data
@@ -100,8 +101,9 @@ class Splitter(object):
 
         return res
 
-# add something to see the header
+
 class Packer(object):
+    "Class to easily pack and unpack data using namedtuples"
     def __init__(self, *header):
         # TODO: make it configurable
         self.fmt = ''.join(h[1] for h in header)
@@ -119,13 +121,13 @@ class Packer(object):
         # do something also with the namedtuple
         ret.tup = namedtuple('header', self.tup._fields + y.tup._fields)
         return ret
-    
+
     def pack(self, *data):
         try:
             return struct.pack(ORDER + self.fmt, *data)
         except struct.error:
             # TODO: add some better error here
-            print "Error in formatting\n format %s, data %s" % (self.fmt, str(data))
+            print "formatting\n format %s, data %s" % (self.fmt, str(data))
             return None
 
     def unpack(self, bytez):
@@ -169,11 +171,10 @@ class Merger(object):
     (we just need the len attribute being set
     Merger should keep all the packets until it didn't construct something
     """
-    def __init__(self, packets=None, compression=DEFCOMPRESS):
+    def __init__(self, packets=None):
         self.temp = {} # dict of packets in construction
         self.completed = {} # dict of successfully built packets
         # make it simpler
-        self.compression = compression
         if packets:
             for p in packets:
                 self.add(p)
@@ -206,7 +207,7 @@ class Merger(object):
 
     def get_data(self):
         data = "".join(self.raw_data)
-        if self.compression:
+        if COMPRESSION:
             return zlib.decompress(data)
         else:
             return data
