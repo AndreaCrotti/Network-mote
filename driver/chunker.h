@@ -7,7 +7,7 @@
 
 // measures in bytes
 #define SIZE_IPV6_HEADER 40
-#define MAX_CARRIED 128
+#define MAX_CARRIED TOSH_DATA_LENGTH
 #define TOT_PACKET_SIZE(payload_len) (sizeof(ipv6PacketHeader) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
 

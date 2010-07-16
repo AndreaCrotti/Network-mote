@@ -7,6 +7,7 @@
 #include "hostname.h"
 #define _TOS_MOTECOMM // deactivate funny linux specific weirdos like malloc or calls to the serialsource lib
 #include "../driver/motecomm.h"
+#include "../driver/chunker.h"
 
 module MoteNetAppP{
     uses{
@@ -45,14 +46,37 @@ implementation{
     message_t* ser_in_consume;
     message_t ser_out;
 
+    /*************/
+    /* Functions */
+    /*************/
+    /** 
+     * Toggles a LED when a message is send to the radio. 
+     */
+    void radioBlink(){
+        call Leds.led0Toggle();
+    }
+    /** 
+
+     * Toggles a LED when a message is send to the serial. 
+     */
+    void serialBlink(){
+        call Leds.led1Toggle();
+    }
+    /** 
+     * Toggles a LED when a message couldn't be send and is dropped 
+     */
+    void failBlink(){
+        call Leds.led2Toggle();
+    }
+
     int _serialif_t_send(serialif_t* this, payload_t const payload) {
         if (payload.len <= call SerialPacket.maxPayloadLength()) {
             memcpy((void*)(call SerialPacket.getPayload(&ser_out,0)),payload.stream,payload.len);
-            if(call SerialSend.send[0xBF](AM_BROADCAST_ADDR, &ser_out, payload.len) 
+            if(call SerialSend.send(AM_BROADCAST_ADDR, &ser_out, payload.len) 
                == SUCCESS){
                 serialBlink();
             }else{
-                dropBlink();
+                failBlink();
             }
             return 1;
         } else {
@@ -93,47 +117,37 @@ implementation{
     ifp_t if_ifp;
     struct split_ip_msg ip_out;
     uint8_t ip_out_data[TOSH_DATA_LENGTH];  
+    struct generic_header gen_header;
+    struct myPacketHeader myp_header;
 
     /************/
     /* Handlers */
     /************/
     void payload_rec_handler(ifp_handler_t* that, payload_t const payload){
-               
+        struct ipv6Packet packetBuf; 
+
         // Check whether the packet is not to small
-        if(payload.len < sizeof(struct split_ip_msg)){
+        if(payload.len < sizeof(struct ipv6Packet)){
             failBlink();
             return;
         }
 
-        ip_out = *(struct split_ip_msg*)(payload.stream);
-        ip_out.data = ip_out_data;
-        memcpy(ip_out_data, (void*)payload.stream + sizeof(struct split_ip_msg), 
-               payload.len - sizeof(struct split_ip_msg) );
+        packetBuf = *(struct ipv6Packet*)(payload.stream);
+
+        // Set up the headers
+        myp_header = packetBuf.header.packetHeader;
+        generic_header.len = sizeof(myPacketHeader);
+        generic_header.hdr.data = &myp_header;
+        
+        // Copy the payload
+        memcpy(&ip_out_data, &packetBuf.payload, TOSH_DATA_LENGTH);
+
+        ip_out.headers = &generic_header;
+        ip_out.data_len = packetBuf.plsize;
+        ip_out.data = &ip_out_data;
+        ip_out.hdr = packetBuf.header.ip6_hdr;
 
         call IP.send(&ip_out);
-    }
-
-    /*************/
-    /* Functions */
-    /*************/
-    /** 
-     * Toggles a LED when a message is send to the radio. 
-     */
-    void radioBlink(){
-        call Leds.led0Toggle();
-    }
-    /** 
-
-     * Toggles a LED when a message is send to the serial. 
-     */
-    void serialBlink(){
-        call Leds.led1Toggle();
-    }
-    /** 
-     * Toggles a LED when a message couldn't be send and is dropped 
-     */
-    void failBlink(){
-        call Leds.led2Toggle();
     }
 
     /*********/
