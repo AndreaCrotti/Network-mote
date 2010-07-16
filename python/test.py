@@ -6,10 +6,23 @@ from random import choice
 from select import select
 from main import *
 
+class TestTapDevice(unittest.TestCase):
+    def setUp(self):
+        self.tap = TunTap('tap', MAX_ETHER)
+        self.tap.setup()
+
+    def tearDown(self):
+        self.tap.close()
+
+    def testReadAfterWrite(self):
+        msg = "ciao"
+        self.tap.write(msg)
+        self.assertEquals(self.tap.read(msg), msg)
+
 class TestMyPacket(unittest.TestCase):
     def test_mypacket(self):
         # here parts is not really important
-        st = (1, 2, 1, "icao ciao")
+        st = (1, 2, 1, "ciao ciao")
         p = MyPacket(*st)
         packed = p.pack()
         print "we need %d bytes for the packet" % len(p)
@@ -39,11 +52,11 @@ class TestCombined(unittest.TestCase):
         self.orig_data = rand_string(1000)
         self.packets = Splitter(self.orig_data, 0, 100, IPv6()).packets
         
-    def test_split_combine(self):
-        "combining them results still give same output"
-        m = Merger(self.packets)
-        print m.raw_data
-        self.assertEquals(self.orig_data, m.get_data())
+    # def test_split_combine(self):
+    #     "combining them results still give same output"
+    #     m = Merger(self.packets)
+    #     print m.raw_data
+    #     self.assertEquals(self.orig_data, m.get_data())
 
     # def test_with_mixed_packets(self):
     #     "Shuffling the packets arrival still works"
@@ -53,6 +66,10 @@ class TestCombined(unittest.TestCase):
     #     self.assertEquals(self.orig_data, m.get_data())
 
 
+class TestMerger(unittest.TestCase):
+    # see if the merging is correctly
+    pass
+
 class TestTwoTapDevices(unittest.TestCase):
     "Sending and reconstructing between two tap devices"
     # to make the loop finally working add two bridges with them
@@ -61,14 +78,14 @@ class TestTwoTapDevices(unittest.TestCase):
     t1.setup()
     t2.setup()
     m1, m2 = Merger(), Merger()
-    try:
-        # now give them an address and allows sending between each other via network
-        while True:
-            ro, wr, ex = select([t1.fd, t2.fd], [t1.fd, t2.fd], [])
-            if t1 in ro:
-                pass
-    except KeyboardInterrupt:
-        t1.close; t2.close()
+    # try:
+    #     # now give them an address and allows sending between each other via network
+    #     while True:
+    #         ro, wr, ex = select([t1.fd, t2.fd], [t1.fd, t2.fd], [])
+    #         if t1 in ro:
+    #             pass
+    # except KeyboardInterrupt:
+    #     t1.close; t2.close()
 
 def rand_string(dim):
     return "".join([choice(ascii_letters) for _ in range(dim)])

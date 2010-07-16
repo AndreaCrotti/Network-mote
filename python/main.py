@@ -215,6 +215,7 @@ class Merger(object):
             # TODO: check if deepcopy is really needed there?
             self.completed[seq] = deepcopy(self.temp[seq])
             del self.temp[seq]
+        print self.temp, self.completed
 
     def get_data(self):
         data = "".join(self.raw_data)
