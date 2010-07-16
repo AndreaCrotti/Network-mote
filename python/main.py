@@ -8,8 +8,8 @@ TODO: setup a nice logger
 # from TOSSIM import Tossim, SerialForwarder, Throttle
 import os
 import zlib
-from select import select
-import socket
+# from select import select
+# import socket
 import struct
 import sys
 import logging
@@ -19,7 +19,7 @@ from math import ceil
 from copy import deepcopy
 from fcntl import ioctl
 from collections import namedtuple
-from scapy.all import IPv6
+# from scapy.all import IPv6
 
 COMPRESSION = True
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
@@ -49,7 +49,8 @@ class TunTap(object):
             # setup the routing stuff
 
         self.fd = os.open("/dev/net/tun", os.O_RDWR)
-        ifs = ioctl(self.fd, TunTap.TUNSETIFF, struct.pack("16sH", "tap%d", TUNMODE))
+        ifs = ioctl(self.fd, TunTap.TUNSETIFF,
+                    struct.pack("16sH", "tap%d", TUNMODE))
         ifname = ifs[:16].strip("\x00")
         logging.debug("Allocated interface %s. Configure it and use it" % ifname)
 
@@ -68,8 +69,9 @@ class TunTap(object):
 
 class Splitter(object):
     """
-    Class used for splitting our data, argument must be a string or serializable
+    Class used for splitting our data, argument must be a string
     """
+
     def __init__(self, data, seq_no, max_size, ip_header):
         self.ip_header = ip_header
         self.seq_no = seq_no
@@ -137,9 +139,10 @@ class Packer(object):
 class MyPacket(object):
     """
     Class of packet type
-    TODO: when the data is changing also the checksum should change automatically
     """
-    HEADER = Packer(('seq_no', 'H'), ('ord_no', 'H'), ('parts', 'h'), ('chk', 'L'))
+    HEADER = Packer(('seq_no', 'H'), ('ord_no', 'H'),
+                    ('parts', 'h'), ('chk', 'L'))
+
     def __init__(self, seq_no, ord_no, parts, data):
         # we can pass any checksum function that gives a 32 bit result
         # checksum might be also disable maybe
@@ -160,17 +163,20 @@ class MyPacket(object):
     # TODO: add some smart check of the input?
     def pack(self):
         # TODO: make this list automatically generable somehow
-        return self.packet.pack(self.seq_no, self.ord_no, self.parts, self.chk, self.data)
+        return self.packet.pack(self.seq_no, self.ord_no,
+                                self.parts, self.chk, self.data)
 
     def unpack(self, bytez):
         return self.packet.unpack(bytez)
 
+
 class Merger(object):
     """
-    reconstructing original data, it's automatically protocol agnostic since we can use directly the payload
+    Reconstructing the data, protocol doesn't matter since we use len and .payload
     (we just need the len attribute being set
     Merger should keep all the packets until it didn't construct something
     """
+
     def __init__(self, packets=None):
         self.temp = {} # dict of packets in construction
         self.completed = {} # dict of successfully built packets
@@ -189,28 +195,22 @@ class Merger(object):
             print "cheksum on the packet is not correct"
         else:
             # we can actually add it to temp
-            if seq not in self.temp:
+            if seq_no not in self.temp:
                 self.temp = [None] * parts
             else:
                 # it should not happen that we get the same message twice
-                assert(ord_no not in self.temp[seq])
+                assert(ord_no not in self.temp[seq_no])
                 self.temp[ord_no] = data
-                self.update_if_completed(seq)
+                self.update_if_completed(seq_no)
 
-    def update_if_completed(self, seq):
-        if (seq in self.temp) and (None not in self.temp[seq]):
-            print "all the chunks for packet %d are arrived" % seq
+    def update_if_completed(self, seq_no):
+        if (seq_no in self.temp) and (None not in self.temp[seq_no]):
+            print "all the chunks for packet %d are arrived" % seq_no
             # TODO: check if deepcopy is really needed there?
-            self.completed[seq] = deepcopy(self.temp[seq])
-            del self.temp[seq]
+            self.completed[seq_no] = deepcopy(self.temp[seq_no])
+            del self.temp[seq_no]
         print self.temp, self.completed
 
-    def get_data(self):
-        data = "".join(self.raw_data)
-        if COMPRESSION:
-            return zlib.decompress(data)
-        else:
-            return data
 
 def setup_tos():
     "setup the tinyos env for serial forwarder"
@@ -222,6 +222,7 @@ def setup_tos():
         sdk = os.path.join(TOSROOT, "suppport", "sdk", "python")
         sys.path.append(sdk)
         return True
+
 
 def usage():
     print "usage: ./main.py <device>"
