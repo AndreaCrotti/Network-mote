@@ -7,7 +7,8 @@ from main import *
 
 class TestMyPacket(unittest.TestCase):
     def test_mypacket(self):
-        st = (1, 2, "icao ciao")
+        # here parts is not really important
+        st = (1, 2, 1, "icao ciao")
         p = MyPacket(*st)
         packed = p.pack()
         print "we need %d bytes for the packet" % len(p)
@@ -32,23 +33,23 @@ class TestSplitter(unittest.TestCase):
 
 class TestCombined(unittest.TestCase):
     """ Check the Splitter-Merger couple working """
-
+    # TODO: write them more precisely
+    def setUp(self):
+        self.orig_data = rand_string(1000)
+        self.packets = Splitter(self.orig_data, 0, 100, IPv6()).packets
+        
     def test_split_combine(self):
-        orig_data = rand_string(1000)
-        s = Splitter(orig_data, 0, 100, IPv6())
-        m = Merger(s.packets)
-        self.assertEquals(orig_data, m.get_data())
+        "combining them results still give same output"
+        m = Merger(self.packets)
+        print m.raw_data
+        self.assertEquals(self.orig_data, m.get_data())
 
     def test_with_mixed_packets(self):
         "Shuffling the packets arrival still works"
         from random import shuffle
-        orig_data = rand_string(1000)
-        s = Splitter(orig_data, 0, 100, IPv6())
-        packets = s.packets
-        print packets
-        shuffle(packets)
-        m = Merger(packets)
-        self.assertEquals(orig_data, m.get_data())
+        shuffle(self.packets)
+        m = Merger(self.packets)
+        self.assertEquals(self.orig_data, m.get_data())
 
 def rand_string(dim):
     return "".join([choice(ascii_letters) for _ in range(dim)])

@@ -2,7 +2,8 @@
 #define __CHUNKER_H
 #include <stdint.h>
 #include "util.h"
-#include <netinet/ip6.h>
+/* #include <netinet/ip6.h> */
+#include <ip.h>
 
 // measures in bytes
 #define SIZE_IPV6_HEADER 40
@@ -13,6 +14,7 @@
 typedef struct in6_addr in6_src;
 typedef struct in6_addr in6_dst;
 
+// TODO: add another field to keep the total number of parts needed
 // also the internal struct should be packed
 typedef struct myPacketHeader {
     uint8_t seq_no;
@@ -59,7 +61,6 @@ void *reconstruct(ipv6Packet *data, int len);
 
 /*
 
-
 void dataToLocalhost(void *, int, int);
 
 void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
@@ -72,4 +73,5 @@ void sendToLocalhost(void *, size_t);
 
 void sendDataTo(void *, struct sockaddr *, size_t, int);
 */
+
 #endif
