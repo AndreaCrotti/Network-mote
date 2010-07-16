@@ -14,12 +14,13 @@ import struct
 import sys
 import logging
 import subprocess
+from math import ceil
 from copy import deepcopy
 from fcntl import ioctl
 from collections import namedtuple
 from scapy.all import IPv6
 
-DEFCOMPRESS = False
+DEFCOMPRESS = True
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
 ORDER = "!"
 CHK = zlib.crc32
@@ -96,18 +97,17 @@ class Splitter(object):
     def split(self):
         "Returns all the packets encapsulated in the two layers"
         res = []
-        count = 0
-        idx = 0
         tot_len = len(self.data)
-        while idx < tot_len:
+        num_packets = int(ceil(float(tot_len) / self.max_size))
+        idx = 0
+        for x in range(num_packets):
             # we get an external already configured header and we add the payload
             head = deepcopy(self.ip_header)
             # don't have to worry about overflows!
-            pkt = MyPacket(self.seq, count, self.data[idx:idx + self.max_size])
-            # the len is automatically set by scapy!!
+            pkt = MyPacket(self.seq, x, num_packets, self.data[idx:idx + self.max_size])
+            # the len is automatically set by scapy!!?? Not done this at the moment
             head.add_payload(pkt.pack())
             res.append(head)
-            count += 1
             idx += self.max_size
 
         return res
@@ -137,7 +137,7 @@ class Packer(object):
             return struct.pack(ORDER + self.fmt, *data)
         except struct.error:
             # TODO: add some better error here
-            print "Error in formatting\n format %s, data %s" % (self.fmt, str(*data))
+            print "Error in formatting\n format %s, data %s" % (self.fmt, str(data))
             return None
 
     def unpack(self, bytez):
@@ -149,15 +149,17 @@ class MyPacket(object):
     Class of packet type
     TODO: when the data is changing also the checksum should change automatically
     """
-    HEADER = Packer(('seq', 'H'), ('ord', 'H'), ('chk', 'L'))
-    def __init__(self, seq, ord, data):
+    HEADER = Packer(('seq', 'H'), ('ord', 'H'), ('parts', 'h'), ('chk', 'L'))
+    def __init__(self, seq, ord, parts, data):
         # we can pass any checksum function that gives a 32 bit result
         # checksum might be also disable maybe
         self.seq = seq
         self.ord = ord
         self.data = data
+        self.parts = parts
         self.chk = CHK(data)
-        self.packet = MyPacket.HEADER + Packer(('data', '%ds' % len(self.data)))
+        # TODO: try to use the struct "p" (pascal)
+        self.packet = MyPacket.HEADER + Packer(('data', '%ds' % len(data)))
 
     def __str__(self):
         return self.bytez
@@ -167,7 +169,8 @@ class MyPacket(object):
 
     # TODO: add some smart check of the input?
     def pack(self):
-        return self.packet.pack(self.seq, self.ord, self.chk, self.data)
+        # TODO: make this list automatically generable somehow
+        return self.packet.pack(self.seq, self.ord, self.parts, self.chk, self.data)
 
     def unpack(self, bytez):
         return self.packet.unpack(bytez)
@@ -190,16 +193,17 @@ class Merger(object):
         # data length is given by the ip header
         for x in self.packets:
             # where is that +8 coming from?
-            data_length = len(x.payload) -8 # - len(MyPacket.HEADER) + 8
+            data_length = len(x.payload) - len(MyPacket.HEADER)
             # maybe I could subtract the header from the struct
             unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
             # compute the checksum to see if it's correct
             seq, ord, chk, data = unpacker.unpack(str(x.payload))
-            self.raw_data[ord] = data
+            self.raw_data[ord] = data[:]
+            print "filling position %d" % ord
             # print self.raw_data
 
     def get_data(self):
-        data = "".join(x[-1] for x in self.raw_data)
+        data = "".join(self.raw_data)
         if self.compression:
             return zlib.decompress(data)
         else:
