@@ -25,9 +25,7 @@ class TestMyPacket(unittest.TestCase):
         st = (1, 2, 1, "ciao ciao")
         p = MyPacket(*st)
         packed = p.pack()
-        print "we need %d bytes for the packet" % len(p)
         unpacked = p.unpack(packed)
-        print unpacked
         self.assertEquals(st[-1], unpacked[-1])
 
 class TestPacker(unittest.TestCase):
@@ -45,7 +43,6 @@ class TestSplitter(unittest.TestCase):
         rand_big = "ciao" * 1000
         compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=True)
         nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=False)
-        print "compr = %d, nocompr = %d\n" % (len(compr), len(nocompr))
 
 class TestCombined(unittest.TestCase):
     """ Check the Splitter-Merger couple working """
@@ -75,8 +72,7 @@ class TestMerger(unittest.TestCase):
 class TestTwoTapDevices(unittest.TestCase):
     "Sending and reconstructing between two tap devices"
     # to make the loop finally working add two bridges with them
-    t1 = TunTap('tap', MAX_ETHER)
-    t2 = TunTap('tap', MAX_ETHER)
+    t1, t2 = TunTap(), TunTap()
     t1.setup()
     t2.setup()
     m1, m2 = Merger(), Merger()

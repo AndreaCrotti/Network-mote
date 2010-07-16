@@ -27,17 +27,6 @@ ORDER = "!"
 CHK = zlib.crc32
 MAX_ETHER = 10 * 1024
 
-TOSROOT = os.getenv("TOSROOT")
-if TOSROOT is None:
-    print "you need at least to setup your $TOSROOT variable correctly"
-    sys.exit(1)
-
-else:
-    sdk = os.path.join(TOSROOT, "suppport", "sdk", "python")
-    sys.path.append(sdk)
-
-from tinyos.tossim.TossimApp import NescApp
-
 class TunTap(object):
     "Tun tap interface class management"
     TUNSETIFF = 0x400454ca
@@ -45,7 +34,7 @@ class TunTap(object):
     IFF_TUN = 0x0001
     IFF_TAP = 0x0002
 
-    def __init__(self, mode, max_size):
+    def __init__(self, mode='tap', max_size=MAX_ETHER):
         self.mode = mode
         self.max_size = max_size
 
@@ -62,7 +51,7 @@ class TunTap(object):
         self.fd = os.open("/dev/net/tun", os.O_RDWR)
         ifs = ioctl(self.fd, TunTap.TUNSETIFF, struct.pack("16sH", "tap%d", TUNMODE))
         ifname = ifs[:16].strip("\x00")
-        print "Allocated interface %s. Configure it and use it" % ifname
+        logging.debug("Allocated interface %s. Configure it and use it" % ifname)
 
     def close(self):
         os.close(self.fd)
@@ -75,9 +64,6 @@ class TunTap(object):
         os.write(self.fd, data)
 
     # TODO: see if implementing fileno could be useful
-
-# s = socket(AF_INET, SOCK_DGRAM)
-# s.sendto(MAGIC_WORD, peer)
 
 class Splitter(object):
     """
@@ -225,12 +211,24 @@ class Merger(object):
         else:
             return data
 
+def setup_tos():
+    "setup the tinyos env for serial forwarder"
+    TOSROOT = os.getenv("TOSROOT")
+    if TOSROOT is None:
+        print "you need at least to setup your $TOSROOT variable correctly"
+        return False
+    else:
+        sdk = os.path.join(TOSROOT, "suppport", "sdk", "python")
+        sys.path.append(sdk)
+        return True
+
 def usage():
     print "usage: ./main.py <device>"
     sys.exit(os.EX_USAGE)
 
+
 def main():
-    opts, args = getopt.getopt(sys.argv[1:], 'vcgd:', ['--verbose', '--client', '--gateway', '--device'])
+    opts, _ = getopt.getopt(sys.argv[1:], 'vcgd:', ['--verbose', '--client', '--gateway', '--device'])
     # setting the logger
     logger = logging.getLogger()
     
@@ -246,7 +244,7 @@ def main():
         sys.exit(1)
 
     # # pass the max size of reading also
-    # t = TunTap('tap', MAX_ETHER)
+    # t = TunTap()
     # t.setup()
     # mote_fd = os.open(device, os.O_RDWR)
     # try:
