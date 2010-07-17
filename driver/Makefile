@@ -10,15 +10,11 @@ CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)
 WARN = -Wall -Wextra
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) -ggdb -O0
 
-<<<<<<< HEAD
 OBJECTS = tunnel.o motecomm.o util.o glue.o chunker.o
-          #config.o tun_dev.o routing.o 
-#OBJECTS = 
-=======
+
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
 OBJECTS = tunnel.o motecomm.o util.o glue.o chunker.o
 NOPS = tun_dev.o routing.o split.o 
->>>>>>> 1e7e2277b105267124b5f7e870feab30fb6b8a91
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
 SRC = client.c
@@ -35,14 +31,10 @@ tuntest: $(OBJECTS) client.c
 $(OBJECTS): %.o: %.c %.h $(HEADERS)
 	$(CC) $(FLAGS) -c $< -o $@
 
-<<<<<<< HEAD
 routing.o: routing.c
 	gcc $(FLAGS) -c routing.c -o routing.o
-=======
 $(NOPS): %.o: %.c %.h
 	echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
-
->>>>>>> 1e7e2277b105267124b5f7e870feab30fb6b8a91
 
 #### OTHER ####
 
@@ -61,14 +53,12 @@ tuntest.pre: $(OBJECTS) client.c
 motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 	$(CC) $(FLAGS) -c motecomm.c -E -o motecomm.pre
 
-<<<<<<< HEAD
 hostname.h: hostname.sh
 	bash hostname.sh
-=======
+
 motecomm: motecomm.c motecomm.h motecomm.sizes.h
 	$(CC) $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) -o motecomm
 
->>>>>>> 1e7e2277b105267124b5f7e870feab30fb6b8a91
 
 #### PHONIES ####
 clean:

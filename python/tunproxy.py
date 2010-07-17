@@ -79,7 +79,7 @@ try:
         while 1:
             word,peer = s.recvfrom(1500)
             if word == MAGIC_WORD:
-                break
+P                break
             print "Bad magic word for %s:%i" % peer
         s.sendto(MAGIC_WORD, peer)
     else:

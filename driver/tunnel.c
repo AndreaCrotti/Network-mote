@@ -25,6 +25,7 @@
 
 // The name of the interface 
 char *ifname;
+int sock;
 
 /** 
  * Creates a new tun/tap device, or connects to a already existent one depending
@@ -73,30 +74,6 @@ int tun_open(char *dev, int flags){
     ifname = malloc(10);
 
     return fd;
-}
-
-// TODO: remove all the stuff ifconfig-related, will be done in a script instead
-/** 
- * This function is used to restore the gateway before the program stops. 
- */
-void restore_gateway(int param){
-    (void) param;
-
-    int fd, err; 
-
-    // Getting the device identifier with the socket command
-    if( (fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
-        perror("Getting socket");
-    }
-
-    printf("Restoring the standard route over '%s'\n", saved_entry.rt_dev);
-
-    // Restore the old gateway
-    if( (err = ioctl(fd, SIOCADDRT, &saved_entry)) < 0){
-        perror("Restoring routing entry");
-    }
-
-    exit(0);
 }
 
 /** 
