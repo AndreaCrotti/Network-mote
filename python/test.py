@@ -27,16 +27,14 @@ class TestMyPacket(unittest.TestCase):
         self.packed = self.p.pack()
 
     def test_mypacket(self):
+        "unpacking a packed packet gives the original value"
         unpacked = self.p.unpack(self.packed)
         self.assertEquals(self.st[-1], unpacked[-1])
-
-    def test_unpack_my_packet(self):
-        data_len = len(self.packed) - len(MyPacket.HEADER)
-        unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_len))
 
 
 class TestPacker(unittest.TestCase):
     def test_adding(self):
+        "adding two struct has same effect as the summed struct"
         s = Packer(('seq', 'H'), ('ord', 'H'))
         s1 = Packer(('ss', 'H'))
         summed = s + s1
@@ -48,6 +46,7 @@ class TestPacker(unittest.TestCase):
 
 class TestSplitter(unittest.TestCase):
     def test_splitter(self):
+        "with compression enabled we have less packets"
         rand_big = "ciao" * 1000
         compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=True)
         nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=False)

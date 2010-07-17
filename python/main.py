@@ -8,8 +8,8 @@ TODO: setup a nice logger
 # from TOSSIM import Tossim, SerialForwarder, Throttle
 import os
 import zlib
-# from select import select
-# import socket
+from select import select
+import socket
 import struct
 import sys
 import logging
@@ -215,6 +215,34 @@ class Merger(object):
                 merged = zlib.decompress(merged)
             self.completed[seq_no] = merged
             del self.temp[seq_no]
+
+    def get_packet(self):
+        "None if no packet are completed, otherwise the first found"
+        if self.completed is None:
+            return None
+        else:
+            key = self.completed.keys()[0]
+            val = self.completed[key]
+            del self.completed[key]
+            return val
+
+class Communicator(object):
+    "Glue everything together with two entities talking together"
+
+    def __init__(self, mode):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.port = 10000
+
+    def server(self):
+        merger = Merger()
+        self.sock.bind(self.port)
+        word = self.sock.recv(MAX_ETHER)
+        # gets some packets and reconstruct them
+        merger.add(word)
+
+    # to send away stuff directly to the SOCK_DGRAM we might not need the ipv6 header at all
+    def client(self, data):
+        pass
 
 def setup_tos():
     "setup the tinyos env for serial forwarder"
