@@ -10,8 +10,6 @@ CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)
 WARN = -Wall -Wextra
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) -ggdb -O0
 
-OBJECTS = tunnel.o motecomm.o util.o glue.o chunker.o
-
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
 OBJECTS = tunnel.o motecomm.o util.o glue.o chunker.o
 NOPS = tun_dev.o routing.o split.o 
@@ -31,10 +29,9 @@ tuntest: $(OBJECTS) client.c
 $(OBJECTS): %.o: %.c %.h $(HEADERS)
 	$(CC) $(FLAGS) -c $< -o $@
 
-routing.o: routing.c
-	gcc $(FLAGS) -c routing.c -o routing.o
 $(NOPS): %.o: %.c %.h
 	echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
+
 
 #### OTHER ####
 
