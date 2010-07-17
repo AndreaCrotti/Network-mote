@@ -13,20 +13,25 @@ class TestTapDevice(unittest.TestCase):
     def tearDown(self):
         self.tap.close()
 
-    def testReadAfterWrite(self):
-        msg = "ciao"
-        self.tap.write(msg)
-        self.assertEquals(self.tap.read(msg), msg)
+    # def testReadAfterWrite(self):
+    #     msg = "ciao"
+    #     self.tap.write(msg)
+    #     self.assertEquals(self.tap.read(msg), msg)
 
 
 class TestMyPacket(unittest.TestCase):
+    def setUp(self):
+        self.st = (1, 2, 1, "ciao ciao")
+        self.p = MyPacket(*self.st)
+        self.packed = self.p.pack()
+
     def test_mypacket(self):
-        # here parts is not really important
-        st = (1, 2, 1, "ciao ciao")
-        p = MyPacket(*st)
-        packed = p.pack()
-        unpacked = p.unpack(packed)
-        self.assertEquals(st[-1], unpacked[-1])
+        unpacked = self.p.unpack(self.packed)
+        self.assertEquals(self.st[-1], unpacked[-1])
+
+    def test_unpack_my_packet(self):
+        data_len = len(self.packed) - len(MyPacket.HEADER)
+        unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_len))
 
 
 class TestPacker(unittest.TestCase):
@@ -43,32 +48,29 @@ class TestPacker(unittest.TestCase):
 class TestSplitter(unittest.TestCase):
     def test_splitter(self):
         rand_big = "ciao" * 1000
-        main.COMPRESSOIN = True
-        compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"))
-        main.compression = False
-        nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"))
-        self.assertTrue(len(compr) <= len(nocompr))
+        compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=True)
+        nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=False)
+        self.assertTrue(len(compr) < len(nocompr))
 
 class TestCombined(unittest.TestCase):
     """ Check the Splitter-Merger couple working """
     # TODO: write them more precisely
     def setUp(self):
+        main.COMPRESSION = False
+        # self.orig_data = "ciao"
         self.orig_data = rand_string(1000)
         self.packets = Splitter(self.orig_data, 0, 100, IPv6()).packets
         
-    # def test_split_combine(self):
-    #     "combining them results still give same output"
-    #     m = Merger(self.packets)
-    #     print m.raw_data
-    #     self.assertEquals(self.orig_data, m.get_data())
+    def test_split_combine(self):
+        "combining them results still give same output"
+        m = Merger(self.packets)
 
-    # def test_with_mixed_packets(self):
-    #     "Shuffling the packets arrival still works"
-    #     from random import shuffle
-    #     shuffle(self.packets)
-    #     m = Merger(self.packets)
-    #     self.assertEquals(self.orig_data, m.get_data())
-
+    def test_with_mixed_packets(self):
+        "Shuffling the packets arrival still works"
+        from random import shuffle
+        shuffle(self.packets)
+        m = Merger(self.packets)
+        # see if the original packet is completed
 
 class TestMerger(unittest.TestCase):
     # see if the merging is correctly

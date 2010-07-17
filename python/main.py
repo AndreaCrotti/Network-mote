@@ -19,7 +19,7 @@ from math import ceil
 from copy import deepcopy
 from fcntl import ioctl
 from collections import namedtuple
-# from scapy.all import IPv6
+from scapy.all import IPv6
 
 COMPRESSION = True
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
@@ -72,11 +72,11 @@ class Splitter(object):
     Class used for splitting our data, argument must be a string
     """
 
-    def __init__(self, data, seq_no, max_size, ip_header):
+    def __init__(self, data, seq_no, max_size, ip_header, compression=COMPRESSION):
         self.ip_header = ip_header
         self.seq_no = seq_no
         self.max_size = max_size
-        if COMPRESSION:
+        if compression:
             self.data = zlib.compress(data)
         else:
             self.data = data
@@ -91,11 +91,13 @@ class Splitter(object):
         tot_len = len(self.data)
         num_packets = int(ceil(float(tot_len) / self.max_size))
         idx = 0
-        for x in range(num_packets):
+        for ord_no in range(num_packets):
             # we get an external already configured header and we add the payload
             head = deepcopy(self.ip_header)
-            # don't have to worry about overflows!
-            pkt = MyPacket(self.seq_no, x, num_packets, self.data[idx:idx + self.max_size])
+            # check if adding the right value
+            to_add = self.data[idx:idx + self.max_size]
+            pkt = MyPacket(self.seq_no, ord_no, num_packets, to_add)
+            # print "adding %d %d %d %s" % (self.seq_no, ord_no, num_packets, to_add)
             # the len is automatically set by scapy!!?? Not done this at the moment
             head.add_payload(pkt.pack())
             res.append(head)
@@ -108,21 +110,22 @@ class Packer(object):
     "Class to easily pack and unpack data using namedtuples"
 
     def __init__(self, *header):
-        # TODO: make it configurable
         self.fmt = ''.join(h[1] for h in header)
         self.tup = namedtuple('header', (h[0] for h in header))
+        # TODO: add some smart way to use this instead
+        self.real_fmt = lambda: ORDER + self.fmt
 
     def __str__(self):
-        return self.fmt
+        return self.real_fmt()
 
     def __len__(self):
-        return struct.calcsize(self.fmt)
+        return struct.calcsize(ORDER + self.fmt)
 
-    def __add__(self, y):
+    def __add__(self, other):
         ret = deepcopy(self)
-        ret.fmt += y.fmt
-        # do something also with the namedtuple
-        ret.tup = namedtuple('header', self.tup._fields + y.tup._fields)
+        ret.fmt += other.fmt
+        # _fields stuff not really correct
+        ret.tup = namedtuple('header', self.tup._fields + other.tup._fields)
         return ret
 
     def pack(self, *data):
@@ -156,6 +159,9 @@ class MyPacket(object):
     def __len__(self):
         return len(self.packet)
 
+    def __str__(self):
+        return str(self.packet)
+
     # TODO: add some smart check of the input?
     def pack(self):
         # TODO: make this list automatically generable somehow
@@ -173,7 +179,7 @@ class Merger(object):
     Merger should keep all the packets until it didn't construct something
     """
 
-    def __init__(self, packets=None):
+    def __init__(self, packets=None, compression=COMPRESSION):
         self.temp = {} # dict of packets in construction
         self.completed = {} # dict of successfully built packets
         # make it simpler
@@ -219,6 +225,7 @@ def setup_tos():
         sdk = os.path.join(TOSROOT, "suppport", "sdk", "python")
         sys.path.append(sdk)
         return True
+
 
 
 def usage():
