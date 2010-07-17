@@ -64,6 +64,8 @@ if MODE == 0:
 
 f = os.open("/dev/net/tun", os.O_RDWR)
 # what the second line is supposed to do??
+# TUNMODE is an handler which will call some syscalls that will give the right
+# number to that newly created interface
 ifs = ioctl(f, TUNSETIFF, struct.pack("16sH", "toto%d", TUNMODE))
 ifname = ifs[:16].strip("\x00")
 

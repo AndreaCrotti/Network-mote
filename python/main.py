@@ -25,7 +25,7 @@ COMPRESSION = True
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
 ORDER = "!"
 CHK = zlib.crc32
-MAX_ETHER = 10 * 1024
+MAX_ETHER = 1500 # normal max MTU over ethernet
 
 
 class TunTap(object):
@@ -195,6 +195,7 @@ class Merger(object):
         unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
         # compute the checksum to see if it's correct
         seq_no, ord_no, parts, chk, data = unpacker.unpack(str(packet.payload))
+
         if chk != CHK(data):
             print "cheksum on the packet is not correct"
         else:

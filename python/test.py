@@ -3,6 +3,7 @@ import unittest
 from string import ascii_letters
 from random import choice
 from select import select
+from random import shuffle
 from main import *
 
 class TestTapDevice(unittest.TestCase):
@@ -53,12 +54,11 @@ class TestSplitter(unittest.TestCase):
         self.assertTrue(len(compr) < len(nocompr))
 
 
-# all the tests should run in compressed/non compressed mode
+# TODO: make it compressed/non compressed mode
 class TestCombined(unittest.TestCase):
     """ Check the Splitter-Merger couple working """
     # TODO: write them more precisely
     def setUp(self):
-        # self.orig_data = "ciao"
         self.orig_data = rand_string(1000)
         self.seq = 0
         self.packets = Splitter(self.orig_data, self.seq, 100, IPv6()).packets
@@ -71,13 +71,22 @@ class TestCombined(unittest.TestCase):
 
     def test_with_mixed_packets(self):
         "Shuffling the packets arrival still works"
-        from random import shuffle
         shuffle(self.packets)
         m = Merger(self.packets)
         # see if the original packet is completed
         self.assertTrue(self.seq in m.completed)
         self.assertEquals(m.completed[self.seq], self.orig_data)
 
+    def test_all_mixed(self):
+        "Mixing seq_no and ord_no works"
+        many_strings = [rand_string(1000) for x in range(100)]
+        packets = []
+        for idx, s in enumerate(many_strings):
+            packets += Splitter(s, idx, 100, IPv6()).packets
+        
+        shuffle(packets)
+        m = Merger(packets)
+        self.assertEquals(set(many_strings), set(m.completed.values()))
 
 class TestTwoTapDevices(unittest.TestCase):
     "Sending and reconstructing between two tap devices"
