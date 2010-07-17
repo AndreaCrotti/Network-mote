@@ -52,18 +52,22 @@ class TestSplitter(unittest.TestCase):
         nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=False)
         self.assertTrue(len(compr) < len(nocompr))
 
+
+# all the tests should run in compressed/non compressed mode
 class TestCombined(unittest.TestCase):
     """ Check the Splitter-Merger couple working """
     # TODO: write them more precisely
     def setUp(self):
-        main.COMPRESSION = False
         # self.orig_data = "ciao"
         self.orig_data = rand_string(1000)
-        self.packets = Splitter(self.orig_data, 0, 100, IPv6()).packets
+        self.seq = 0
+        self.packets = Splitter(self.orig_data, self.seq, 100, IPv6()).packets
         
     def test_split_combine(self):
         "combining them results still give same output"
         m = Merger(self.packets)
+        self.assertTrue(self.seq in m.completed)
+        self.assertEquals(m.completed[self.seq], self.orig_data)
 
     def test_with_mixed_packets(self):
         "Shuffling the packets arrival still works"
@@ -71,10 +75,9 @@ class TestCombined(unittest.TestCase):
         shuffle(self.packets)
         m = Merger(self.packets)
         # see if the original packet is completed
+        self.assertTrue(self.seq in m.completed)
+        self.assertEquals(m.completed[self.seq], self.orig_data)
 
-class TestMerger(unittest.TestCase):
-    # see if the merging is correctly
-    pass
 
 class TestTwoTapDevices(unittest.TestCase):
     "Sending and reconstructing between two tap devices"

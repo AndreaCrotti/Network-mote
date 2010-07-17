@@ -143,7 +143,7 @@ class Packer(object):
 class MyPacket(object):
 
     HEADER = Packer(('seq_no', 'H'), ('ord_no', 'H'),
-                    ('parts', 'h'), ('chk', 'L'))
+                    ('parts', 'h'), ('chk', 'l'))
 
     def __init__(self, seq_no, ord_no, parts, data):
         # we can pass any checksum function that gives a 32 bit result
@@ -182,6 +182,7 @@ class Merger(object):
     def __init__(self, packets=None, compression=COMPRESSION):
         self.temp = {} # dict of packets in construction
         self.completed = {} # dict of successfully built packets
+        self.compression = compression
         # make it simpler
         if packets:
             for p in packets:
@@ -199,21 +200,20 @@ class Merger(object):
         else:
             # we can actually add it to temp
             if seq_no not in self.temp:
-                self.temp = [None] * parts
-            else:
-                # it should not happen that we get the same message twice
-                assert(ord_no not in self.temp[seq_no])
-                self.temp[ord_no] = data
-                self.update_if_completed(seq_no)
+                self.temp[seq_no] = [None] * parts
+            # it should not happen that we get the same message twice
+            assert(ord_no not in self.temp[seq_no])
+            self.temp[seq_no][ord_no] = data
+            self.update_if_completed(seq_no)
 
     def update_if_completed(self, seq_no):
         if (seq_no in self.temp) and (None not in self.temp[seq_no]):
-            print "all the chunks for packet %d are arrived" % seq_no
-            # TODO: check if deepcopy is really needed there?
-            self.completed[seq_no] = deepcopy(self.temp[seq_no])
+            # deepcopying and merging everything together
+            merged = "".join(deepcopy(self.temp[seq_no]))
+            if self.compression:
+                merged = zlib.decompress(merged)
+            self.completed[seq_no] = merged
             del self.temp[seq_no]
-        print self.temp, self.completed
-
 
 def setup_tos():
     "setup the tinyos env for serial forwarder"
