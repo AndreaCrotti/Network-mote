@@ -26,7 +26,7 @@ POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
 ORDER = "!"
 CHK = zlib.crc32
 MAX_ETHER = 1500 # normal max MTU over ethernet
-
+MSG = "ciao" * 1000
 
 class TunTap(object):
     "Tun tap interface class management"
@@ -72,8 +72,7 @@ class Splitter(object):
     Class used for splitting our data, argument must be a string
     """
 
-    def __init__(self, data, seq_no, max_size, ip_header, compression=COMPRESSION):
-        self.ip_header = ip_header
+    def __init__(self, data, seq_no, max_size, compression=COMPRESSION):
         self.seq_no = seq_no
         self.max_size = max_size
         if compression:
@@ -85,22 +84,24 @@ class Splitter(object):
     def __len__(self):
         return len(self.packets)
 
+    def __str__(self):
+        return self.packets
+
     def split(self):
         "Returns all the packets encapsulated in the two layers"
         res = []
         tot_len = len(self.data)
+        logging.debug("splitting the data in %d chunks" % tot_len)
         num_packets = int(ceil(float(tot_len) / self.max_size))
         idx = 0
+
         for ord_no in range(num_packets):
-            # we get an external already configured header and we add the payload
-            head = deepcopy(self.ip_header)
             # check if adding the right value
             to_add = self.data[idx:idx + self.max_size]
             pkt = MyPacket(self.seq_no, ord_no, num_packets, to_add)
             # print "adding %d %d %d %s" % (self.seq_no, ord_no, num_packets, to_add)
             # the len is automatically set by scapy!!?? Not done this at the moment
-            head.add_payload(pkt.pack())
-            res.append(head)
+            res.append(pkt.pack())
             idx += self.max_size
 
         return res
@@ -191,10 +192,10 @@ class Merger(object):
     def add(self, packet):
         "Add a new packet, manipulating the dictionaries"
         # check that this is actually what we expect to have
-        data_length = len(packet.payload) - len(MyPacket.HEADER)
+        data_length = len(packet) - len(MyPacket.HEADER)
         unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
         # compute the checksum to see if it's correct
-        seq_no, ord_no, parts, chk, data = unpacker.unpack(str(packet.payload))
+        seq_no, ord_no, parts, chk, data = unpacker.unpack(str(packet))
 
         if chk != CHK(data):
             print "cheksum on the packet is not correct"
@@ -229,20 +230,31 @@ class Merger(object):
 class Communicator(object):
     "Glue everything together with two entities talking together"
 
-    def __init__(self, mode):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.port = 10000
-
-    def server(self):
+    PORT = 10000
+    # TODO: try with a select to make it easier
+    @staticmethod
+    def server():
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         merger = Merger()
-        self.sock.bind(self.port)
-        word = self.sock.recv(MAX_ETHER)
-        # gets some packets and reconstruct them
-        merger.add(word)
+        sock.bind(("", Communicator.PORT))
+        while True:
+            word = sock.recv(MAX_ETHER)
+            # gets some packets and reconstruct them
+            merger.add(word)
+            if len(merger.completed) > 0:
+                print "got the message recomposing now"
+                break
+        assert(merger.completed[0] == MSG)
+        sock.close()
 
     # to send away stuff directly to the SOCK_DGRAM we might not need the ipv6 header at all
-    def client(self, data):
-        pass
+    @staticmethod
+    def client(data):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sp = Splitter(data=data, seq_no=0, max_size=100)
+        for p in sp.packets:
+            sock.sendto(p, ("", Communicator.PORT))
+                
 
 def setup_tos():
     "setup the tinyos env for serial forwarder"
@@ -256,7 +268,6 @@ def setup_tos():
         return True
 
 
-
 def usage():
     print "usage: ./main.py <device>"
     sys.exit(os.EX_USAGE)
@@ -268,15 +279,26 @@ def main():
     logger = logging.getLogger()
 
     device = None
+    MODE = None
     for o, v in opts:
         if o == '-d':
             device = "/dev/ttyUSB%s" % v
         if o == '-v':
             logger.setLevel(logging.DEBUG)
+        if o == '-c':
+            MODE = 'client'
+        if o == '-g':
+            MODE = 'server'
 
-    if not device:
-        print "no device configured"
-        sys.exit(1)
+        if MODE == 'client':
+            Communicator.client(MSG)
+
+        if MODE == 'server':
+            Communicator.server()
+
+    # if not device:
+    #     print "no device configured"
+    #     sys.exit(1)
 
     # # pass the max size of reading also
     # t = TunTap()

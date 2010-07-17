@@ -48,8 +48,8 @@ class TestSplitter(unittest.TestCase):
     def test_splitter(self):
         "with compression enabled we have less packets"
         rand_big = "ciao" * 1000
-        compr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=True)
-        nocompr = Splitter(rand_big, 0, 128, IPv6(dst="::1"), compression=False)
+        compr = Splitter(rand_big, 0, 128, compression=True)
+        nocompr = Splitter(rand_big, 0, 128, compression=False)
         self.assertTrue(len(compr) < len(nocompr))
 
 
@@ -60,7 +60,7 @@ class TestCombined(unittest.TestCase):
     def setUp(self):
         self.orig_data = rand_string(1000)
         self.seq = 0
-        self.packets = Splitter(self.orig_data, self.seq, 100, IPv6()).packets
+        self.packets = Splitter(self.orig_data, self.seq, 100).packets
         
     def test_split_combine(self):
         "combining them results still give same output"
@@ -81,7 +81,7 @@ class TestCombined(unittest.TestCase):
         many_strings = [rand_string(1000) for x in range(100)]
         packets = []
         for idx, s in enumerate(many_strings):
-            packets += Splitter(s, idx, 100, IPv6()).packets
+            packets += Splitter(s, idx, 100).packets
         
         shuffle(packets)
         m = Merger(packets)
