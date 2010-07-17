@@ -75,6 +75,50 @@ int tun_open(char *dev, int flags){
     return fd;
 }
 
+// TODO: remove all the stuff ifconfig-related, will be done in a script instead
+/** 
+ * This function is used to restore the gateway before the program stops. 
+ */
+void restore_gateway(int param){
+    (void) param;
+
+    int fd, err; 
+
+    // Getting the device identifier with the socket command
+    if( (fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
+        perror("Getting socket");
+    }
+
+    printf("Restoring the standard route over '%s'\n", saved_entry.rt_dev);
+
+    // Restore the old gateway
+    if( (err = ioctl(fd, SIOCADDRT, &saved_entry)) < 0){
+        perror("Restoring routing entry");
+    }
+
+    exit(0);
+}
+
+/** 
+ * Sets up the tunnel interface and assigns a MTU and a IPv4 address.
+ * 
+ * @param dev The device name.
+ * @param addr An IPv4 address (As a string).
+ * 
+ * @return Error-code.
+ */
+int tun_setup(char *dev, char *addr) {
+    (void)dev;
+    (void)addr;
+    // TODO: what do we need a socket for when we setup the device??
+    // Getting the device identifier with the socket command
+    if( (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
+        perror("Getting socket");
+        return sock;
+    }
+    return 0;
+}
+
 /** 
  * Reads data from the tunnel and exits if a error occurred.
  * 

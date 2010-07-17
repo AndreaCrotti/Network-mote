@@ -147,6 +147,9 @@ implementation{
         ip_out.data = &ip_out_data;
         ip_out.hdr = packetBuf.header.ip6_hdr;
 
+        //TODO: Set this mote as the sender
+        //ip6_out.hdr.ip6_src = 
+
         call IP.send(&ip_out);
     }
 
