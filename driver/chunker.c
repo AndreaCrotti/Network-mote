@@ -165,7 +165,6 @@ void *reconstruct(ipv6Packet *data, int len) {
 }*/// XXX: see split.c <-> same symbol
 
 #if STANDALONE
-/*
 int main(int argc, char **argv) {
     ipv6Packet v6;
     printf("v6 = %ld\n", sizeof(v6));
@@ -182,7 +181,6 @@ int main(int argc, char **argv) {
     / testWithMemset(); 
     return 0;
 }
-*/
 
 #endif
 
@@ -254,3 +252,4 @@ int main(int argc, char **argv) {
         buffer++;
     }
 }*/
+

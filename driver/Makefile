@@ -12,7 +12,7 @@ FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) -ggdb -O0
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
 OBJECTS = tunnel.o motecomm.o util.o glue.o chunker.o
-NOPS = tun_dev.o routing.o split.o 
+NOPS =
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
 SRC = client.c
