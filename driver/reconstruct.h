@@ -12,5 +12,7 @@ struct {
 } packet;
 
 
+typedef struct packet packet;
+
 void add_chunk(void *);
 
