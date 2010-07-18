@@ -112,6 +112,7 @@ class Packet(object):
     " Generic class of the packet, with a header and some data "
     def __init__(self, header, data, *values):
         self.header = Packer(*header)
+        assert(len(header) == len(values))
         self.packet = self.header + Packer(('data', '%ds' % len(data)))
         # also data now should be in the fields
         self.fields = self.header.get_fields()
@@ -126,19 +127,30 @@ class Packet(object):
 
     def pack(self):
         # the list of argument should be the same and in same order
-        pass
+        return self.packet.pack(*(self.values + (self.data, )))
 
     # use maybe __setattr__ to setup the attributes
     def unpack(self, bytez):
         return self.packet.unpack(bytez)
 
-class MyPacket2(Packet):
+class UnPacket(object):
+    # for now supposing it's a string
+    def __init__(self, header, data):
+        self.len = len(data) - len(header)
+        self.unpacker = header + Packer(('data', '%ds' % self.len), )
+        self.data = data
+
+    def unpack(self):
+        return self.unpacker.unpack(self.data)
+
+
+class MyPacket(Packet):
 
     HEADER = (('seq_no', 'H'), ('ord_no', 'H'),
               ('parts', 'h'), ('chk', 'l'))
-
-    def __init__(self, data, *values):
-        super(MyPacket2, self).__init__(MyPacket2.HEADER, data, values)
+    
+    def __init__(self, seq_no, ord_no, parts, data):
+        super(MyPacket, self).__init__(MyPacket.HEADER, data, seq_no, ord_no, parts, CHK(data))
 
 
 class Packer(object):
@@ -176,43 +188,6 @@ class Packer(object):
     def unpack(self, bytez):
         return struct.unpack(ORDER + self.fmt, bytez)
 
-        
-
-class MyPacket(object):
-
-    HEADER = Packer(('seq_no', 'H'), ('ord_no', 'H'),
-                    ('parts', 'h'), ('chk', 'l'))
-
-    def __init__(self, seq_no, ord_no, parts, data):
-        # we can pass any checksum function that gives a 32 bit result
-        # checksum might be also disable maybe
-        self.seq_no = seq_no
-        self.ord_no = ord_no
-        self.data = data
-        self.parts = parts
-        self.chk = CHK(data)
-        # TODO: try to use the struct "p" (pascal)
-        self.packet = MyPacket.HEADER + Packer(('data', '%ds' % len(data)))
-
-    def __len__(self):
-        return len(self.packet)
-
-    def __str__(self):
-        return str(self.packet)
-
-    # TODO: add some smart check of the input?
-    def pack(self):
-        # TODO: make this list automatically generable somehow
-        return self.packet.pack(self.seq_no, self.ord_no,
-                                self.parts, self.chk, self.data)
-
-    def unpack(self, bytez):
-        return self.packet.unpack(bytez)
-
-
-class MCPPacket(Packet):
-    pass
-
 
 class Merger(object):
     """
@@ -232,11 +207,10 @@ class Merger(object):
 
     def add(self, packet):
         "Add a new packet, manipulating the dictionaries"
-        # check that this is actually what we expect to have
-        data_length = len(packet) - len(MyPacket.HEADER)
-        unpacker = MyPacket.HEADER + Packer(('data', '%ds' % data_length))
-        # compute the checksum to see if it's correct
-        seq_no, ord_no, parts, chk, data = unpacker.unpack(str(packet))
+        # make it more automatic, don't have to call this from here
+        head = Packer(*MyPacket.HEADER)
+        un = UnPacket(head, str(packet))
+        seq_no, ord_no, parts, chk, data = un.unpack()
 
         if chk != CHK(data):
             print "cheksum on the packet is not correct"

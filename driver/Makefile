@@ -8,7 +8,8 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
 LOW6PAN_CARRIED=102
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)
 WARN = -Wall -Wextra
-FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) -ggdb -O0
+DEBUG = -ggdb -O0
+FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
 OBJECTS := $(patsubst %.c, %.o, $(wildcard *.c))
@@ -17,7 +18,6 @@ NOPS =
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
 SRC = client.c
 EXTRAPHONIES = 
-
 
 #### RULES ####
 

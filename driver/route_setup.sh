@@ -21,6 +21,5 @@ ip addr add $ADDR dev $TAP
 
 # once we have an IP and a netmask we can use it as a real network interface
 # ifconfig $TUN $ADDR netmask 255.255.255.0 not needed anymore
-# check if the address is correct
 ip route del default
 ip route add default via $ADDR dev $TAP

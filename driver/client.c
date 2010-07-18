@@ -1,6 +1,5 @@
 /**
  * Macro to see if we're working on OSX is __APPLE__
- * TODO: when we have a TAP device it doesn't make sense to create 
  */
 
 // Includes
