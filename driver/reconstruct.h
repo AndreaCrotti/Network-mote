@@ -11,8 +11,8 @@
 
 typedef struct {
     int seq_no;
-    // what type here? more correct to allocate at run time once we know
-    // of how many parts is the packet composed
+    int missing_chunks; // when this goes to 0 we're done
+    // MAX_CHUNKS should be instead the number of parts
     stream_t chunks[MAX_CHUNKS];
 } packet_t;
 

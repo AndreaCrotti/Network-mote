@@ -8,7 +8,6 @@ TODO: setup a nice logger
 # from TOSSIM import Tossim, SerialForwarder, Throttle
 import os
 import zlib
-from select import select
 import socket
 import struct
 import sys
@@ -19,7 +18,6 @@ from math import ceil
 from copy import deepcopy
 from fcntl import ioctl
 from collections import namedtuple
-from scapy.all import IPv6
 
 COMPRESSION = True
 POPEN = lambda cmd: subprocess.Popen(cmd, shell=True)
@@ -27,6 +25,7 @@ ORDER = "!"
 CHK = zlib.crc32
 MAX_ETHER = 1500 # normal max MTU over ethernet
 MSG = "ciao" * 1000
+
 
 class TunTap(object):
     "Tun tap interface class management"
@@ -99,8 +98,6 @@ class Splitter(object):
             # check if adding the right value
             to_add = self.data[idx:idx + self.max_size]
             pkt = MyPacket(self.seq_no, ord_no, num_packets, to_add)
-            # print "adding %d %d %d %s" % (self.seq_no, ord_no, num_packets, to_add)
-            # the len is automatically set by scapy!!?? Not done this at the moment
             res.append(pkt.pack())
             idx += self.max_size
 
@@ -110,6 +107,7 @@ class Splitter(object):
 # then the values will be computed outside
 class Packet(object):
     " Generic class of the packet, with a header and some data "
+
     def __init__(self, header, data, *values):
         self.header = Packer(*header)
         assert(len(header) == len(values))
@@ -126,14 +124,17 @@ class Packet(object):
         return str(self.packet)
 
     def pack(self):
-        # the list of argument should be the same and in same order
+        " merge together data and values and pack them"
         return self.packet.pack(*(self.values + (self.data, )))
 
     # use maybe __setattr__ to setup the attributes
     def unpack(self, bytez):
         return self.packet.unpack(bytez)
 
+
+# TODO: generalize somehow the input of more variable length fields
 class UnPacket(object):
+
     # for now supposing it's a string
     def __init__(self, header, data):
         self.len = len(data) - len(header)
@@ -148,9 +149,10 @@ class MyPacket(Packet):
 
     HEADER = (('seq_no', 'H'), ('ord_no', 'H'),
               ('parts', 'h'), ('chk', 'l'))
-    
+
     def __init__(self, seq_no, ord_no, parts, data):
-        super(MyPacket, self).__init__(MyPacket.HEADER, data, seq_no, ord_no, parts, CHK(data))
+        super(MyPacket, self).__init__(MyPacket.HEADER, data,
+                                       seq_no, ord_no, parts, CHK(data))
 
 
 class Packer(object):
@@ -182,7 +184,7 @@ class Packer(object):
             return struct.pack(ORDER + self.fmt, *data)
         except struct.error:
             # TODO: add some better error here
-            print "error in formatting, format %s, data %s" % (self.fmt, str(data))
+            print "error format %s, data %s" % (self.fmt, str(data))
             return None
 
     def unpack(self, bytez):
@@ -191,8 +193,6 @@ class Packer(object):
 
 class Merger(object):
     """
-    Reconstructing the data, protocol doesn't matter since we use len and .payload
-    (we just need the len attribute being set
     Merger should keep all the packets until it didn't construct something
     """
 
@@ -242,13 +242,16 @@ class Merger(object):
             del self.completed[key]
             return val
 
+
 class Communicator(object):
     "Glue everything together with two entities talking together"
 
     PORT = 10000
     # TODO: try with a select to make it easier
+
     @staticmethod
     def server():
+        "waits for data and reconstruct the message"
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         merger = Merger()
         sock.bind(("", Communicator.PORT))
@@ -262,14 +265,14 @@ class Communicator(object):
         assert(merger.completed[0] == MSG)
         sock.close()
 
-    # to send away stuff directly to the SOCK_DGRAM we might not need the ipv6 header at all
     @staticmethod
     def client(data):
+        "split data got in and send them over the socket"
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sp = Splitter(data=data, seq_no=0, max_size=100)
         for p in sp.packets:
             sock.sendto(p, ("", Communicator.PORT))
-                
+
 
 def setup_tos():
     "setup the tinyos env for serial forwarder"
@@ -289,11 +292,9 @@ def usage():
 
 
 def main():
-    opts, _ = getopt.getopt(sys.argv[1:], 'vcgd:', ['--verbose', '--client', '--gateway', '--device'])
-    # setting the logger
+    opts, _ = getopt.getopt(sys.argv[1:], 'vcgd:')
     logger = logging.getLogger()
 
-    device = None
     MODE = None
     for o, v in opts:
         if o == '-d':
