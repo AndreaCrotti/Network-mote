@@ -109,7 +109,7 @@ int tun_read(int fd, char *buf, int length){
     
     int nread;
 
-    if((nread = recv(fd, buf, length, 0)) < 0){
+    if((nread = read(fd, buf, length)) < 0){
         perror("Reading data");
         exit(1);
     }
@@ -129,7 +129,7 @@ int tun_write(int fd, char *buf, int length){
     int nwrite;
     
     //TODO: Maybe send is better here
-    if((nwrite=send(fd, buf, length, 0)) < 0){
+    if((nwrite=write(fd, buf, length)) < 0){
         perror("Writing data");
         exit(1);
     }
