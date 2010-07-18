@@ -1,5 +1,5 @@
 #include "reconstruct.h"
 
 void add_chunk(void *data) {
-    static temp packets[MAX_RECONSTRUCTABLE];
+    static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 }

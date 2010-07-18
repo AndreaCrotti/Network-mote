@@ -11,7 +11,7 @@ WARN = -Wall -Wextra
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) -ggdb -O0
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
-OBJECTS = tunnel.o motecomm.o util.o glue.o chunker.o
+OBJECTS := $(patsubst %.c, %.o, $(wildcard *.c))
 NOPS =
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
@@ -24,9 +24,9 @@ EXTRAPHONIES =
 all: autogen tuntest $(NOPS)
 
 tuntest: $(OBJECTS) client.c
-	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) client.c $(CFLAGS) -o tuntest
+	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) $(CFLAGS) -o tuntest
 
-$(OBJECTS): %.o: %.c %.h $(HEADERS)
+$(OBJECTS): %.o: %.c $(wildcard %*.h) $(HEADERS)
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(NOPS): %.o: %.c %.h
