@@ -35,9 +35,6 @@ $(NOPS): %.o: %.c %.h
 
 #### OTHER ####
 
-mktun:
-	$(CC) $(WARN) mktun.c -o mktun
-
 hostname.h: hostname.sh
 	bash hostname.sh
 
@@ -49,9 +46,6 @@ tuntest.pre: $(OBJECTS) client.c
 
 motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 	$(CC) $(FLAGS) -c motecomm.c -E -o motecomm.pre
-
-hostname.h: hostname.sh
-	bash hostname.sh
 
 motecomm: motecomm.c motecomm.h motecomm.sizes.h
 	$(CC) $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) -o motecomm

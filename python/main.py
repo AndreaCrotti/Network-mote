@@ -107,17 +107,50 @@ class Splitter(object):
         return res
 
 
+# then the values will be computed outside
+class Packet(object):
+    " Generic class of the packet, with a header and some data "
+    def __init__(self, header, data, *values):
+        self.header = Packer(*header)
+        self.packet = self.header + Packer(('data', '%ds' % len(data)))
+        # also data now should be in the fields
+        self.fields = self.header.get_fields()
+        self.values = values
+        self.data = data
+
+    def __len__(self):
+        return len(self.packet)
+
+    def __str__(self):
+        return str(self.packet)
+
+    def pack(self):
+        # the list of argument should be the same and in same order
+        pass
+
+    # use maybe __setattr__ to setup the attributes
+    def unpack(self, bytez):
+        return self.packet.unpack(bytez)
+
+class MyPacket2(Packet):
+
+    HEADER = (('seq_no', 'H'), ('ord_no', 'H'),
+              ('parts', 'h'), ('chk', 'l'))
+
+    def __init__(self, data, *values):
+        super(MyPacket2, self).__init__(MyPacket2.HEADER, data, values)
+
+
 class Packer(object):
     "Class to easily pack and unpack data using namedtuples"
 
     def __init__(self, *header):
         self.fmt = ''.join(h[1] for h in header)
         self.tup = namedtuple('header', (h[0] for h in header))
-        # TODO: add some smart way to use this instead
-        self.real_fmt = lambda: ORDER + self.fmt
+        # TODO: add some smart way to avoid the "+ ORDER"
 
     def __str__(self):
-        return self.real_fmt()
+        return self.fmt
 
     def __len__(self):
         return struct.calcsize(ORDER + self.fmt)
@@ -129,17 +162,21 @@ class Packer(object):
         ret.tup = namedtuple('header', self.tup._fields + other.tup._fields)
         return ret
 
+    def get_fields(self):
+        return self.tup._fields
+
     def pack(self, *data):
         try:
             return struct.pack(ORDER + self.fmt, *data)
         except struct.error:
             # TODO: add some better error here
-            print "formatting\n format %s, data %s" % (self.fmt, str(data))
+            print "error in formatting, format %s, data %s" % (self.fmt, str(data))
             return None
 
     def unpack(self, bytez):
         return struct.unpack(ORDER + self.fmt, bytez)
 
+        
 
 class MyPacket(object):
 
@@ -171,6 +208,10 @@ class MyPacket(object):
 
     def unpack(self, bytez):
         return self.packet.unpack(bytez)
+
+
+class MCPPacket(Packet):
+    pass
 
 
 class Merger(object):
@@ -295,31 +336,6 @@ def main():
 
         if MODE == 'server':
             Communicator.server()
-
-    # if not device:
-    #     print "no device configured"
-    #     sys.exit(1)
-
-    # # pass the max size of reading also
-    # t = TunTap()
-    # t.setup()
-    # mote_fd = os.open(device, os.O_RDWR)
-    # try:
-    #     while True:
-    #         ro, wr, ex = select([t.fd, mote_fd], [t.fd, mote_fd], [])
-    #         # now we read the ethernet packets from the tap device and send
-    #         # them to the mote writing them out
-    #         if t.fd in ro:
-    #             # compress and send to the serial interface
-    #             pass
-    #         elif mote_fd in ro:
-    #             # reconstruct the packet
-    #             pass_
-
-    # except KeyboardInterrupt:
-    #     # use "with" instead if possible
-    #     t.close()
-    #     os.close(mote_fd)
 
 if __name__ == '__main__':
     main()

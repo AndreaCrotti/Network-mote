@@ -1,4 +1,4 @@
-#ifndef __CHUNKER_H
+xbtes#ifndef __CHUNKER_H
 #define __CHUNKER_H
 #include <stdint.h>
 #include "util.h"
@@ -26,9 +26,10 @@ typedef struct myPacketHeader {
 typedef struct ipv6Packet {
     // sent data ...
     struct ipv6PacketHeader{ 
-      struct ip6_hdr ip6_hdr;
-      myPacketHeader packetHeader;
+        struct ip6_hdr ip6_hdr;
+        myPacketHeader packetHeader;
     } __attribute__((__packed__)) header;
+
     stream_t payload[MAX_CARRIED];
     // END OF sent data.
     // extra data ...
@@ -58,20 +59,5 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const 
  * @return 
  */
 void *reconstruct(ipv6Packet *data, int len);
-
-/*
-
-void dataToLocalhost(void *, int, int);
-
-void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
-
-sockaddr_in6 *localhostDest(void);
-
-//void testWithMemset(void);
-
-void sendToLocalhost(void *, size_t);
-
-void sendDataTo(void *, struct sockaddr *, size_t, int);
-*/
 
 #endif

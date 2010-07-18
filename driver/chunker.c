@@ -16,8 +16,6 @@
 #include "motecomm.h"
 
 #define MAX_IPVS_SIZE (MAX_CARRIED - sizeof(struct ipv6PacketHeader))
-// max number of packets kept in the temporary structure for reconstruction
-#define MAX_RECONSTRUCTABLE 10
 
 // FIXME: maybe we have to use htons whenever we add data to the network
 void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
@@ -80,6 +78,8 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const 
 // of all the temporary packets and take from the outside the new packets we want to add.
 // When one packet is ready it should go in another structure and maybe we can use a callback
 // function to send it away automatically
+
+// Maybe we could use this http://www.cl.cam.ac.uk/~cwc22/hashtable/ as data structure
 
 // with some ipv6 packets try to reconstruct everything
 void *reconstruct(ipv6Packet *data, int len) {
