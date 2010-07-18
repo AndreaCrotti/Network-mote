@@ -1,5 +1,7 @@
+#include <stdio.h>
+
 #include "reconstruct.h"
- #include "chunker.h"
+#include "chunker.h"
 
 // a simple function is not enough, we need an "object" which keeps the state
 // of all the temporary packets and take from the outside the new packets we want to add.
@@ -43,18 +45,19 @@ void addChunk(void *data) {
     // does nothing if we're in the limit
     move_forward(seq_no);
     
-    packet_t actual = temp_packets[POS(seq_no)];
+    // just for readability
+    packet_t *actual = &temp_packets[POS(seq_no)];
     // check if first time we receive a chunk of this packet
-    if (actual.seq_no >= 0) {
-        actual.missing_chunks = p->parts;
-        actual.seq_no = seq_no;
+    if (actual->seq_no >= 0) {
+        actual->missing_chunks = p->parts;
+        actual->seq_no = seq_no;
     }
     
     // not receiving same data twice
-    assert(actual.chunks[ord_no] == 0);
+    assert(actual->chunks[ord_no] == 0);
     // now add the chunk (using the payload
     /* actual.chunks[ord_no] = (stream_t *); */
-    actual.missing_chunks--;
+    actual->missing_chunks--;
 }
 
 void move_forward(int seq) {
