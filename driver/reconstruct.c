@@ -1,5 +1,5 @@
 #include "reconstruct.h"
-#include "chunker.h"
+ #include "chunker.h"
 
 // a simple function is not enough, we need an "object" which keeps the state
 // of all the temporary packets and take from the outside the new packets we want to add.
@@ -8,7 +8,11 @@
 
 // Maybe we could use this http://www.cl.cam.ac.uk/~cwc22/hashtable/ as data structure
 
+#define MAX_SEQ (index + MAX_RECONSTRUCTABLE)
+#define POS(x) (x - index)
+
 myPacketHeader *recast(stream_t *data);
+void move_forward(int seq);
 
 static void (*globalcallback)(myPacketHeader *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
@@ -36,7 +40,29 @@ void addChunk(void *data) {
     myPacketHeader *p = recast(data);
     int seq_no = p->seq_no;
     int ord_no = p->ord_no;
+    // does nothing if we're in the limit
+    move_forward(seq_no);
+    
+    packet_t actual = temp_packets[POS(seq_no)];
+    // check if first time we receive a chunk of this packet
+    if (actual.seq_no >= 0) {
+        actual.missing_chunks = p->parts;
+        actual.seq_no = seq_no;
+    }
+    
+    // not receiving same data twice
+    assert(actual.chunks[ord_no] == 0);
+    // now add the chunk (using the payload
+    /* actual.chunks[ord_no] = (stream_t *); */
+    actual.missing_chunks--;
+}
 
+void move_forward(int seq) {
+    int offset = (seq - MAX_SEQ);
+    if (offset > 0) {
+        printf("we'll overwrite everything below %d\n", offset);
+        index += offset;
+    }
 }
 
 // TODO: change this from myPacketHeader to the real structure we're getting
@@ -44,3 +70,10 @@ myPacketHeader *recast(stream_t *data) {
     return (myPacketHeader *) data;
 }
 
+#ifdef STANDALONE
+
+int main(int argc, char *argv[]) {
+    
+}
+
+#endif
