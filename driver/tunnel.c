@@ -25,7 +25,6 @@
 
 // The name of the interface 
 char *ifname;
-int sock;
 
 /** 
  * Creates a new tun/tap device, or connects to a already existent one depending
@@ -74,26 +73,6 @@ int tun_open(char *dev, int flags){
     ifname = malloc(10);
 
     return fd;
-}
-
-/** 
- * Sets up the tunnel interface and assigns a MTU and a IPv4 address.
- * 
- * @param dev The device name.
- * @param addr An IPv4 address (As a string).
- * 
- * @return Error-code.
- */
-int tun_setup(char *dev, char *addr) {
-    (void)dev;
-    (void)addr;
-    // TODO: what do we need a socket for when we setup the device??
-    // Getting the device identifier with the socket command
-    if( (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
-        perror("Getting socket");
-        return sock;
-    }
-    return 0;
 }
 
 /** 
