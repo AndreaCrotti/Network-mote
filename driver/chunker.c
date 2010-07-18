@@ -74,28 +74,6 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const 
     return (payload->len+MAX_CARRIED-1)/MAX_CARRIED -1;
 }
 
-// a simple function is not enough, we need an "object" which keeps the state
-// of all the temporary packets and take from the outside the new packets we want to add.
-// When one packet is ready it should go in another structure and maybe we can use a callback
-// function to send it away automatically
-
-// Maybe we could use this http://www.cl.cam.ac.uk/~cwc22/hashtable/ as data structure
-
-// with some ipv6 packets try to reconstruct everything
-void *reconstruct(ipv6Packet *data, int len) {
-    // if checksum is correct than...
-    int i;
-    void *rebuild = calloc(len, MAX_IPVS_SIZE);
-    printf ("allocated %d memory for this\n", len * MAX_IPVS_SIZE);
-    void *idx = rebuild;
-    for (i = 0; i < len; i++) {
-        // checksum before
-        memcpy(idx, data[i].payload, MAX_IPVS_SIZE);
-        idx += MAX_IPVS_SIZE;
-    }
-    return rebuild;
-}
-
 // Function for checksum calculation. From the RFC,
 // the checksum algorithm is:
 //  "The checksum field is the 16 bit one's complement of the one's
