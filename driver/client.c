@@ -15,6 +15,7 @@
 // Standard libraries
 #include <stdlib.h>
 #include <string.h>
+#include <sysexits.h>
 #include <stdio.h>
 
 // Functions for using a tunnel device
@@ -69,9 +70,18 @@ void laSet(laep_handler_t* this, la_t const address) {
     localAddress = address;
 }
 
-int main(int args, char** arg) {
-    (void)args;
-    (void)arg;
+void usage() {
+    fprintf(stderr, "./tuntest <device>\n");
+    exit(EX_USAGE);
+}
+
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        usage();
+    }
+
+    (void)argc;
+    (void)argv;
 
     char tun_name[IFNAMSIZ];
 
@@ -112,9 +122,7 @@ int main(int args, char** arg) {
     fdglue_t fdg;
     fdglue(&fdg);
     char mote[] = "telosb";
-    // TODO: Write some user feedback if the argument is missing or the device is not 
-    //       existent
-    char const* dev = arg[1];
+    char const* dev = argv[1];
     serialif_t* sif = NULL;
     /* mcp_t* mcp = openMcpConnection(dev,mote,&sif); */
     /* ifp_t _ifp; */
