@@ -13,7 +13,7 @@
 // Maybe we could use this http://www.cl.cam.ac.uk/~cwc22/hashtable/ as data structure
 
 // FIXME: now when the index changes we don't find it anymore
-#define NEXT_POS(x) ((x + 1) % MAX_RECONSTRUCTABLE)
+#define POS(x) (x % MAX_RECONSTRUCTABLE)
 
 #ifndef DEBUG
 #define DEBUG 0
@@ -27,8 +27,6 @@ void resetPacket(packet_t *actual, myPacketHeader *original);
 static void (*globalcallback)(myPacketHeader *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 static packet_t completed_packets[MAX_RECONSTRUCTABLE];
-
-static int index = 0;
 
 // pass a callback function to send somewhere else the messages when they're over
 void initReconstruction(void (*callback)(myPacketHeader *completed)) {
@@ -57,30 +55,25 @@ void initReconstruction(void (*callback)(myPacketHeader *completed)) {
 void addChunk(void *data) {
     myPacketHeader *original = recast(data);
     int seq_no = original->seq_no;
-    int ord_no = original->ord_no;
     
     // just for readability
-    packet_t *actual = &temp_packets[index];
+    packet_t *actual = &temp_packets[POS(seq_no)];
 
     // we have to overwrite everything in case we're overwriting OR
     // is the first chunk with that seq_no that we receive
     if (actual->seq_no != seq_no) {
         if (DEBUG)
-            printf("overwriting or creating new packet at position %d\n", index);
+            printf("overwriting or creating new packet at position %d\n", POS(seq_no));
 
         resetPacket(actual, original);
     }
     if (DEBUG) 
-        printf("adding chunk ord_no = %d to seq_no = %d\n", ord_no, seq_no);
+        printf("adding chunk seq_no = %d\n", seq_no);
 
     actual->seq_no = seq_no;
-    // check not receiving same data twice
-    assert(actual->chunks[ord_no] == 0);
     // now add the chunk (using the payload
     /* actual.chunks[ord_no] = (stream_t *); */
     actual->missing_chunks--;
-
-    index = NEXT_POS(index);
 }
 
 // reset all the chunks at that sequential number
@@ -116,7 +109,6 @@ int main(int argc, char *argv[]) {
         pkt[i].seq_no = i;
         addChunk(&pkt[i]);
     }
-    
     testAddressing();
 
     // assertions to check we really have those values there
@@ -129,7 +121,7 @@ int main(int argc, char *argv[]) {
 // (POS % seq_no) == 0
 void testAddressing() {
     int i, seq;
-    for (i = 0; i < num_packets; i++) {
+    for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         if (DEBUG)
             printf("checking packet %d where seq=%d max=%d\n", i, temp_packets[i].seq_no, MAX_RECONSTRUCTABLE);
 
