@@ -52,7 +52,7 @@ unsigned needed_chunks(int data_size){
  *
  * @returns how may packets remain - You should loop until its 0.
  */
-int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const seq_no) {
+int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, int const seq_no) {
     assert(packet);
     assert(payload);
     assert(payload->len > 0);
@@ -66,11 +66,11 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const 
     genIpv6Header(&(packet->header.ip6_hdr),sizeof(myPacketHeader) + MAX_CARRIED /* FIXME: is this actually correct?*/);
     packet->header.packetHeader = pkt;
     pkt.ord_no++;
-    packet->plsize = packet->sendsize = (payload->len < MAX_CARRIED)?payload->len:MAX_CARRIED;
-    packet->sendsize += sizeof(struct ipv6PacketHeader);
-    memcpy(packet->payload,payload->stream,packet->plsize);
-    payload->len -= packet->plsize;
-    payload->stream += packet->plsize;
+    *sendsize = (payload->len < MAX_CARRIED)?payload->len:MAX_CARRIED;
+    memcpy(packet->payload,payload->stream,*sendsize);
+    payload->len -= *sendsize;
+    payload->stream += *sendsize;
+    *sendsize += sizeof(struct ipv6PacketHeader);
     return (payload->len+MAX_CARRIED-1)/MAX_CARRIED -1;
 }
 
