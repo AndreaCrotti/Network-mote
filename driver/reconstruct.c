@@ -6,6 +6,7 @@
 
 // TODO: check that all the types are actually correct
 // TODO: (if there is time) add multiclient support (reading the source and create temp structure for both)
+// TODO: check with valgrind
 
 // a simple function is not enough, we need an "object" which keeps the state
 // of all the temporary packets and take from the outside the new packets we want to add.
@@ -39,7 +40,6 @@ myPacketHeader *getHeader(ipv6Packet *packet);
 // just using a send function would be fine
 static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
-static packet_t completed_packets[MAX_RECONSTRUCTABLE];
 
 // pass a callback function to send somewhere else the messages when they're over
 void initReconstruction(void (*callback)(ipv6Packet *completed)) {
@@ -103,6 +103,10 @@ void addChunk(void *data) {
     free(original);
 }
 
+/****************************************/
+/* Functions to access to the structure */
+/****************************************/
+
 myPacketHeader *getHeader(ipv6Packet *packet) {
     return &(packet->header.packetHeader);
 }
@@ -163,17 +167,9 @@ void testAddressing() {
         if (DEBUG)
             printf("checking packet %d where seq=%d max=%d\n", i, temp_packets[i].seq_no, MAX_RECONSTRUCTABLE);
 
-        seq = temp_packets[i].seq_no;
+        seq = getSeqNo(&temp_packets[i]);
         assert((seq % MAX_RECONSTRUCTABLE) == (i % MAX_RECONSTRUCTABLE));
     }
-}
-
-void testRecast(ipv6Packet *p) {
-    ipv6Packet *other = malloc(sizeof(ipv6Packet));
-    other = recast(NULL, (void *) p);
-    assert(other->seq_no == p->seq_no);
-    assert(other->ord_no == p->ord_no);
-    free(other);
 }
 
 #endif

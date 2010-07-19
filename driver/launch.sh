@@ -9,8 +9,8 @@ function usage {
     echo "./launch <tap device> <eth device> <local address> <mtu>"
     return 1
 }
-if [ $# -lt 4 ] ; then
-    usage
+if [ $# -lt 4 ]
+    then usage
 fi
 
 TAP=$1
