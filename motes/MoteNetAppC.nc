@@ -28,12 +28,12 @@ implementation{
     components SerialActiveMessageC as Serial;
     // Queue for the serial interface
     components new SendQueueC(SERIAL_QUEUE_SIZE, sizeof(message_t)) as SerialQueue;
-    SerialQueue.LowSend -> Serial.AMSend[42];
+    SerialQueue.LowSend -> Serial.AMSend[0];
     SerialQueue.AMPacket -> Serial;
 
     MoteNetAppP.SerialControl -> Serial;
     MoteNetAppP.SerialSend -> SerialQueue;
-    MoteNetAppP.SerialReceive -> Serial.Receive[42];
+    MoteNetAppP.SerialReceive -> Serial.Receive[0];
     MoteNetAppP.SerialPacket -> Serial;
     /* MoteNetAppP.SerialAMPacket -> Serial; */
 

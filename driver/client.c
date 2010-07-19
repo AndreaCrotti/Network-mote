@@ -58,11 +58,16 @@ void tunReceive(fdglue_handler_t* that) {
     payload_t payload = {.stream = buf, .len = size};
     ipv6Packet ipv6;
     unsigned sendsize = 0;
-    while (genIpv6Packet(&payload,&ipv6,&sendsize,seqno)) {
+    char chunks_left;
+    do{
+        chunks_left = genIpv6Packet(&payload,&ipv6,&sendsize,seqno);
         assert(sendsize);
         this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = sendsize});
+        printf("Sending chunk with size %u\n", sendsize);
+
         sendsize = 0;
-    }
+    }while (chunks_left); 
+    
 }
 
 la_t localAddress = DEFAULT_LOCAL_ADDRESS;

@@ -141,6 +141,9 @@ implementation{
     void payload_rec_handler(ifp_handler_t* that, payload_t const payload){
         struct ipv6Packet packetBuf; 
         unsigned real_payload_len;
+
+        radioBlink();
+
         
         // Check whether the packet is not to small
         if(payload.len < sizeof(struct ipv6Packet)){
@@ -155,7 +158,7 @@ implementation{
         memcpy(&ip_out_data, &(packetBuf.header.packetHeader), sizeof(myPacketHeader));
         memcpy(&ip_out_data + sizeof(myPacketHeader), &(packetBuf.payload), 
                real_payload_len);
-
+        
         ip_out.headers = NULL;
         ip_out.data_len = real_payload_len + sizeof(myPacketHeader); 
         ip_out.data = (uint8_t*)&ip_out_data;
@@ -184,6 +187,8 @@ implementation{
         mccmp(&if_mccmp,&if_mcp);
         laep(&if_laep,&if_mcp);
         ifp(&if_ifp,&if_mcp);
+        
+        // Define Handlers
         if_ifp.setHandler(&if_ifp, (ifp_handler_t){.p = 0, .handle=payload_rec_handler});
 
         // Initialize devices
@@ -201,7 +206,7 @@ implementation{
     }
 
     event void RadioSend.sendDone(message_t* m, error_t err){
-
+        
     }
 
     event void IP.recv(struct ip6_hdr *iph, void *payload, struct ip_metadata *meta){
@@ -233,9 +238,12 @@ implementation{
     }
     
     event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len) {
+        
+        /* failBlink(); */
+
         ser_in_consume = m;
         if_motecomm.read(&if_motecomm);
-
+               
         return m;
     }
 

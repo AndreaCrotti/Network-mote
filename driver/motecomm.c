@@ -79,6 +79,7 @@ int _serialif_t_fd(serialif_t* this) {
 }
 
 void _serialif_t_ditch(serialif_t* this, payload_t** payload) {
+//TODO: Ändern
   (void)this;
   assert(payload);
   if (*payload) {
@@ -99,9 +100,31 @@ void _serialif_t_openMessage(serial_source_msg problem) {
   }
 }
 
+struct message_header_t {
+    unsigned char amid;
+    unsigned int destaddr;
+    unsigned int sourceaddr;
+    unsigned char msglen;
+    unsigned char groupid;
+    unsigned char handlerid;
+} __attribute__((__packed__));
+
 int _serialif_t_send(serialif_t* this, payload_t const payload) {
   assert(this);
-  return write_serial_packet(this->source,payload.stream,payload.len);
+  payload_t buf;
+  buf.len = payload.len;
+  buf.stream = malloc(sizeof(struct message_header_t)+payload.len*sizeof(stream_t));
+  memset((void*)buf.stream,0,sizeof(struct message_header_t));
+  struct message_header_t* mh = (struct message_header_t*)(buf.stream);
+  mh->destaddr = 0xFFFF;
+  mh->handlerid = 0;
+  mh->groupid = 0;
+  mh->amid = 0;
+  mh->msglen = payload.len;
+  memcpy((void*)(buf.stream + sizeof(struct message_header_t)),payload.stream,payload.len*sizeof(stream_t));
+  int result = write_serial_packet(this->source,buf.stream,buf.len);
+  free((void*)(buf.stream));
+  return result;
 }
 
 void _serialif_t_read(serialif_t* this, payload_t* const payload) {
@@ -109,16 +132,16 @@ void _serialif_t_read(serialif_t* this, payload_t* const payload) {
   assert(payload);
   payload_t buf;
   buf.stream = read_serial_packet(this->source,(int*)&(buf.len));
-  if (!buf.stream != !buf.len) {
+  if (!buf.stream != !buf.len || buf.len < 8) {
     if (buf.stream) {
       free((void*)(buf.stream));
     }
     buf.stream = NULL;
     buf.len = 0;
   }
-  payload->len = buf.len;
+  payload->len = buf.len - 8;
   if (buf.stream) {
-    memcpy((void*)(payload->stream),(void*)(buf.stream),buf.len);
+    memcpy((void*)(payload->stream),(void*)(buf.stream+8),buf.len - 8);
   } else {
     payload->stream = NULL;
   }
@@ -170,24 +193,18 @@ void _motecomm_t_send(motecomm_t* this, payload_t const payload) {
 }
 
 void _motecomm_t_read(motecomm_t* this) {
-  payload_t* payload = NULL; //will be assigned
+  payload_t payload; 
+
   assert(this);
   assert(this->motecomm_handler.receive);
-  this->serialif.read(&(this->serialif),payload);
-  if (payload) {
-    if (payload->stream) {
-      payload_t p = *payload;
-      if (p.len >= 8) {
-        p.len -= 8;
-        p.stream = payload->stream + 8;
-        //p.stream = malloc(p.len*sizeof(stream_t));
-        //memcpy((void*)(p.stream),((void*)(payload->stream))+8,p.len);
-        this->motecomm_handler.receive(&(this->motecomm_handler),p);
-        //free((void*)(p.stream));
-      }
-    }
-    this->serialif.ditch(&(this->serialif),&payload);
+  this->serialif.read(&(this->serialif), &payload);
+  if (payload.stream) {
+      call Leds.led1Toggle();
+      this->motecomm_handler.receive(&(this->motecomm_handler),payload);
   }
+  //TODO: Anpassung benötigt?
+  //this->serialif.ditch(&(this->serialif),&payload);
+  
 }
 
 void _motecomm_t_setHandler(motecomm_t* this, motecomm_handler_t const handler) {
@@ -213,6 +230,9 @@ motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf) {
 void _mcp_t_receive(motecomm_handler_t* that, payload_t const payload) {
   mcp_t* this = (mcp_t*)(that->p);
   assert(payload.stream);
+  
+  call Leds.led0Toggle();
+
   if (payload.len < MCP_HEADER_BYTES) {
     return;
   }

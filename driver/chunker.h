@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include "util.h"
 /* #include <netinet/ip6.h> */
-#include "structs.h"
+
+//TODO: We need to find a better solution here...
+#include "../shared/structs.h"
 
 
 /**

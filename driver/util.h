@@ -19,7 +19,8 @@
 #define assert(expr) 
 #endif
 
-#include "structs.h"
+//TODO: We need to find a better solution here...
+#include "../shared/structs.h"
 
 #define class(NAME_T,body) \
   typedef struct NAME_T NAME_T;\
