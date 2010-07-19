@@ -28,7 +28,7 @@ void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
     // TODO: check if this is correct
     /* header->vlfc = 6; */
     /* header->ip6_ctlun.ip6_un1.ip6_un1_plen = htons(payload_len); */
-    printf("payload len = %x, after htons %x\n", payload_len, htons(payload_len));
+    //printf("payload len = %x, after htons %x\n", payload_len, htons(payload_len));
     /* header->ip6_ctlun.ip6_un2_vfc = 6; */
     /* header->ip6_src = 0; */
 }
@@ -72,7 +72,7 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     payload->len -= *sendsize;
     payload->stream += *sendsize;
     *sendsize += sizeof(struct ipv6PacketHeader);
-    return (payload->len+MAX_CARRIED-1)/MAX_CARRIED -1;
+    return (payload->len+MAX_CARRIED-1)/MAX_CARRIED;
 }
 
 // Function for checksum calculation. From the RFC,

@@ -44,8 +44,34 @@ implementation{
 #include "../driver/util.c"
 #include "../driver/motecomm.c" // ! watch out, the c code is actually pasted here
 
+    /*************/
+    /* Variables */
+    /*************/
+
     message_t* ser_in_consume;
     message_t ser_out;
+
+    message_t packet;
+    serialif_t if_sif;
+    motecomm_t if_motecomm;
+    mcp_t if_mcp;
+    mccmp_t if_mccmp;
+    laep_t if_laep;
+    ifp_t if_ifp;
+
+    // This motes IP-address
+    struct in6_addr ip_address;
+
+    // For outgoing packets
+    struct split_ip_msg ip_out;
+    uint8_t ip_out_data[TOSH_DATA_LENGTH];
+    /* struct generic_header gen_header_out; */
+    struct myPacketHeader myp_header_out;
+
+    // For incoming packets
+    struct ipv6Packet ip_in;
+    /* struct generic_header gen_header_in; */
+    struct myPacketHeader myp_header_in;
 
     /*************/
     /* Functions */
@@ -109,24 +135,13 @@ implementation{
         (void)ssm;
     }
 
-    message_t packet;
-    serialif_t if_sif;
-    motecomm_t if_motecomm;
-    mcp_t if_mcp;
-    mccmp_t if_mccmp;
-    laep_t if_laep;
-    ifp_t if_ifp;
-    struct split_ip_msg ip_out;
-    uint8_t ip_out_data[TOSH_DATA_LENGTH];  
-    struct generic_header gen_header;
-    struct myPacketHeader myp_header;
-
     /************/
     /* Handlers */
     /************/
     void payload_rec_handler(ifp_handler_t* that, payload_t const payload){
         struct ipv6Packet packetBuf; 
-
+        unsigned real_payload_len;
+        
         // Check whether the packet is not to small
         if(payload.len < sizeof(struct ipv6Packet)){
             failBlink();
@@ -134,26 +149,23 @@ implementation{
         }
 
         packetBuf = *(struct ipv6Packet*)(payload.stream);
-
-        // Set up the headers
-        myp_header = packetBuf.header.packetHeader;
-        gen_header.len = sizeof(myPacketHeader);
-        gen_header.hdr.data = (uint8_t*)&myp_header;
+        real_payload_len = payload.len - sizeof(struct ipv6PacketHeader);
         
         // Copy the payload
-        memcpy(&ip_out_data, &packetBuf.payload, TOSH_DATA_LENGTH);
+        memcpy(&ip_out_data, &(packetBuf.header.packetHeader), sizeof(myPacketHeader));
+        memcpy(&ip_out_data + sizeof(myPacketHeader), &(packetBuf.payload), 
+               real_payload_len);
 
-        ip_out.headers = &gen_header;
-        ip_out.data_len = packetBuf.plsize;
+        ip_out.headers = NULL;
+        ip_out.data_len = real_payload_len + sizeof(myPacketHeader); 
         ip_out.data = (uint8_t*)&ip_out_data;
         ip_out.hdr = packetBuf.header.ip6_hdr;
 
-        //TODO: Set this mote as the sender
-        //ip6_out.hdr.ip6_src = 
+        // Set this mote as the sender
+        ip_out.hdr.ip6_src = ip_address;
 
         call IP.send(&ip_out);
     }
-
     /*********/
     /* Tasks */
     /*********/
@@ -177,6 +189,9 @@ implementation{
         // Initialize devices
         call RadioControl.start();
         call SerialControl.start();
+
+        // Store this mote's IP
+        call IPAddress.getIPAddr(&ip_address);
     }
 
     event void RadioControl.startDone(error_t err){
@@ -190,10 +205,19 @@ implementation{
     }
 
     event void IP.recv(struct ip6_hdr *iph, void *payload, struct ip_metadata *meta){
+
         // Get the transmitted payload length
         uint16_t payload_len = iph->plen;
+        
+        // Convert the data to an ipv6Packet again
+        ip_in.header.ip6_hdr = *iph;
+        ip_in.header.packetHeader = *((myPacketHeader*) payload);
+        memcpy(ip_in.payload, payload + sizeof(myPacketHeader), 
+               payload_len - sizeof(myPacketHeader));
+
         // Send the Payload over the serial 
-        if_ifp.send(&if_ifp, (payload_t){.stream = payload, .len = payload_len});
+        if_ifp.send(&if_ifp, (payload_t){
+                .stream = (stream_t*)&ip_in, .len = payload_len + sizeof(ip6_hdr) });
     }
 
     event void SerialControl.startDone(error_t err) {
