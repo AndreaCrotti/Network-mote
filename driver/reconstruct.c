@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "reconstruct.h"
 #include "chunker.h"
 
 // TODO: check that all the types are actually correct
+// TODO: (if there is time) add multiclient support (reading the source and create temp structure for both)
 
 // a simple function is not enough, we need an "object" which keeps the state
 // of all the temporary packets and take from the outside the new packets we want to add.
@@ -19,22 +21,33 @@
 #define DEBUG 0
 #endif
 
-myPacketHeader *recast(stream_t *data);
-void move_forward(int seq_no);
-void resetPacket(packet_t *actual, myPacketHeader *original);
+// this is only used for make things easier in reconstruct
+// is not supposed to be used anywhere else (not __packed__ in fact)
+typedef struct packetStruct {
+    ipv6Packet header;
+    stream_t *payload;
+} packetStruct;
+
+
+void recast(ipv6Packet *, stream_t *data);
+void reset_packet(packet_t *actual, ipv6Packet *original);
+int getOrdNo(ipv6Packet *packet);
+int getSeqNo(ipv6Packet *packet);
+int getParts(ipv6Packet *packet);
+myPacketHeader *getHeader(ipv6Packet *packet);
 
 // just using a send function would be fine
-static void (*globalcallback)(myPacketHeader *completed);
+static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 static packet_t completed_packets[MAX_RECONSTRUCTABLE];
 
 // pass a callback function to send somewhere else the messages when they're over
-void initReconstruction(void (*callback)(myPacketHeader *completed)) {
+void initReconstruction(void (*callback)(ipv6Packet *completed)) {
     int i, j;
     if (DEBUG)
         printf("initializing the reconstruction\n");
 
-    globalcallback = callback;
+    send_back = callback;
     for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         // is it always a new packet_t right?
         packet_t t;
@@ -53,8 +66,12 @@ void initReconstruction(void (*callback)(myPacketHeader *completed)) {
  * @param data 
  */
 void addChunk(void *data) {
-    myPacketHeader *original = recast(data);
-    int seq_no = original->seq_no;
+    
+    ipv6Packet *original = malloc(sizeof(ipv6Packet));
+    // doing a memcpy instead
+    memcpy(original, data, sizeof(ipv6Packet));
+    int seq_no = getSeqNo(original);
+    int ord_no = getOrdNo(original);
     
     // just for readability
     packet_t *actual = &temp_packets[POS(seq_no)];
@@ -65,44 +82,65 @@ void addChunk(void *data) {
         if (DEBUG)
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
 
-        resetPacket(actual, original);
+        reset_packet(actual, original);
     }
     if (DEBUG) 
         printf("adding chunk seq_no = %d\n", seq_no);
 
     actual->seq_no = seq_no;
-    // now add the chunk (using the payload
-    /* actual.chunks[ord_no] = (stream_t *); */
-    actual->missing_chunks--;
+    if (actual->chunks[ord_no] == 0) {
+        // now add the chunk (using the payload
+        /* actual.chunks[ord_no] = (stream_t *); */
+        actual->missing_chunks--;
+    } else {
+        printf("we got the same chunk twice!!!\n");
+    }
+
+    // now we check if everything if the packet is completed and sends it back
+    if (actual->missing_chunks == 0) {
+        send_back(original);
+    }
+    free(original);
+}
+
+myPacketHeader *getHeader(ipv6Packet *packet) {
+    return &(packet->header.packetHeader);
+}
+
+int getSeqNo(ipv6Packet *packet) {
+    return getHeader(packet)->seq_no;
+}
+
+int getOrdNo(ipv6Packet *packet) {
+    return getHeader(packet)->ord_no;
+}
+
+int getParts(ipv6Packet *packet) {
+   return getHeader(packet)->parts;
 }
 
 // reset all the chunks at that sequential number
-void resetPacket(packet_t *actual, myPacketHeader *original) {
+void reset_packet(packet_t *actual, ipv6Packet *original) {
     int i;
-    actual->seq_no = original->seq_no;
-    actual->missing_chunks = original->parts;
+    actual->seq_no = getSeqNo(original);
+    actual->missing_chunks = getParts(original);
         
     for (i = 0; i < MAX_CHUNKS; i++) {
         actual->chunks[i] = 0;
     }
 }
 
-// TODO: change this from myPacketHeader to the real structure we're getting
-myPacketHeader *recast(stream_t *data) {
-    return (myPacketHeader *) data;
-}
-
 #ifdef STANDALONE
 int num_packets = 10;
 void testAddressing();
-void testRecast(myPacketHeader *p);
+void testRecast(ipv6Packet *p);
 
 // doing some simple testing
 int main(int argc, char *argv[]) {
     // give it a real function
     int i;
     initReconstruction(NULL);
-    myPacketHeader *pkt = malloc(sizeof(myPacketHeader) * num_packets);
+    ipv6Packet *pkt = malloc(sizeof(ipv6Packet) * num_packets);
     
     for (i = 0; i < num_packets; i++) {
         testRecast(&pkt[i]);
@@ -130,11 +168,12 @@ void testAddressing() {
     }
 }
 
-void testRecast(myPacketHeader *p) {
-    myPacketHeader *other = malloc(sizeof(myPacketHeader));
-    other = recast((void *) p);
+void testRecast(ipv6Packet *p) {
+    ipv6Packet *other = malloc(sizeof(ipv6Packet));
+    other = recast(NULL, (void *) p);
     assert(other->seq_no == p->seq_no);
     assert(other->ord_no == p->ord_no);
+    free(other);
 }
 
 #endif

@@ -1,6 +1,7 @@
 BLIP = $(TOSROOT)/support/sdk/c/blip
+SHARED = ../shared
 
-INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types
+INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SHARED)
 
 COMPONENT=MoteNetAppC
 # This is the group of communication

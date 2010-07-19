@@ -19,13 +19,7 @@
 #define assert(expr) 
 #endif
 
-typedef unsigned char stream_t;
-typedef unsigned int streamlen_t;
-
-typedef struct {
-  stream_t const* stream;
-  streamlen_t len;
-} payload_t;
+#include "structs.h"
 
 #define class(NAME_T,body) \
   typedef struct NAME_T NAME_T;\

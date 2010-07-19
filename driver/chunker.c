@@ -6,6 +6,7 @@
 // TODO: set first the packet to all 0 and only set the needed fields
 
 #include "chunker.h"
+#include "structs.h"
 
 #include <stdlib.h>
 #include <stdio.h>

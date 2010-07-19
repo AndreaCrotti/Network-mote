@@ -1,9 +1,10 @@
 BLIP = $(TOSROOT)/support/sdk/c/blip
 SF = $(TOSROOT)/support/sdk/c/sf
+SHARED = ../shared
 
 CC = gcc
 
-INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF)
+INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED)
 # this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
 LOW6PAN_CARRIED=102
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)

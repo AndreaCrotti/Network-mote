@@ -1,6 +1,8 @@
 #ifndef _RECONSTRUCT_H
 #define _RECONSTRUCT_H
 
+#include "structs.h"
+
 // max number of packets kept in the temporary structure for reconstruction
 #define MAX_RECONSTRUCTABLE 4
 
