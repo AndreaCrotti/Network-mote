@@ -1,49 +1,49 @@
 #include "glue.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/types.h>
 
 void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action) {
   assert(this);
-  fdglue_handlerlist_t dummy;
-  dummy.fd = -1;
-  dummy.next = this->handlers;
-  struct fdglue_handlerlist_t* it,* last = &dummy;
-  for (it = dummy.next; it; it = it->next) {
-    if (it->fd == fd && it->type == type) {
-      switch (action) {
-        case FDGHR_REPLACE:
-          it->hnd = hnd;
-        break;
-        case FDGHR_REMOVE:
-          last->next = it->next;
-          free(it);
-          it = last;
-        break;
-        default: {}
+  if (action != FDGHR_APPEND) {
+    fdglue_handlerlist_t dummy;
+    dummy.fd = -1;
+    dummy.next = this->handlers;
+    ////   dummy  ->  handlers  ->  ...  ->  NULL
+    struct fdglue_handlerlist_t* it,* last = &dummy;
+    for (it = dummy.next; it; it = it->next) {
+      if (it->fd == fd && it->type == type) {
+        switch (action) {
+          case FDGHR_REPLACE:
+            it->hnd = hnd;
+            break;
+          case FDGHR_REMOVE:
+            last->next = it->next;
+            free(it);
+            it = last;
+            break;
+          default: {}
+        }
       }
+      last = it;
     }
-    last = it;
-  }
-  if (!(it = last))
-    it = &dummy;
-  assert(it);
-  this->handlers = dummy.next;
-  fdglue_handlerlist_t** p = &(dummy.next);
-  if (action == FDGHR_APPEND) {
+    it = last;
+    assert(it);
+    this->handlers = dummy.next;
+  } else {
+    fdglue_handlerlist_t* p;
     assert(DYNAMIC_MEMORY);
-    *p = malloc(sizeof(fdglue_handlerlist_t));
-    (*p)->fd = fd;
-    (*p)->type = type;
-    (*p)->hnd = hnd;
-    (*p)->next = NULL;
+    p = malloc(sizeof(fdglue_handlerlist_t));
+    p->fd = fd;
+    p->type = type;
+    p->hnd = hnd;
+    p->next = this->handlers;
+    this->handlers = p;
     if (fd > this->nfds)
       this->nfds = fd;
-    if (it == &dummy) {
-      this->handlers = dummy.next;
-    }
   }
 }
 

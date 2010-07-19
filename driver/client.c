@@ -46,7 +46,7 @@ struct TunHandlerInfo {
 };
 
 void tunReceive(fdglue_handler_t* that) {
-    printf("tunReceive called");
+    printf("tunReceive called\n");
     
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
     static stream_t buf[MAX_ETHERNET_FRAME_SIZE];
@@ -110,12 +110,6 @@ int main(int argc, char** argv) {
 
     /* uint8_t buf[sizeof(struct split_ip_msg) + INET_MTU]; */
     /* struct split_ip_msg *msg = (struct split_ip_msg *)buf; */
-    int len;
-    (void)len;
-
-    int size = 200;
-    char *buff = malloc(size);
-    (void)buff;
 
     fdglue_t fdg;
     fdglue(&fdg);
@@ -128,9 +122,12 @@ int main(int argc, char** argv) {
     laep_t _laep;
     laep(&_laep,mcp);
     _laep.setHandler(&_laep,LAEP_REPLY,(laep_handler_t){.handle = laSet, .p = NULL});
-    if (!mcp) {
-        printf("There was an error opening the connection to %s over device %s.",mote,dev);
+    if (mcp) {
+        printf("Connection to %s over device %s opened.\n",mote,dev);
+    } else {
+        printf("There was an error opening the connection to %s over device %s.\n",mote,dev);
     }
+    fflush(stdout);
     struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp};
     fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){
             .p = mcp,
@@ -140,9 +137,14 @@ int main(int argc, char** argv) {
                 .handle = tunReceive},FDGHR_APPEND); //TODO
 
     for (;;) {
-        fdg.listen(&fdg,3600);
+        printf("listening ...\n");
+        fflush(stdout);
+        fdg.listen(&fdg,30);
     }
     
+    /* int size = 200; */
+    /* char *buff = malloc(size); */
+    /* int len; */
     /* while(1) { */
     /*     memset(buff, 0, size); */
     /*     len = tun_read(tun_fd, buff, size); */
