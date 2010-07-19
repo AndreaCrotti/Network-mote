@@ -1,5 +1,6 @@
 #include <IPDispatch.h>
 #include <lib6lowpan.h>
+
 #include <ip.h>
 
 #include "AM.h"
@@ -136,15 +137,15 @@ implementation{
 
         // Set up the headers
         myp_header = packetBuf.header.packetHeader;
-        generic_header.len = sizeof(myPacketHeader);
-        generic_header.hdr.data = &myp_header;
+        gen_header.len = sizeof(myPacketHeader);
+        gen_header.hdr.data = (uint8_t*)&myp_header;
         
         // Copy the payload
         memcpy(&ip_out_data, &packetBuf.payload, TOSH_DATA_LENGTH);
 
-        ip_out.headers = &generic_header;
+        ip_out.headers = &gen_header;
         ip_out.data_len = packetBuf.plsize;
-        ip_out.data = &ip_out_data;
+        ip_out.data = (uint8_t*)&ip_out_data;
         ip_out.hdr = packetBuf.header.ip6_hdr;
 
         //TODO: Set this mote as the sender
