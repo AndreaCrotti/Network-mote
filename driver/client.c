@@ -101,7 +101,6 @@ int main(int argc, char** argv) {
     char script_cmd_p[30] = "sh route_setup.sh ";
     char *script_cmd = (char *)malloc(strlen(script_cmd_p) + IFNAMSIZ); 
     script_cmd = strcat(script_cmd_p, tun_name);
-    printf("Running: %s \n", script_cmd);
     int err = system(script_cmd);
     if (err != 0){
         perror("Running setup script");
@@ -123,35 +122,35 @@ int main(int argc, char** argv) {
     char mote[] = "telosb";
     char const* dev = argv[1];
     serialif_t* sif = NULL;
-    /* mcp_t* mcp = openMcpConnection(dev,mote,&sif); */
-    /* ifp_t _ifp; */
-    /* ifp(&_ifp,mcp); */
-    /* laep_t _laep; */
-    /* laep(&_laep,mcp); */
-    /* _laep.setHandler(&_laep,LAEP_REPLY,(laep_handler_t){.handle = laSet, .p = NULL}); */
-    /* if (!mcp) { */
-    /*     printf("There was an error opening the connection to %s over device %s.",mote,dev); */
-    /* } */
-    /* struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp}; */
-    /* fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){ */
-    /*         .p = mcp, */
-    /*             .handle = mcpReceive},FDGHR_APPEND); */
-    /* fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){ */
-    /*         .p = &thi, */
-    /*             .handle = tunReceive},FDGHR_APPEND); //TODO */
-
-    /* for (;;) { */
-    /*     fdg.listen(&fdg,3600); */
-    /* } */
-    
-    while(1) {
-        memset(buff, 0, size);
-        len = tun_read(tun_fd, buff, size);
-        if (len > 0) {
-            printf("got a message of length %d\n", len);
-        } else {
-            perror("not receiving anything\n");
-        }
+    mcp_t* mcp = openMcpConnection(dev,mote,&sif);
+    ifp_t _ifp;
+    ifp(&_ifp,mcp);
+    laep_t _laep;
+    laep(&_laep,mcp);
+    _laep.setHandler(&_laep,LAEP_REPLY,(laep_handler_t){.handle = laSet, .p = NULL});
+    if (!mcp) {
+        printf("There was an error opening the connection to %s over device %s.",mote,dev);
     }
-    return 0;
+    struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp};
+    fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){
+            .p = mcp,
+                .handle = mcpReceive},FDGHR_APPEND);
+    fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){
+            .p = &thi,
+                .handle = tunReceive},FDGHR_APPEND); //TODO
+
+    for (;;) {
+        fdg.listen(&fdg,3600);
+    }
+    
+    /* while(1) { */
+    /*     memset(buff, 0, size); */
+    /*     len = tun_read(tun_fd, buff, size); */
+    /*     if (len > 0) { */
+    /*         printf("got a message of length %d\n", len); */
+    /*     } else { */
+    /*         perror("not receiving anything\n"); */
+    /*     } */
+    /* } */
+    /* return 0; */
 }
