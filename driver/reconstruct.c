@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "reconstruct.h"
 #include "chunker.h"
 
@@ -92,8 +93,8 @@ void resetChunks(int seq_no) {
 void move_forward(int seq_no) {
     int offset = (seq_no - MAX_SEQ);
     if (offset > 0) {
-        printf("we'll overwrite everything below %d\n", offset);
         index += offset;
+        printf("we'll overwrite everything below %d\n", index);
     }
 }
 
@@ -113,11 +114,21 @@ int main(int argc, char *argv[]) {
     myPacketHeader *pkt = malloc(sizeof(myPacketHeader) * num_packets);
     
     for (i = 0; i < num_packets; i++) {
+        testRecast(&pkt[i]);
         pkt[i].seq_no = i;
-        addChunk(&pkt);
+        addChunk(&pkt[i]);
     }
 
+    // assertions to check we really have those values there
+    
     free(pkt);
+}
+
+void testRecast(myPacketHeader *p) {
+    myPacketHeader *other = malloc(sizeof(myPacketHeader));
+    other = recast((void *) p);
+    assert(other->seq_no == p->seq_no);
+    assert(other->ord_no == p->ord_no);
 }
 
 #endif
