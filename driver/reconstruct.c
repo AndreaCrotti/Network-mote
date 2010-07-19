@@ -22,7 +22,6 @@
 myPacketHeader *recast(stream_t *data);
 void move_forward(int seq_no);
 void resetPacket(packet_t *actual, myPacketHeader *original);
-void testRecast(myPacketHeader *p);
 
 // just using a send function would be fine
 static void (*globalcallback)(myPacketHeader *completed);
@@ -101,12 +100,14 @@ myPacketHeader *recast(stream_t *data) {
 }
 
 #ifdef STANDALONE
+int num_packets = 10;
+void testAddressing();
+void testRecast(myPacketHeader *p);
 
 // doing some simple testing
 int main(int argc, char *argv[]) {
     // give it a real function
     int i;
-    int num_packets = 10;
     initReconstruction(NULL);
     myPacketHeader *pkt = malloc(sizeof(myPacketHeader) * num_packets);
     
@@ -115,11 +116,26 @@ int main(int argc, char *argv[]) {
         pkt[i].seq_no = i;
         addChunk(&pkt[i]);
     }
+    
+    testAddressing();
 
     // assertions to check we really have those values there
-    
+    // check 
     free(pkt);
     return 0;
+}
+
+// at every position there should be something such that
+// (POS % seq_no) == 0
+void testAddressing() {
+    int i, seq;
+    for (i = 0; i < num_packets; i++) {
+        if (DEBUG)
+            printf("checking packet %d where seq=%d max=%d\n", i, temp_packets[i].seq_no, MAX_RECONSTRUCTABLE);
+
+        seq = temp_packets[i].seq_no;
+        assert((seq % MAX_RECONSTRUCTABLE) == (i % MAX_RECONSTRUCTABLE));
+    }
 }
 
 void testRecast(myPacketHeader *p) {
