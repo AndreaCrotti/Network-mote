@@ -57,8 +57,11 @@ void tunReceive(fdglue_handler_t* that) {
     ++seqno;
     payload_t payload = {.stream = buf, .len = size};
     ipv6Packet ipv6;
-    while (genIpv6Packet(&payload,&ipv6,seqno)) {
-        this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = ipv6.sendsize});
+    unsigned sendsize = 0;
+    while (genIpv6Packet(&payload,&ipv6,&sendsize,seqno)) {
+        assert(sendsize);
+        this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = sendsize});
+        sendsize = 0;
     }
 }
 

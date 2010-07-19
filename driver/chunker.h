@@ -33,10 +33,6 @@ typedef struct ipv6Packet {
     } __attribute__((__packed__)) header;
 
     stream_t payload[MAX_CARRIED];
-    // END OF sent data.
-    // extra data ...
-    unsigned sendsize;
-    unsigned plsize;
 } __attribute__((__packed__)) ipv6Packet;
 
 // just for more ease of writing
@@ -52,7 +48,7 @@ typedef struct ip6_hdr ip6_hdr;
  * 
  * @return 
  */
-int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, int const seq_no);
+int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, int const seq_no);
 
 /** 
  * Reconstruct the stream of data given the ipv6 packets
