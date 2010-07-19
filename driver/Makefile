@@ -41,6 +41,9 @@ hostname.h: hostname.sh
 
 #### DEBUG ####
 
+reconstruct:
+	$(CC) $(INCLUDE) $(CFLAGS) -DSTANDALONE -o reconstruct reconstruct.c
+
 tuntest.pre: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) client.c $(CFLAGS) -E -o tuntest.pre
 

@@ -2,7 +2,7 @@
 #define _RECONSTRUCT_H
 
 // max number of packets kept in the temporary structure for reconstruction
-#define MAX_RECONSTRUCTABLE 10
+#define MAX_RECONSTRUCTABLE 4
 
 // this could be computed somehow from the MAX_ETHERNET and the size carried
 #define MAX_CHUNKS 100
