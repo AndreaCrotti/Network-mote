@@ -139,10 +139,11 @@ int main(int argc, char** argv) {
             .p = &thi,
                 .handle = tunReceive},FDGHR_APPEND); //TODO
 
+    unsigned lcount = 0;
     for (;;) {
-        printf("listening ...\n");
+        printf("listening %d ...\n",lcount++);
         fflush(stdout);
-        fdg.listen(&fdg,30);
+        fdg.listen(&fdg,5*60);
     }
     
     /* int size = 200; */
