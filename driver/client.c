@@ -31,6 +31,7 @@
 #include "chunker.h"
 
 #include "glue.h"
+#include "../shared/structs.h"
 
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void serialReceive(fdglue_handler_t* that) {
@@ -38,7 +39,6 @@ void serialReceive(fdglue_handler_t* that) {
     this->getComm(this)->read(this->getComm(this));
 }
 
-#define MAX_ETHERNET_FRAME_SIZE 2048
 
 struct TunHandlerInfo {
     int fd;

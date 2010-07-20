@@ -13,9 +13,10 @@
 
 typedef struct {
     int seq_no;
-    int missing_chunks; // when this goes to 0 we're done
-    // MAX_CHUNKS should be instead the number of parts
-    stream_t chunks[MAX_CHUNKS];
+    // bitmaks of chunks already set
+    uint8_t completed_bitmask;
+    // That is the max size of the theoretically completed packet
+    stream_t chunks[MAX_ETHERNET_FRAME_SIZE];
     // it normally is the max size of all the chunks + the size of the last one
     int tot_size;
 } packet_t;

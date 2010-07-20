@@ -8,6 +8,7 @@
 //#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(ipv6PacketHeader) - MCP_HEADER_BYTES - 5)
 #define TOT_PACKET_SIZE(payload_len) (sizeof(struct ipv6PacketHeader) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
+#define MAX_ETHERNET_FRAME_SIZE 2048
 
 #include <ip.h>
 
@@ -32,7 +33,6 @@ typedef struct myPacketHeader {
     uint8_t seq_no;
     uint8_t ord_no;
     uint8_t parts;
-    unsigned short checksum;
 } __attribute__((__packed__)) myPacketHeader;
 
 // FIXME: ipv6 header is not needed inside here anymore

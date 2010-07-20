@@ -22,15 +22,15 @@
 #define DEBUG 0
 #endif
 
-void recast(ipv6Packet *, stream_t *data);
-void reset_packet(packet_t *actual, ipv6Packet *original);
+void reset_packet(packet_t *actual);
 int get_ord_no(ipv6Packet *packet);
 int get_seq_no(ipv6Packet *packet);
 int get_parts(ipv6Packet *packet);
 int is_last(ipv6Packet *packet);
 int get_plen(ipv6Packet *packet);
+int is_completed(packet_t *pkt);
+void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 packet_t *get_packet(int seq_no);
-stream_t *reconstruct(stream_t *result, int seq_no);
 
 myPacketHeader *get_header(ipv6Packet *packet);
 
@@ -40,19 +40,14 @@ static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 
 // pass a callback function to send somewhere else the messages when they're over
 void initReconstruction(void (*callback)(ipv6Packet *completed)) {
-    int i, j;
     if (DEBUG)
         printf("initializing the reconstruction\n");
 
     send_back = callback;
-    for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
+    for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         // is it always a new packet_t right?
         packet_t t;
         t.seq_no = -1;
-        // set to 0 all the chunks
-        for (j = 0; j < MAX_CHUNKS; j++) {
-            t.chunks[j] = 0;
-        }
         temp_packets[i] = t;
     }
 }
@@ -63,9 +58,7 @@ void initReconstruction(void (*callback)(ipv6Packet *completed)) {
  * @param data 
  */
 void addChunk(void *data) {
-    
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
-    // doing a memcpy instead
     memcpy(original, data, sizeof(ipv6Packet));
     int seq_no = get_seq_no(original);
     int ord_no = get_ord_no(original);
@@ -75,48 +68,45 @@ void addChunk(void *data) {
 
     // we have to overwrite everything in case we're overwriting OR
     // is the first chunk with that seq_no that we receive
+    // TODO: use get_packet instead to check this condition
     if (actual->seq_no != seq_no) {
         if (DEBUG)
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
 
-        reset_packet(actual, original);
+        
+        actual->completed_bitmask = (1 << get_parts(original)) - 1;
+        actual->tot_size = 0;
+        actual->seq_no = seq_no;
     }
-    if (DEBUG) 
-        printf("adding chunk seq_no = %d\n", seq_no);
-
-    actual->seq_no = seq_no;
 
     // this is to make sure that we don't decrement missing_chunks even when not adding
-    if (actual->chunks[ord_no] == 0) {
-        // fetch the real data of the payload, check if it's the last one
-        int size;
+    // fetch the real data of the payload, check if it's the last one
+    int size;
 
-        if (is_last(original)) {
-            size = get_plen(original) - sizeof(original->header);
-        } else {
-            size = MAX_CARRIED - sizeof(myPacketHeader);
-        }
-        memcpy(&(actual->chunks), &(original->payload), size);
-        actual->missing_chunks--;
+    if (is_last(original)) {
+        printf("in last chunk\n");
+        size = get_plen(original) - sizeof(original->header);
     } else {
-        printf("we got the same chunk twice!!!\n");
+        size = MAX_CARRIED;
     }
+
+    // we can always do this since only the last one is not fullsize
+    memcpy(actual->chunks + (MAX_CARRIED * ord_no), original->payload, size);
+    
+    (actual->completed_bitmask) &= ~(1 << ord_no);
 
     // now we check if everything if the packet is completed and sends it back
-    if (actual->missing_chunks == 0) {
-        send_back(original);
+
+    if (is_completed(actual)) {
+        if (DEBUG)
+            printf("packet with seq_no %d completed\n", seq_no);
     }
+
     free(original);
 }
 
-// reconstruct the completed packet, what we get from here should be
-// a perfectly valid Ethernet frame
-stream_t *reconstruct(stream_t *result, int seq_no) {
-    int i;
-    // what do we have to do?? Add them together or what a memcpy maybe?
-    for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
-    }
-    return result;
+int is_completed(packet_t *pkt) {
+    return (pkt->completed_bitmask == 0);
 }
 
 /** 
@@ -131,17 +121,6 @@ packet_t *get_packet(int seq_no) {
         return found;
     }
     return NULL;
-}
-
-// reset all the chunks at that sequential number
-void reset_packet(packet_t *actual, ipv6Packet *original) {
-    int i;
-    actual->seq_no = get_seq_no(original);
-    actual->missing_chunks = get_parts(original);
-        
-    for (i = 0; i < MAX_CHUNKS; i++) {
-        actual->chunks[i] = 0;
-    }
 }
 
 /****************************************/
@@ -160,11 +139,7 @@ myPacketHeader *get_header(ipv6Packet *packet) {
  * @return 1 if it's last, 0 otherwise
  */
 int is_last(ipv6Packet *packet) {
-    if (get_ord_no(packet) == get_parts(packet)) {
-        return 1;
-    } else {
-        return 0;
-    }
+    return (get_ord_no(packet) == (get_parts(packet) - 1));
 }
 
 int get_seq_no(ipv6Packet *packet) {
@@ -176,36 +151,50 @@ int get_ord_no(ipv6Packet *packet) {
 }
 
 int get_plen(ipv6Packet *packet) {
-    return packet->header.ip6_hdr.plen;
+    int plen = packet->header.ip6_hdr.plen;
+    if (DEBUG)
+        printf("got length = %d\n", plen);
+    return plen;
 }
 
 int get_parts(ipv6Packet *packet) {
    return get_header(packet)->parts;
 }
 
-void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no) {
+void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len) {
     packet->header.packetHeader.seq_no = seq_no;
     packet->header.packetHeader.ord_no = ord_no;
+    packet->header.packetHeader.parts = parts;
+    // now also set the payload and it's length
+    packet->header.ip6_hdr.plen = len + sizeof(packet->header);
+    memcpy(payload, packet->payload, len);
 }
 
 #ifdef STANDALONE
 int num_packets = 10;
-void testAddressing();
-void testRecast(ipv6Packet *p);
+void test_addressing();
+void test_last();
 
 // doing some simple testing
 int main(int argc, char *argv[]) {
     // give it a real function
-    int i;
     initReconstruction(NULL);
     ipv6Packet *pkt = calloc(num_packets, sizeof(ipv6Packet));
     
-    for (i = 0; i < num_packets; i++) {
-        make_ipv6_packet(&(pkt[i]), i, 0);
+    // create some fake payload to create correctly the payload
+    
+    test_last();
+    stream_t x[2] = {0, 1};
+
+    for (int i = 0; i < num_packets; i++) {
+        make_ipv6_packet(&(pkt[i]), 0, i, num_packets, x, 2);
         addChunk((void *) &pkt[i]);
     }
 
-    testAddressing();
+    // 0 for example can't be found
+    assert(get_packet(0) == NULL);
+
+    test_addressing();
 
     // assertions to check we really have those values there
     // check 
@@ -214,13 +203,20 @@ int main(int argc, char *argv[]) {
 }
 
 // at every position there should be something such that
-// (POS % seq_no) == 0
-void testAddressing() {
-    int i;
-    for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
+// ( POS % seq_no) == 0
+void test_addressing() {
+    for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         packet_t *actual = &(temp_packets[i]);
         assert((actual->seq_no % MAX_RECONSTRUCTABLE) == i);
    }
+}
+
+void test_last() {
+    ipv6Packet *pkt = malloc(sizeof(ipv6Packet));
+    stream_t *payload = malloc(0);
+    make_ipv6_packet(pkt, 0, 0, 1, payload, 0);
+    assert(is_last(pkt));
+    free(pkt);
 }
 
 #endif

@@ -88,10 +88,8 @@ int main(int argc, char **argv) {
     ipv6Packet v6;
     printf("v6 = %ld\n", sizeof(v6));
     // now we try to send the packet and see if it's sniffable
-    int i;
-
     int *arr = calloc(sizeof(int), 1000);
-    for (i = 0; i < 1000; i++) {
+    for (int i = 0; i < 1000; i++) {
         arr[i] = i;
     }
     int num_chunks = (int)(1000 / MAX_IPVS_SIZE) + 1;
