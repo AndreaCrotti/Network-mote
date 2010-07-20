@@ -29,6 +29,7 @@ int get_seq_no(ipv6Packet *packet);
 int get_parts(ipv6Packet *packet);
 int is_last(ipv6Packet *packet);
 int get_plen(ipv6Packet *packet);
+void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 packet_t *get_packet(int seq_no);
 
 myPacketHeader *get_header(ipv6Packet *packet);
@@ -48,7 +49,7 @@ void initReconstruction(void (*callback)(ipv6Packet *completed)) {
         packet_t t;
         t.seq_no = -1;
         // set to 0 all the chunks
-        t.chunks = NULL;
+        /* t.chunks = NULL; */
         temp_packets[i] = t;
     }
 }
@@ -76,7 +77,7 @@ void addChunk(void *data) {
 
         reset_packet(actual, original);
         // now I allocate the right memory for it, which MAX_CARRIED * PARTS
-        actual->chunks = calloc(get_parts(original), MAX_CARRIED);
+        /* actual->chunks = calloc(get_parts(original), MAX_CARRIED); */
     }
     if (DEBUG) 
         printf("adding chunk seq_no = %d\n", seq_no);
@@ -93,6 +94,7 @@ void addChunk(void *data) {
             size = get_plen(original) - sizeof(original->header);
         } else {
             size = MAX_CARRIED - sizeof(myPacketHeader);
+            printf("size = %d\n", size);
         }
 
         memcpy(&(actual->chunks), &(original->payload), size);
@@ -125,15 +127,14 @@ packet_t *get_packet(int seq_no) {
 
 // reset all the chunks at that sequential number
 void reset_packet(packet_t *actual, ipv6Packet *original) {
-    int i;
     actual->seq_no = get_seq_no(original);
     actual->missing_chunks = get_parts(original);
     // freeing the memory previously allocated, if it was allocated
-    if (actual->chunks) {
-        free(actual->chunks);
-    } else {
-        actual->chunks = NULL;
-    }
+    /* if (actual->chunks) { */
+    /*     free(actual->chunks); */
+    /* } else { */
+    /*     actual->chunks = NULL; */
+    /* } */
 }
 
 /****************************************/
@@ -152,11 +153,7 @@ myPacketHeader *get_header(ipv6Packet *packet) {
  * @return 1 if it's last, 0 otherwise
  */
 int is_last(ipv6Packet *packet) {
-    if (get_ord_no(packet) == get_parts(packet)) {
-        return 1;
-    } else {
-        return 0;
-    }
+    return (get_ord_no(packet) == (get_parts(packet) - 1));
 }
 
 int get_seq_no(ipv6Packet *packet) {
@@ -168,22 +165,30 @@ int get_ord_no(ipv6Packet *packet) {
 }
 
 int get_plen(ipv6Packet *packet) {
-    return packet->header.ip6_hdr.plen;
+    int plen = packet->header.ip6_hdr.plen;
+    if (DEBUG)
+        printf("got length = %d\n", plen);
+    return plen;
 }
 
 int get_parts(ipv6Packet *packet) {
    return get_header(packet)->parts;
 }
 
-void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no) {
+void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len) {
     packet->header.packetHeader.seq_no = seq_no;
     packet->header.packetHeader.ord_no = ord_no;
+    packet->header.packetHeader.parts = parts;
+    // now also set the payload and it's length
+    packet->header.ip6_hdr.plen = len + sizeof(packet->header);
+    memcpy(payload, packet->payload, len);
 }
 
 #ifdef STANDALONE
 int num_packets = 10;
 void testAddressing();
 void testRecast(ipv6Packet *p);
+void testLast();
 
 // doing some simple testing
 int main(int argc, char *argv[]) {
@@ -191,8 +196,13 @@ int main(int argc, char *argv[]) {
     initReconstruction(NULL);
     ipv6Packet *pkt = calloc(num_packets, sizeof(ipv6Packet));
     
+    // create some fake payload to create correctly the payload
+    
+    testLast();
+    stream_t x[2] = {0, 1};
+
     for (int i = 0; i < num_packets; i++) {
-        make_ipv6_packet(&(pkt[i]), i, 0);
+        make_ipv6_packet(&(pkt[i]), i, 0, 1, x, 2);
         addChunk((void *) &pkt[i]);
     }
 
@@ -205,12 +215,19 @@ int main(int argc, char *argv[]) {
 }
 
 // at every position there should be something such that
-// (POS % seq_no) == 0
+// ( POS % seq_no) == 0
 void testAddressing() {
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         packet_t *actual = &(temp_packets[i]);
         assert((actual->seq_no % MAX_RECONSTRUCTABLE) == i);
    }
+}
+
+void testLast() {
+    ipv6Packet *pkt = malloc(sizeof(ipv6Packet));
+    stream_t *payload = malloc(0);
+    make_ipv6_packet(pkt, 0, 0, 1, payload, 0);
+    assert(is_last(pkt));
 }
 
 #endif

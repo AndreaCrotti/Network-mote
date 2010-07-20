@@ -44,7 +44,7 @@ hostname.h: hostname.sh
 #### DEBUG ####
 
 reconstruct: reconstruct.c
-	$(CC) $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
+	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
 tuntest.dbg: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg
