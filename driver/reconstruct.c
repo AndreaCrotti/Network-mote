@@ -105,7 +105,7 @@ void addChunk(void *data) {
 
     // now we check if everything if the packet is completed and sends it back
     if (actual->missing_chunks == 0) {
-        send_back(original);
+        /* send_back(original); */
     }
 
     free(original);
