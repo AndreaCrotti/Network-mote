@@ -27,7 +27,10 @@ void reset_packet(packet_t *actual, ipv6Packet *original);
 int get_ord_no(ipv6Packet *packet);
 int get_seq_no(ipv6Packet *packet);
 int get_parts(ipv6Packet *packet);
-void reconstruct(int seq_no);
+int is_last(ipv6Packet *packet);
+int get_plen(ipv6Packet *packet);
+packet_t *get_packet(int seq_no);
+stream_t *reconstruct(stream_t *result, int seq_no);
 
 myPacketHeader *get_header(ipv6Packet *packet);
 
@@ -85,7 +88,17 @@ void addChunk(void *data) {
 
     // this is to make sure that we don't decrement missing_chunks even when not adding
     if (actual->chunks[ord_no] == 0) {
-        // now add the chunk (using the payload
+        // fetch the real data of the payload, check if it's the last one
+        int size;
+
+        if (is_last(original)) {
+            size = get_plen(original) - sizeof(original->header);
+        } else {
+            size = MAX_CARRIED - sizeof(myPacketHeader);
+        }
+
+        // now add the chunk (using the payload)p
+        actual->chunks[ord_no] = original->payload;
         /* actual.chunks[ord_no] = (stream_t *); */
         actual->missing_chunks--;
     } else {
@@ -101,8 +114,26 @@ void addChunk(void *data) {
 
 // reconstruct the completed packet, what we get from here should be
 // a perfectly valid Ethernet frame
-void reconstruct(int seq_no) {
+stream_t *reconstruct(stream_t *result, int seq_no) {
+    int i;
     // what do we have to do?? Add them together or what a memcpy maybe?
+    for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
+    }
+    return result;
+}
+
+/** 
+ * @param seq_no sequential number to look for
+ * 
+ * @return NULL if not found, the pointer if found
+ *         It can only returns null if that seq_no has been already overwritten
+ */
+packet_t *get_packet(int seq_no) {
+    packet_t *found = &temp_packets[POS(seq_no)];
+    if (found->seq_no == seq_no) {
+        return found;
+    }
+    return NULL;
 }
 
 // reset all the chunks at that sequential number
@@ -124,12 +155,31 @@ myPacketHeader *get_header(ipv6Packet *packet) {
     return &(packet->header.packetHeader);
 }
 
+/** 
+ * Check if this is the last chunk 
+ * 
+ * @param packet 
+ * 
+ * @return 1 if it's last, 0 otherwise
+ */
+int is_last(ipv6Packet *packet) {
+    if (get_ord_no(packet) == get_parts(packet)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 int get_seq_no(ipv6Packet *packet) {
     return get_header(packet)->seq_no;
 }
 
 int get_ord_no(ipv6Packet *packet) {
     return get_header(packet)->ord_no;
+}
+
+int get_plen(ipv6Packet *packet) {
+    return packet->header.ip6_hdr.plen;
 }
 
 int get_parts(ipv6Packet *packet) {

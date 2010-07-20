@@ -3,6 +3,7 @@ SF = $(TOSROOT)/support/sdk/c/sf
 SHARED = ../shared
 
 CC = gcc
+STD = -std=c89
 
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED)
 # this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
@@ -10,7 +11,7 @@ LOW6PAN_CARRIED=102
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)
 WARN = -Wall -Wextra
 DEBUG = -ggdb -O0 -pg
-FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG)
+FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
 OBJECTS := $(patsubst %.c, %.o, $(wildcard *.c))
