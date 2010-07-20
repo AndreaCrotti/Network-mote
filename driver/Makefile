@@ -46,6 +46,9 @@ hostname.h: hostname.sh
 reconstruct: reconstruct.c
 	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
+split_rec: test_split_reconstruct.c
+	$(CC) $(OBJECTS) $(DEBUG) -DSTANDALONE -o rec_split
+
 tuntest.dbg: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg
 

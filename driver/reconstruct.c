@@ -91,7 +91,6 @@ void addChunk(void *data) {
     }
 
     // we can always do this since only the last one is not fullsize
-    // FIXME: segfaulting here
     memcpy(actual->chunks + (MAX_CARRIED * ord_no), original->payload, size);
     
     (actual->completed_bitmask) &= ~(1 << ord_no);
