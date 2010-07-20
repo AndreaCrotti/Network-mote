@@ -120,7 +120,7 @@ implementation{
     void _serialif_t_dtor(serialif_t* this) {
         (void)this;
     }
-    void _serialif_t_ditch(serialif_t* this, payload_t** payload) {
+    void _serialif_t_ditch(serialif_t* this, payload_t* const payload) {
         (void)this;
         (void)payload;
     }

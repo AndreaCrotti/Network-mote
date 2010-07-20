@@ -65,7 +65,7 @@ mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t
 int _serialif_t_send(serialif_t* this, payload_t const payload);
 void _serialif_t_read(serialif_t* this, payload_t* const payload);
 void _serialif_t_dtor(serialif_t* this);
-void _serialif_t_ditch(serialif_t* this, payload_t** payload);
+void _serialif_t_ditch(serialif_t* this, payload_t* const payload);
 int _serialif_t_fd(serialif_t* this);
 void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
 
@@ -78,18 +78,14 @@ int _serialif_t_fd(serialif_t* this) {
   return this->source->fd;
 }
 
-void _serialif_t_ditch(serialif_t* this, payload_t** payload) {
-//TODO: Ändern
-  (void)this;
+void _serialif_t_ditch(serialif_t* this, payload_t* const payload) {
+  assert(this);
   assert(payload);
-  if (*payload) {
-    if ((*payload)->stream) {
-      free((void*)((*payload)->stream));
-      (*payload)->stream = NULL;
-    }
-    free((void*)*payload);
-    *payload = NULL;
+  if (payload->stream) {
+    free((void*)(payload->stream));
+    payload->stream = NULL;
   }
+  payload->len = 0;
 }
 
 serial_source_msg* _serialif_t_openMessage_target = NULL;
@@ -129,7 +125,6 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
 
 void _serialif_t_read(serialif_t* this, payload_t* const payload) {
   assert(this);
-  assert(payload);
   payload_t buf;
   buf.stream = read_serial_packet(this->source,(int*)&(buf.len));
   if (!buf.stream != !buf.len || buf.len < 8) {
@@ -193,18 +188,16 @@ void _motecomm_t_send(motecomm_t* this, payload_t const payload) {
 }
 
 void _motecomm_t_read(motecomm_t* this) {
-  payload_t payload; 
+  payload_t payload = {.stream = NULL, .len = 0}; 
 
   assert(this);
   assert(this->motecomm_handler.receive);
   this->serialif.read(&(this->serialif), &payload);
   if (payload.stream) {
-      call Leds.led1Toggle();
+//      call Leds.led1Toggle();
       this->motecomm_handler.receive(&(this->motecomm_handler),payload);
   }
-  //TODO: Anpassung benötigt?
-  //this->serialif.ditch(&(this->serialif),&payload);
-  
+  this->serialif.ditch(&(this->serialif),&payload);
 }
 
 void _motecomm_t_setHandler(motecomm_t* this, motecomm_handler_t const handler) {
@@ -231,7 +224,7 @@ void _mcp_t_receive(motecomm_handler_t* that, payload_t const payload) {
   mcp_t* this = (mcp_t*)(that->p);
   assert(payload.stream);
   
-  call Leds.led0Toggle();
+  //call Leds.led0Toggle();
 
   if (payload.len < MCP_HEADER_BYTES) {
     return;
