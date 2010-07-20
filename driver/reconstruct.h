@@ -19,7 +19,13 @@ typedef struct {
 } packet_t;
 
 
-void add_chunk(void* data);
+/** 
+ * Initialize the reconstruction of packets
+ * 
+ * @param callback takes a function which will send back packets when they're completed
+ */
+void initReconstruction(void (*callback)(ipv6Packet *completed));
 
+void addChunk(void *data);
 
 #endif

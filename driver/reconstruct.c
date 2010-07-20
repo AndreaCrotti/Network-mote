@@ -22,19 +22,11 @@
 #define DEBUG 0
 #endif
 
-// this is only used for make things easier in reconstruct
-// is not supposed to be used anywhere else (not __packed__ in fact)
-typedef struct packetStruct {
-    ipv6Packet header;
-    stream_t *payload;
-} packetStruct;
-
-
 void recast(ipv6Packet *, stream_t *data);
 void reset_packet(packet_t *actual, ipv6Packet *original);
-int getOrdNo(ipv6Packet *packet);
-int getSeqNo(ipv6Packet *packet);
-int getParts(ipv6Packet *packet);
+int get_ord_no(ipv6Packet *packet);
+int get_seq_no(ipv6Packet *packet);
+int get_parts(ipv6Packet *packet);
 myPacketHeader *getHeader(ipv6Packet *packet);
 
 // just using a send function would be fine
@@ -70,8 +62,8 @@ void addChunk(void *data) {
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
     // doing a memcpy instead
     memcpy(original, data, sizeof(ipv6Packet));
-    int seq_no = getSeqNo(original);
-    int ord_no = getOrdNo(original);
+    int seq_no = get_seq_no(original);
+    int ord_no = get_ord_no(original);
     
     // just for readability
     packet_t *actual = &temp_packets[POS(seq_no)];
@@ -103,6 +95,17 @@ void addChunk(void *data) {
     free(original);
 }
 
+// reset all the chunks at that sequential number
+void reset_packet(packet_t *actual, ipv6Packet *original) {
+    int i;
+    actual->seq_no = get_seq_no(original);
+    actual->missing_chunks = get_parts(original);
+        
+    for (i = 0; i < MAX_CHUNKS; i++) {
+        actual->chunks[i] = 0;
+    }
+}
+
 /****************************************/
 /* Functions to access to the structure */
 /****************************************/
@@ -111,27 +114,21 @@ myPacketHeader *getHeader(ipv6Packet *packet) {
     return &(packet->header.packetHeader);
 }
 
-int getSeqNo(ipv6Packet *packet) {
+int get_seq_no(ipv6Packet *packet) {
     return getHeader(packet)->seq_no;
 }
 
-int getOrdNo(ipv6Packet *packet) {
+int get_ord_no(ipv6Packet *packet) {
     return getHeader(packet)->ord_no;
 }
 
-int getParts(ipv6Packet *packet) {
+int get_parts(ipv6Packet *packet) {
    return getHeader(packet)->parts;
 }
 
-// reset all the chunks at that sequential number
-void reset_packet(packet_t *actual, ipv6Packet *original) {
-    int i;
-    actual->seq_no = getSeqNo(original);
-    actual->missing_chunks = getParts(original);
-        
-    for (i = 0; i < MAX_CHUNKS; i++) {
-        actual->chunks[i] = 0;
-    }
+void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no) {
+    packet->header.packetHeader.seq_no = seq_no;
+    packet->header.packetHeader.ord_no = ord_no;
 }
 
 #ifdef STANDALONE
@@ -144,13 +141,13 @@ int main(int argc, char *argv[]) {
     // give it a real function
     int i;
     initReconstruction(NULL);
-    ipv6Packet *pkt = malloc(sizeof(ipv6Packet) * num_packets);
+    ipv6Packet *pkt = calloc(num_packets, sizeof(ipv6Packet));
     
     for (i = 0; i < num_packets; i++) {
-        testRecast(&pkt[i]);
-        pkt[i].seq_no = i;
-        addChunk(&pkt[i]);
+        make_ipv6_packet(&(pkt[i]), i, 0);
+        addChunk((void *) &pkt[i]);
     }
+
     testAddressing();
 
     // assertions to check we really have those values there
@@ -162,14 +159,11 @@ int main(int argc, char *argv[]) {
 // at every position there should be something such that
 // (POS % seq_no) == 0
 void testAddressing() {
-    int i, seq;
+    int i;
     for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
-        if (DEBUG)
-            printf("checking packet %d where seq=%d max=%d\n", i, temp_packets[i].seq_no, MAX_RECONSTRUCTABLE);
-
-        seq = getSeqNo(&temp_packets[i]);
-        assert((seq % MAX_RECONSTRUCTABLE) == (i % MAX_RECONSTRUCTABLE));
-    }
+        packet_t *actual = &(temp_packets[i]);
+        assert((actual->seq_no % MAX_RECONSTRUCTABLE) == i);
+   }
 }
 
 #endif
