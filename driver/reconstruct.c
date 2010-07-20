@@ -96,10 +96,7 @@ void addChunk(void *data) {
         } else {
             size = MAX_CARRIED - sizeof(myPacketHeader);
         }
-
-        // now add the chunk (using the payload)p
-        actual->chunks[ord_no] = original->payload;
-        /* actual.chunks[ord_no] = (stream_t *); */
+        memcpy(&(actual->chunks), &(original->payload), size);
         actual->missing_chunks--;
     } else {
         printf("we got the same chunk twice!!!\n");
