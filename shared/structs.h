@@ -3,8 +3,10 @@
 
 // measures in bytes
 #define SIZE_IPV6_HEADER 40
-#define MAX_CARRIED TOSH_DATA_LENGTH
-#define TOT_PACKET_SIZE(payload_len) (sizeof(ipv6PacketHeader) + payload_len)
+// For the usage of additional headers MAX_CARRIED has to be smaller
+#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(struct ipv6PacketHeader))
+//#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(ipv6PacketHeader) - MCP_HEADER_BYTES - 5)
+#define TOT_PACKET_SIZE(payload_len) (sizeof(struct ipv6PacketHeader) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
 
 #include <ip.h>

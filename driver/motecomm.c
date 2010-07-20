@@ -1,10 +1,8 @@
 #include "motecomm.h"
 #include <string.h>
 #include <stdlib.h>
-
-#if STANDALONE
 #include <stdio.h>
-#endif
+
 
 /****** copied from serialsource.c ******/
 typedef int bool;
@@ -98,8 +96,8 @@ void _serialif_t_openMessage(serial_source_msg problem) {
 
 struct message_header_t {
     unsigned char amid;
-    unsigned int destaddr;
-    unsigned int sourceaddr;
+    unsigned short destaddr;
+    unsigned short sourceaddr;
     unsigned char msglen;
     unsigned char groupid;
     unsigned char handlerid;
@@ -108,8 +106,8 @@ struct message_header_t {
 int _serialif_t_send(serialif_t* this, payload_t const payload) {
   assert(this);
   payload_t buf;
-  buf.len = payload.len;
-  buf.stream = malloc(sizeof(struct message_header_t)+payload.len*sizeof(stream_t));
+  buf.len = sizeof(struct message_header_t)+payload.len*sizeof(stream_t);
+  buf.stream = malloc(buf.len);
   memset((void*)buf.stream,0,sizeof(struct message_header_t));
   struct message_header_t* mh = (struct message_header_t*)(buf.stream);
   mh->destaddr = 0xFFFF;
@@ -118,6 +116,14 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
   mh->amid = 0;
   mh->msglen = payload.len;
   memcpy((void*)(buf.stream + sizeof(struct message_header_t)),payload.stream,payload.len*sizeof(stream_t));
+  printf("Header:\n");
+  unsigned int i = 0;
+  for(; i<buf.len; i++){
+      printf("%02X ", (unsigned)*(unsigned char*)(buf.stream+i));
+  }
+  printf("\n");
+  printf("Bytes sent: %d\n", buf.len);
+
   int result = write_serial_packet(this->source,buf.stream,buf.len);
   free((void*)(buf.stream));
   return result;
@@ -222,8 +228,9 @@ motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf) {
 void _mcp_t_receive(motecomm_handler_t* that, payload_t const payload) {
   mcp_t* this = (mcp_t*)(that->p);
   assert(payload.stream);
-  
-  call Leds.led2Toggle();
+
+  /* if(payload.len == 0) */
+  /*     call Leds.led0Toggle(); */
 
   if (payload.len < MCP_HEADER_BYTES) {
     return;

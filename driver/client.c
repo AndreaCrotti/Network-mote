@@ -43,6 +43,7 @@ void serialReceive(fdglue_handler_t* that) {
 struct TunHandlerInfo {
     int fd;
     ifp_t* ifp;
+    motecomm_t* mcomm;
 };
 
 void tunReceive(fdglue_handler_t* that) {
@@ -62,9 +63,19 @@ void tunReceive(fdglue_handler_t* that) {
     do{
         chunks_left = genIpv6Packet(&payload,&ipv6,&sendsize,seqno);
         assert(sendsize);
-        this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = sendsize});
+        
         printf("Sending chunk with size %u\n", sendsize);
-
+        unsigned counter = sendsize;
+        unsigned char *char_data = (unsigned char*)&ipv6;
+        while(counter--){
+            printf("%02X ", (unsigned)*char_data++);
+        }
+        printf("\n");
+        
+        // Use the raw packet for now...
+        //this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = sendsize});
+        this->mcomm->send(this->mcomm, (payload_t){.stream = (stream_t*)&ipv6, .len = sendsize});
+        
         sendsize = 0;
     }while (chunks_left); 
     
@@ -136,7 +147,7 @@ int main(int argc, char** argv) {
         printf("There was an error opening the connection to %s over device %s.\n",mote,dev);
     }
     fflush(stdout);
-    struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp};
+    struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp, .mcomm = mcp->getComm(mcp)};
     fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){
             .p = mcp,
                 .handle = serialReceive},FDGHR_APPEND);

@@ -64,7 +64,7 @@ implementation{
 
     // For outgoing packets
     struct split_ip_msg ip_out;
-    uint8_t ip_out_data[TOSH_DATA_LENGTH];
+    uint8_t ip_out_data[MAX_CARRIED];
     /* struct generic_header gen_header_out; */
     struct myPacketHeader myp_header_out;
 
@@ -114,6 +114,7 @@ implementation{
         if (ser_in_consume) {
             payload->stream = (stream_t*)(call SerialPacket.getPayload(ser_in_consume,0));
             payload->len = call SerialPacket.payloadLength(ser_in_consume);
+            /* call Leds.set(payload->len); */
             ser_in_consume = 0;
         }
     }
@@ -241,6 +242,31 @@ implementation{
     event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len) {
         
         /* failBlink(); */
+
+        mcp_header_t header;
+        char *first = (char*)payload;
+        ipv6Packet *packet = (ipv6Packet*)payload;
+
+        call Leds.set(len);
+        /* call Leds.set(packet->header.packetHeader.seq_no); */
+
+        /* if(call SerialPacket.payloadLength(m)==len){ */
+        /*     serialBlink(); */
+        /* }else{ */
+        /*     failBlink(); */
+        /* } */
+
+        return m;
+        
+        header.stream = payload;
+        /* if(header.header->version !=  MCP_HEADER_BYTES){ */
+        /*     failBlink(); */
+        /* } */
+        /* if(header.header->header != MCP_VERSION){ */
+        /*     serialBlink(); */
+        /* } */
+
+        
 
         ser_in_consume = m;
         if_motecomm.read(&if_motecomm);
