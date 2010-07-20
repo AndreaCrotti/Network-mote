@@ -30,7 +30,6 @@ int get_parts(ipv6Packet *packet);
 int is_last(ipv6Packet *packet);
 int get_plen(ipv6Packet *packet);
 packet_t *get_packet(int seq_no);
-stream_t *reconstruct(stream_t *result, int seq_no);
 
 myPacketHeader *get_header(ipv6Packet *packet);
 
@@ -40,19 +39,16 @@ static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 
 // pass a callback function to send somewhere else the messages when they're over
 void initReconstruction(void (*callback)(ipv6Packet *completed)) {
-    int i, j;
     if (DEBUG)
         printf("initializing the reconstruction\n");
 
     send_back = callback;
-    for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
+    for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         // is it always a new packet_t right?
         packet_t t;
         t.seq_no = -1;
         // set to 0 all the chunks
-        for (j = 0; j < MAX_CHUNKS; j++) {
-            t.chunks[j] = 0;
-        }
+        t.chunks = NULL;
         temp_packets[i] = t;
     }
 }
@@ -63,7 +59,6 @@ void initReconstruction(void (*callback)(ipv6Packet *completed)) {
  * @param data 
  */
 void addChunk(void *data) {
-    
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
     // doing a memcpy instead
     memcpy(original, data, sizeof(ipv6Packet));
@@ -80,6 +75,8 @@ void addChunk(void *data) {
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
 
         reset_packet(actual, original);
+        // now I allocate the right memory for it, which MAX_CARRIED * PARTS
+        actual->chunks = calloc(get_parts(original), MAX_CARRIED);
     }
     if (DEBUG) 
         printf("adding chunk seq_no = %d\n", seq_no);
@@ -91,11 +88,13 @@ void addChunk(void *data) {
         // fetch the real data of the payload, check if it's the last one
         int size;
 
+        // FIXME: allocates -45 bytes 
         if (is_last(original)) {
             size = get_plen(original) - sizeof(original->header);
         } else {
             size = MAX_CARRIED - sizeof(myPacketHeader);
         }
+
         memcpy(&(actual->chunks), &(original->payload), size);
         actual->missing_chunks--;
     } else {
@@ -106,17 +105,8 @@ void addChunk(void *data) {
     if (actual->missing_chunks == 0) {
         send_back(original);
     }
-    free(original);
-}
 
-// reconstruct the completed packet, what we get from here should be
-// a perfectly valid Ethernet frame
-stream_t *reconstruct(stream_t *result, int seq_no) {
-    int i;
-    // what do we have to do?? Add them together or what a memcpy maybe?
-    for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
-    }
-    return result;
+    free(original);
 }
 
 /** 
@@ -138,9 +128,11 @@ void reset_packet(packet_t *actual, ipv6Packet *original) {
     int i;
     actual->seq_no = get_seq_no(original);
     actual->missing_chunks = get_parts(original);
-        
-    for (i = 0; i < MAX_CHUNKS; i++) {
-        actual->chunks[i] = 0;
+    // freeing the memory previously allocated, if it was allocated
+    if (actual->chunks) {
+        free(actual->chunks);
+    } else {
+        actual->chunks = NULL;
     }
 }
 
@@ -196,11 +188,10 @@ void testRecast(ipv6Packet *p);
 // doing some simple testing
 int main(int argc, char *argv[]) {
     // give it a real function
-    int i;
     initReconstruction(NULL);
     ipv6Packet *pkt = calloc(num_packets, sizeof(ipv6Packet));
     
-    for (i = 0; i < num_packets; i++) {
+    for (int i = 0; i < num_packets; i++) {
         make_ipv6_packet(&(pkt[i]), i, 0);
         addChunk((void *) &pkt[i]);
     }
@@ -216,8 +207,7 @@ int main(int argc, char *argv[]) {
 // at every position there should be something such that
 // (POS % seq_no) == 0
 void testAddressing() {
-    int i;
-    for (i = 0; i < MAX_RECONSTRUCTABLE; i++) {
+    for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         packet_t *actual = &(temp_packets[i]);
         assert((actual->seq_no % MAX_RECONSTRUCTABLE) == i);
    }

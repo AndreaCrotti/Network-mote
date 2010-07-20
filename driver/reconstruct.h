@@ -14,8 +14,8 @@
 typedef struct {
     int seq_no;
     int missing_chunks; // when this goes to 0 we're done
-    // MAX_CHUNKS should be instead the number of parts
-    stream_t chunks[MAX_CHUNKS];
+    // FIXME: this has to be much bigger or make it an array of array
+    stream_t *chunks;
     // it normally is the max size of all the chunks + the size of the last one
     int tot_size;
 } packet_t;
