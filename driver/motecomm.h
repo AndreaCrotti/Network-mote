@@ -62,7 +62,7 @@ class (serialif_t,
   serial_source_msg msg;
   int (*send)(serialif_t* this, payload_t const payload);
   void (*read)(serialif_t* this, payload_t* const payload);
-  void (*ditch)(serialif_t* this, payload_t** payload);
+  void (*ditch)(serialif_t* this, payload_t* const payload);
   int (*fd)(serialif_t* this);
 );
 
