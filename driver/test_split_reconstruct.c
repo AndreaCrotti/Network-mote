@@ -18,6 +18,8 @@ int main(int argc, char *argv[]) {
     
     // now we split the data and try to reconstruct it
     // how do I do this exactly
+
+    return 0;
 }
 
 #endif
