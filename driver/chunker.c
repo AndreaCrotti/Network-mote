@@ -20,17 +20,11 @@
 
 // FIXME: maybe we have to use htons whenever we add data to the network
 void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
+    // FIXME: src and dest are surely not loopback address
     header->ip6_src = in6addr_loopback;
     header->ip6_dst = in6addr_loopback;
     // 16 bit file
     header->plen = htons(payload_len);
-    // the type is   "uint8_t   vlfc[4];", so make sure it works correctly
-    // TODO: check if this is correct
-    /* header->vlfc = 6; */
-    /* header->ip6_ctlun.ip6_un1.ip6_un1_plen = htons(payload_len); */
-    //printf("payload len = %x, after htons %x\n", payload_len, htons(payload_len));
-    /* header->ip6_ctlun.ip6_un2_vfc = 6; */
-    /* header->ip6_src = 0; */
 }
 
 /** 
