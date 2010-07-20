@@ -22,7 +22,6 @@
 #define DEBUG 0
 #endif
 
-void recast(ipv6Packet *, stream_t *data);
 void reset_packet(packet_t *actual, ipv6Packet *original);
 int get_ord_no(ipv6Packet *packet);
 int get_seq_no(ipv6Packet *packet);
@@ -87,12 +86,12 @@ void addChunk(void *data) {
         printf("in last chunk\n");
         size = get_plen(original) - sizeof(original->header);
     } else {
-        size = MAX_CARRIED - sizeof(myPacketHeader);
+        size = MAX_CARRIED;
     }
 
     // we can always do this since only the last one is not fullsize
     // FIXME: segfaulting here
-    memcpy(&(actual->chunks) + (size + ord_no), &(original->payload), size);
+    memcpy(actual->chunks + (MAX_CARRIED * ord_no), original->payload, size);
     
     (actual->completed_bitmask) &= ~(1 << ord_no);
 
@@ -181,9 +180,8 @@ void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, str
 
 #ifdef STANDALONE
 int num_packets = 10;
-void testAddressing();
-void testRecast(ipv6Packet *p);
-void testLast();
+void test_addressing();
+void test_last();
 
 // doing some simple testing
 int main(int argc, char *argv[]) {
@@ -193,7 +191,7 @@ int main(int argc, char *argv[]) {
     
     // create some fake payload to create correctly the payload
     
-    testLast();
+    test_last();
     stream_t x[2] = {0, 1};
 
     for (int i = 0; i < num_packets; i++) {
@@ -204,7 +202,7 @@ int main(int argc, char *argv[]) {
     // 0 for example can't be found
     assert(get_packet(0) == NULL);
 
-    testAddressing();
+    test_addressing();
 
     // assertions to check we really have those values there
     // check 
@@ -214,14 +212,14 @@ int main(int argc, char *argv[]) {
 
 // at every position there should be something such that
 // ( POS % seq_no) == 0
-void testAddressing() {
+void test_addressing() {
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         packet_t *actual = &(temp_packets[i]);
         assert((actual->seq_no % MAX_RECONSTRUCTABLE) == i);
    }
 }
 
-void testLast() {
+void test_last() {
     ipv6Packet *pkt = malloc(sizeof(ipv6Packet));
     stream_t *payload = malloc(0);
     make_ipv6_packet(pkt, 0, 0, 1, payload, 0);
