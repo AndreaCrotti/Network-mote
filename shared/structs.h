@@ -31,7 +31,6 @@ typedef struct myPacketHeader {
     uint8_t seq_no;
     uint8_t ord_no;
     uint8_t parts;
-    unsigned short checksum;
 } __attribute__((__packed__)) myPacketHeader;
 
 // FIXME: ipv6 header is not needed inside here anymore
