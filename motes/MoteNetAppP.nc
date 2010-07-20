@@ -182,6 +182,7 @@ implementation{
     event void Boot.booted() {
         ser_in_consume = 0;
         serialif(&if_sif,0,0,0);
+        
         motecomm(&if_motecomm,&if_sif);
         mcp(&if_mcp,&if_motecomm);
         mccmp(&if_mccmp,&if_mcp);

@@ -33,7 +33,7 @@
 #include "glue.h"
 
 // a wrapper for mcp::receive that will be understood by the fdglue module
-void mcpReceive(fdglue_handler_t* that) {
+void serialReceive(fdglue_handler_t* that) {
     mcp_t* this = (mcp_t*)(that->p);
     this->getComm(this)->read(this->getComm(this));
 }
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
     struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp};
     fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){
             .p = mcp,
-                .handle = mcpReceive},FDGHR_APPEND);
+                .handle = serialReceive},FDGHR_APPEND);
     fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){
             .p = &thi,
                 .handle = tunReceive},FDGHR_APPEND); //TODO

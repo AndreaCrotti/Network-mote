@@ -194,7 +194,6 @@ void _motecomm_t_read(motecomm_t* this) {
   assert(this->motecomm_handler.receive);
   this->serialif.read(&(this->serialif), &payload);
   if (payload.stream) {
-//      call Leds.led1Toggle();
       this->motecomm_handler.receive(&(this->motecomm_handler),payload);
   }
   this->serialif.ditch(&(this->serialif),&payload);
@@ -224,7 +223,7 @@ void _mcp_t_receive(motecomm_handler_t* that, payload_t const payload) {
   mcp_t* this = (mcp_t*)(that->p);
   assert(payload.stream);
   
-  //call Leds.led0Toggle();
+  call Leds.led2Toggle();
 
   if (payload.len < MCP_HEADER_BYTES) {
     return;
