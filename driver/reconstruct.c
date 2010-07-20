@@ -29,6 +29,7 @@ int get_seq_no(ipv6Packet *packet);
 int get_parts(ipv6Packet *packet);
 int is_last(ipv6Packet *packet);
 int get_plen(ipv6Packet *packet);
+int is_completed(packet_t *pkt);
 void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 packet_t *get_packet(int seq_no);
 
@@ -48,8 +49,6 @@ void initReconstruction(void (*callback)(ipv6Packet *completed)) {
         // is it always a new packet_t right?
         packet_t t;
         t.seq_no = -1;
-        // set to 0 all the chunks
-        /* t.chunks = NULL; */
         temp_packets[i] = t;
     }
 }
@@ -71,44 +70,44 @@ void addChunk(void *data) {
 
     // we have to overwrite everything in case we're overwriting OR
     // is the first chunk with that seq_no that we receive
+    // TODO: use get_packet instead to check this condition
     if (actual->seq_no != seq_no) {
         if (DEBUG)
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
 
         reset_packet(actual, original);
-        // now I allocate the right memory for it, which MAX_CARRIED * PARTS
-        /* actual->chunks = calloc(get_parts(original), MAX_CARRIED); */
     }
-    if (DEBUG) 
-        printf("adding chunk seq_no = %d\n", seq_no);
 
     actual->seq_no = seq_no;
 
     // this is to make sure that we don't decrement missing_chunks even when not adding
-    if (actual->chunks[ord_no] == 0) {
-        // fetch the real data of the payload, check if it's the last one
-        int size;
+    // fetch the real data of the payload, check if it's the last one
+    int size;
 
-        // FIXME: allocates -45 bytes 
-        if (is_last(original)) {
-            size = get_plen(original) - sizeof(original->header);
-        } else {
-            size = MAX_CARRIED - sizeof(myPacketHeader);
-            printf("size = %d\n", size);
-        }
-
-        memcpy(&(actual->chunks), &(original->payload), size);
-        actual->missing_chunks--;
+    // FIXME: allocates -45 bytes 
+    if (is_last(original)) {
+        size = get_plen(original) - sizeof(original->header);
     } else {
-        printf("we got the same chunk twice!!!\n");
+        size = MAX_CARRIED - sizeof(myPacketHeader);
     }
 
+    // we can always do this since only the last one is not fullsize
+    memcpy(&(actual->chunks) + (size * ord_no), &(original->payload), size);
+    
+    (actual->completed_bitmask) &= ~(1 << ord_no);
+
     // now we check if everything if the packet is completed and sends it back
-    if (actual->missing_chunks == 0) {
-        /* send_back(original); */
+
+    if (is_completed(actual)) {
+        if (DEBUG)
+            printf("packet with seq_no %d completed\n", seq_no);
     }
 
     free(original);
+}
+
+int is_completed(packet_t *pkt) {
+    return (pkt->completed_bitmask == 0);
 }
 
 /** 
@@ -128,13 +127,9 @@ packet_t *get_packet(int seq_no) {
 // reset all the chunks at that sequential number
 void reset_packet(packet_t *actual, ipv6Packet *original) {
     actual->seq_no = get_seq_no(original);
-    actual->missing_chunks = get_parts(original);
-    // freeing the memory previously allocated, if it was allocated
-    /* if (actual->chunks) { */
-    /*     free(actual->chunks); */
-    /* } else { */
-    /*     actual->chunks = NULL; */
-    /* } */
+    // set it initially to (2^n -1)
+    // in this way it will be completed when is "0"
+    actual->completed_bitmask = (1 << get_parts(original)) - 1;
 }
 
 /****************************************/
@@ -205,6 +200,9 @@ int main(int argc, char *argv[]) {
         make_ipv6_packet(&(pkt[i]), i, 0, 1, x, 2);
         addChunk((void *) &pkt[i]);
     }
+
+    // 0 for example can't be found
+    assert(get_packet(0) == NULL);
 
     testAddressing();
 

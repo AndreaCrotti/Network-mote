@@ -6,6 +6,7 @@
 #define MAX_CARRIED TOSH_DATA_LENGTH
 #define TOT_PACKET_SIZE(payload_len) (sizeof(ipv6PacketHeader) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
+#define MAX_ETHERNET_FRAME_SIZE 2048
 
 #include <ip.h>
 
