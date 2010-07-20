@@ -60,7 +60,6 @@ void initReconstruction(void (*callback)(ipv6Packet *completed)) {
  */
 void addChunk(void *data) {
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
-    // doing a memcpy instead
     memcpy(original, data, sizeof(ipv6Packet));
     int seq_no = get_seq_no(original);
     int ord_no = get_ord_no(original);
@@ -84,15 +83,16 @@ void addChunk(void *data) {
     // fetch the real data of the payload, check if it's the last one
     int size;
 
-    // FIXME: allocates -45 bytes 
     if (is_last(original)) {
+        printf("in last chunk\n");
         size = get_plen(original) - sizeof(original->header);
     } else {
         size = MAX_CARRIED - sizeof(myPacketHeader);
     }
 
     // we can always do this since only the last one is not fullsize
-    memcpy(&(actual->chunks) + (size * ord_no), &(original->payload), size);
+    // FIXME: segfaulting here
+    memcpy(&(actual->chunks) + (size + ord_no), &(original->payload), size);
     
     (actual->completed_bitmask) &= ~(1 << ord_no);
 
@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
     stream_t x[2] = {0, 1};
 
     for (int i = 0; i < num_packets; i++) {
-        make_ipv6_packet(&(pkt[i]), i, 0, 1, x, 2);
+        make_ipv6_packet(&(pkt[i]), 0, i, num_packets, x, 2);
         addChunk((void *) &pkt[i]);
     }
 
@@ -226,6 +226,7 @@ void testLast() {
     stream_t *payload = malloc(0);
     make_ipv6_packet(pkt, 0, 0, 1, payload, 0);
     assert(is_last(pkt));
+    free(pkt);
 }
 
 #endif
