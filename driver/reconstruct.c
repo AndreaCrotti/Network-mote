@@ -22,7 +22,7 @@
 #define DEBUG 0
 #endif
 
-void reset_packet(packet_t *actual, ipv6Packet *original);
+void reset_packet(packet_t *actual);
 int get_ord_no(ipv6Packet *packet);
 int get_seq_no(ipv6Packet *packet);
 int get_parts(ipv6Packet *packet);
@@ -73,10 +73,11 @@ void addChunk(void *data) {
         if (DEBUG)
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
 
-        reset_packet(actual, original);
+        
+        actual->completed_bitmask = (1 << get_parts(original)) - 1;
+        actual->tot_size = 0;
+        actual->seq_no = seq_no;
     }
-
-    actual->seq_no = seq_no;
 
     // this is to make sure that we don't decrement missing_chunks even when not adding
     // fetch the real data of the payload, check if it's the last one
@@ -121,14 +122,6 @@ packet_t *get_packet(int seq_no) {
         return found;
     }
     return NULL;
-}
-
-// reset all the chunks at that sequential number
-void reset_packet(packet_t *actual, ipv6Packet *original) {
-    actual->seq_no = get_seq_no(original);
-    // set it initially to (2^n -1)
-    // in this way it will be completed when is "0"
-    actual->completed_bitmask = (1 << get_parts(original)) - 1;
 }
 
 /****************************************/
