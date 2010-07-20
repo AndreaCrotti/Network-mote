@@ -3,7 +3,7 @@ SF = $(TOSROOT)/support/sdk/c/sf
 SHARED = ../shared
 
 CC = gcc
-STD = -std=c89
+STD = -std=c99
 
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED)
 # this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
