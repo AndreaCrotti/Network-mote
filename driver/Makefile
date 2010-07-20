@@ -9,7 +9,7 @@ INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHAR
 LOW6PAN_CARRIED=102
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)
 WARN = -Wall -Wextra
-DEBUG = -ggdb -O0
+DEBUG = -ggdb -O0 -pg
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
@@ -25,7 +25,7 @@ EXTRAPHONIES =
 all: autogen tuntest $(NOPS)
 
 tuntest: $(OBJECTS) client.c
-	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) $(CFLAGS) -o tuntest
+	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
 $(OBJECTS): %.o: %.c $(wildcard %*.h) $(HEADERS)
 	$(CC) $(FLAGS) -c $< -o $@
@@ -44,6 +44,9 @@ hostname.h: hostname.sh
 
 reconstruct: reconstruct.c
 	$(CC) $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
+
+tuntest.dbg: $(OBJECTS) client.c
+	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg
 
 tuntest.pre: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) client.c $(CFLAGS) -E -o tuntest.pre

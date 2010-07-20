@@ -27,7 +27,9 @@ void reset_packet(packet_t *actual, ipv6Packet *original);
 int get_ord_no(ipv6Packet *packet);
 int get_seq_no(ipv6Packet *packet);
 int get_parts(ipv6Packet *packet);
-myPacketHeader *getHeader(ipv6Packet *packet);
+void reconstruct(int seq_no);
+
+myPacketHeader *get_header(ipv6Packet *packet);
 
 // just using a send function would be fine
 static void (*send_back)(ipv6Packet *completed);
@@ -80,6 +82,8 @@ void addChunk(void *data) {
         printf("adding chunk seq_no = %d\n", seq_no);
 
     actual->seq_no = seq_no;
+
+    // this is to make sure that we don't decrement missing_chunks even when not adding
     if (actual->chunks[ord_no] == 0) {
         // now add the chunk (using the payload
         /* actual.chunks[ord_no] = (stream_t *); */
@@ -93,6 +97,12 @@ void addChunk(void *data) {
         send_back(original);
     }
     free(original);
+}
+
+// reconstruct the completed packet, what we get from here should be
+// a perfectly valid Ethernet frame
+void reconstruct(int seq_no) {
+    // what do we have to do?? Add them together or what a memcpy maybe?
 }
 
 // reset all the chunks at that sequential number
@@ -110,20 +120,20 @@ void reset_packet(packet_t *actual, ipv6Packet *original) {
 /* Functions to access to the structure */
 /****************************************/
 
-myPacketHeader *getHeader(ipv6Packet *packet) {
+myPacketHeader *get_header(ipv6Packet *packet) {
     return &(packet->header.packetHeader);
 }
 
 int get_seq_no(ipv6Packet *packet) {
-    return getHeader(packet)->seq_no;
+    return get_header(packet)->seq_no;
 }
 
 int get_ord_no(ipv6Packet *packet) {
-    return getHeader(packet)->ord_no;
+    return get_header(packet)->ord_no;
 }
 
 int get_parts(ipv6Packet *packet) {
-   return getHeader(packet)->parts;
+   return get_header(packet)->parts;
 }
 
 void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no) {
