@@ -194,6 +194,14 @@ implementation{
         // Define Handlers
         if_motecomm.setHandler(&if_motecomm, (motecomm_handler_t){.p = 0, .receive=payload_rec_handler});
         
+        call IPAddress.setShortAddr(1);
+
+        //Testing
+        if(call IPAddress.haveAddress()){
+            radioBlink();
+        }else{
+            failBlink();
+        }
 
         // Initialize devices
         call RadioControl.start();

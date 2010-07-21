@@ -1,5 +1,0 @@
-Tests directory. 
-
-This directory contains test executables that demonstrate and validate the functions used in ALPHA.
-
-Please write tests for as many componds as possible. Please also add the tests to the make target test.
