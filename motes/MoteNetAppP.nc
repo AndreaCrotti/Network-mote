@@ -193,6 +193,14 @@ implementation{
         // Define Handlers
         if_motecomm.setHandler(&if_motecomm, (motecomm_handler_t){.p = 0, .receive=payload_rec_handler});
         
+        call IPAddress.setShortAddr(1);
+
+        //Testing
+        if(call IPAddress.haveAddress()){
+            radioBlink();
+        }else{
+            failBlink();
+        }
 
         // Initialize devices
         call RadioControl.start();
@@ -213,11 +221,11 @@ implementation{
     }
 
     event void IP.recv(struct ip6_hdr *iph, void *payload, struct ip_metadata *meta){
-        serialBlink();
-
         // Get the transmitted payload length
         uint16_t payload_len = iph->plen;
-        
+
+        serialBlink();
+                
         // Convert the data to an ipv6Packet again
         ip_in.header.ip6_hdr = *iph;
         ip_in.header.packetHeader = *((myPacketHeader*) payload);
