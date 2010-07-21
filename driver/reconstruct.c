@@ -161,6 +161,7 @@ int get_parts(ipv6Packet *packet) {
    return get_header(packet)->parts;
 }
 
+// only used for testing out something
 void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len) {
     packet->header.packetHeader.seq_no = seq_no;
     packet->header.packetHeader.ord_no = ord_no;
