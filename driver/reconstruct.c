@@ -85,8 +85,11 @@ void addChunk(void *data) {
     int size = get_size(original);
     pkt->tot_size += size;
 
+    printf("size = %d\n", size);
+
     // we can always do this since only the last one is not fullsize
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
+    printf("done\n");
 
     int new_bm = (pkt->completed_bitmask) & ~(1 << ord_no);
     send_if_completed(pkt, new_bm);
@@ -170,7 +173,7 @@ int get_parts(ipv6Packet *packet) {
 int get_size(ipv6Packet *packet) {
     if (is_last(packet)) {
         printf("in last chunk\n");
-        return (get_plen(packet) - sizeof(packet->header));
+        return (ntohs(get_plen(packet)) - sizeof(packet->header));
     } else {
         return MAX_CARRIED;
     }
