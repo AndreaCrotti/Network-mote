@@ -44,7 +44,7 @@ hostname.h: hostname.sh
 #### DEBUG ####
 
 reconstruct: reconstruct.c
-	$(CC) $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c chunker.c
+	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
 variables.o: variables.c
 

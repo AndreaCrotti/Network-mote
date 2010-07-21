@@ -14,7 +14,7 @@
 typedef struct {
     int seq_no;
     // bitmaks of chunks already set
-    uint8_t completed_bitmask;
+    int completed_bitmask;
     // That is the max size of the theoretically completed packet
     stream_t chunks[MAX_ETHERNET_FRAME_SIZE];
     // it normally is the max size of all the chunks + the size of the last one

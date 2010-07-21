@@ -93,9 +93,7 @@ int main(int argc, char **argv) {
         arr[i] = i;
     }
     int num_chunks = (int)(1000 / MAX_IPVS_SIZE) + 1;
-    printf("total length of packet %ld\n", TOT_PACKET_SIZE(MAX_IPVS_SIZE));
-    dataToLocalhost(arr, num_chunks, 0);
-    / testWithMemset(); 
+    // testWithMemset(); 
     return 0;
 }
 

@@ -3,6 +3,8 @@
 #include <string.h>
 #include "reconstruct.h"
 #include "chunker.h"
+#include "tunnel.h"
+#include "variables.h"
 
 // TODO: check that all the types are actually correct
 // TODO: (if there is time) add multiclient support (reading the source and create temp structure for both)
@@ -22,17 +24,19 @@
 #define DEBUG 0
 #endif
 
-void reset_packet(packet_t *actual);
-int get_ord_no(ipv6Packet *packet);
-int get_seq_no(ipv6Packet *packet);
-int get_parts(ipv6Packet *packet);
-int is_last(ipv6Packet *packet);
-int get_plen(ipv6Packet *packet);
+void reset_packet(packet_t *pkt);
+int get_ord_no(ipv6Packet *ip6_pkt);
+int get_seq_no(ipv6Packet *ip6_pkt);
+int get_parts(ipv6Packet *ip6_pkt);
+int get_size(ipv6Packet *ip6_pkt);
+int is_last(ipv6Packet *ip6_pkt);
+int get_plen(ipv6Packet *ip6_pkt);
 int is_completed(packet_t *pkt);
-void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len);
+void send_if_completed(packet_t *pkt, int new_bm);
+void make_ipv6_packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 packet_t *get_packet(int seq_no);
 
-myPacketHeader *get_header(ipv6Packet *packet);
+myPacketHeader *get_header(ipv6Packet *ip6_pkt);
 
 // just using a send function would be fine
 static void (*send_back)(ipv6Packet *completed);
@@ -64,49 +68,52 @@ void addChunk(void *data) {
     int ord_no = get_ord_no(original);
     
     // just for readability
-    packet_t *actual = &temp_packets[POS(seq_no)];
+    packet_t *pkt = &temp_packets[POS(seq_no)];
+    
+    if (DEBUG)
+        printf("adding chunk (%d, %d, %d, %d)\n", seq_no, ord_no, get_parts(original), pkt->completed_bitmask);
 
-    // we have to overwrite everything in case we're overwriting OR
-    // is the first chunk with that seq_no that we receive
-    // TODO: use get_packet instead to check this condition
-    if (actual->seq_no != seq_no) {
+    if (pkt->seq_no != seq_no) {
         if (DEBUG)
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
 
         
-        actual->completed_bitmask = (1 << get_parts(original)) - 1;
-        actual->tot_size = 0;
-        actual->seq_no = seq_no;
+        pkt->completed_bitmask = (1 << get_parts(original)) - 1;
+        pkt->tot_size = 0;
+        pkt->seq_no = seq_no;
     }
+    int new_bm = (pkt->completed_bitmask) & ~(1 << ord_no);
 
     // this is to make sure that we don't decrement missing_chunks even when not adding
     // fetch the real data of the payload, check if it's the last one
-    int size;
-
-    if (is_last(original)) {
-        printf("in last chunk\n");
-        size = get_plen(original) - sizeof(original->header);
-    } else {
-        size = MAX_CARRIED;
-    }
+    int size = get_size(original);
+    pkt->tot_size += size;
 
     // we can always do this since only the last one is not fullsize
-    memcpy(actual->chunks + (MAX_CARRIED * ord_no), original->payload, size);
-    
-    (actual->completed_bitmask) &= ~(1 << ord_no);
-
-    // now we check if everything if the packet is completed and sends it back
-
-    if (is_completed(actual)) {
-        if (DEBUG)
-            printf("packet with seq_no %d completed\n", seq_no);
-    }
+    memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
+    send_if_completed(pkt, new_bm);
 
     free(original);
 }
 
 int is_completed(packet_t *pkt) {
     return (pkt->completed_bitmask == 0);
+}
+
+void send_if_completed(packet_t *pkt, int new_bm) {
+    if (new_bm == pkt->completed_bitmask)
+        printf("adding twice the same chunk!!!!\n");
+    else 
+        pkt->completed_bitmask = new_bm;
+
+    // now we check if everything if the packet is completed and sends it back
+
+    if (is_completed(pkt)) {
+        if (DEBUG)
+            printf("packet completed\n");
+        // TODO: implement the sending (writing on tap0 probably?)
+        /* tun_write(getFd(), (char *) pkt->chunks, pkt->tot_size); */
+    }
 }
 
 /** 
@@ -161,6 +168,15 @@ int get_parts(ipv6Packet *packet) {
    return get_header(packet)->parts;
 }
 
+int get_size(ipv6Packet *packet) {
+    if (is_last(packet)) {
+        printf("in last chunk\n");
+        return (get_plen(packet) - sizeof(packet->header));
+    } else {
+        return MAX_CARRIED;
+    }
+}
+
 // only used for testing out something
 void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len) {
     packet->header.packetHeader.seq_no = seq_no;
@@ -192,8 +208,9 @@ int main(int argc, char *argv[]) {
         addChunk((void *) &pkt[i]);
     }
 
+    get_packet(0);
     // 0 for example can't be found
-    assert(get_packet(0) == NULL);
+    /* assert(get_packet(0) == NULL); */
 
     test_addressing();
 
@@ -207,8 +224,8 @@ int main(int argc, char *argv[]) {
 // ( POS % seq_no) == 0
 void test_addressing() {
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
-        packet_t *actual = &(temp_packets[i]);
-        assert((actual->seq_no % MAX_RECONSTRUCTABLE) == i);
+        packet_t *pkt = &(temp_packets[i]);
+        assert((pkt->seq_no % MAX_RECONSTRUCTABLE) == i);
    }
 }
 
