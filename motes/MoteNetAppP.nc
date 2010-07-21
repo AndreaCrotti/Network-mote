@@ -1,5 +1,6 @@
 #include <IPDispatch.h>
 #include <lib6lowpan.h>
+#include <stdint.h>
 
 #include <ip.h>
 
@@ -221,11 +222,11 @@ implementation{
     }
 
     event void IP.recv(struct ip6_hdr *iph, void *payload, struct ip_metadata *meta){
+
         // Get the transmitted payload length
         uint16_t payload_len = iph->plen;
-
         serialBlink();
-                
+        
         // Convert the data to an ipv6Packet again
         ip_in.header.ip6_hdr = *iph;
         ip_in.header.packetHeader = *((myPacketHeader*) payload);

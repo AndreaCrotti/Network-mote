@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     // a new device should be opened!
     tun_name[0] = 0;    
     // create the tap-device
-    int tun_fd = tun_open(tun_name, IFF_TAP);
+    int tun_fd = tun_open(tun_name, TUNTAP_INTERFACE);
     if (tun_fd < 1) {
         printf("Could not create tunnel device. Fatal.\n");
         return 1;

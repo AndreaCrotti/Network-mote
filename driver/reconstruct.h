@@ -31,4 +31,6 @@ void initReconstruction(void); //void (*callback)(ipv6Packet *completed));
 
 void addChunk(void *data);
 
+stream_t *getChunks(int seq_no);
+
 #endif

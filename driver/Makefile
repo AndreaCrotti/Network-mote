@@ -25,10 +25,10 @@ EXTRAPHONIES =
 
 all: autogen tuntest $(NOPS)
 
-tuntest: $(OBJECTS) client.c
+tuntest: $(OBJECTS)
 	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
-$(OBJECTS): %.o: %.c $(wildcard %*.h) $(HEADERS)
+$(OBJECTS): %.o: %.c %.h $(HEADERS)
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(NOPS): %.o: %.c %.h
@@ -49,7 +49,7 @@ reconstruct: reconstruct.c
 variables.o: variables.c
 
 split_rec: test_split_reconstruct.c variables.o
-	$(CC) variables.o chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DSTANDALONE -DDEBUG -o split_rec test_split_reconstruct.c
+	$(CC) variables.o chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DTEST -o split_rec test_split_reconstruct.c
 
 tuntest.dbg: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg
@@ -71,9 +71,12 @@ clean:
 diag:
 	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE)
 
+run:
+	motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
+
 autogen: hostname.h
 
 force: clean tuntest
 
-.PHONY: clean diag force autogen $(EXTRAPHONIES)
+.PHONY: clean diag force autogen run $(EXTRAPHONIES)
 .SILENT: clean $(NOPS)

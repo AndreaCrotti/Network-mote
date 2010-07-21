@@ -93,14 +93,14 @@ void _serialif_t_openMessage(serial_source_msg problem) {
   }
 }
 
-struct message_header_mine_t { // __attribute__((packed)) {
-    char amid;
+struct message_header_mine_t {
+    uint8_t amid;
     uint16_t destaddr;
     uint16_t sourceaddr;
     uint8_t msglen;
     uint8_t groupid;
     uint8_t handlerid;
-};
+}  __attribute__((packed));
 
 int _serialif_t_send(serialif_t* this, payload_t const payload) {
   assert(this);

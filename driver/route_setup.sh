@@ -5,7 +5,7 @@ TAP=$1
 # It might be a good idea to use the address of the gateway here... (not sure)
 ADDR="10.0.0.1"
 
-echo $TAP
+echo "setting up tunnel interface: $TAP"
 
 which ip > /dev/null 2>&1
 
