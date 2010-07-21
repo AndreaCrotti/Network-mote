@@ -18,7 +18,7 @@
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
 #ifndef DEBUG
-#define DEBUG 1
+#define DEBUG 0
 #endif
 
 void reset_packet(packet_t *pkt);
@@ -85,16 +85,24 @@ void addChunk(void *data) {
     int size = get_size(original);
     pkt->tot_size += size;
 
-    printf("size = %d\n", size);
+    if (DEBUG)
+        printf("size = %d\n", size);
 
     // we can always do this since only the last one is not fullsize
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
-    printf("done\n");
 
     int new_bm = (pkt->completed_bitmask) & ~(1 << ord_no);
     send_if_completed(pkt, new_bm);
 
     free(original);
+}
+
+stream_t *getChunks(int seq_no) {
+    packet_t *pkt = get_packet(seq_no);
+    if (pkt)
+        return &(pkt->chunks);
+
+    return NULL;
 }
 
 int is_completed(packet_t *pkt) {

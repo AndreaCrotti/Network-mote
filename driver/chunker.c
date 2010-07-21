@@ -54,16 +54,16 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     static struct myPacketHeader pkt = {.seq_no = 0xFF, .ord_no = 0xFF};
 
     if (pkt.seq_no != seq_no) {
-      pkt.seq_no = seq_no;
-      pkt.ord_no = 0;
-      pkt.parts = chunk_number;
+        pkt.seq_no = seq_no;
+        pkt.ord_no = 0;
+        pkt.parts = chunk_number;
     }
 
     packet->header.packetHeader = pkt;
     pkt.ord_no++;
     *sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
     genIpv6Header(&(packet->header.ip6_hdr),sizeof(myPacketHeader) + *sendsize);
-    memcpy(packet->payload,payload->stream,*sendsize);
+    memcpy(packet->payload, payload->stream, *sendsize);
     payload->len -= *sendsize;
     payload->stream += *sendsize;
     *sendsize += sizeof(struct ipv6PacketHeader);
@@ -99,35 +99,3 @@ int main(int argc, char **argv) {
 }
 
 #endif
-
-/*sockaddr_in6 *localhostDest(void) {
-    sockaddr_in6 *dest = malloc(sizeof(sockaddr_in6));
-    dest->sin6_family = AF_INET6;
-    // manual way to set the loopback interface
-    dest->sin6_addr = in6addr_loopback;
-
-    dest->sin6_addr.s6_addr16[7] = htons(1);
-    dest->sin6_flowinfo = 0;
-    dest->sin6_scope_id = 0;
-    // dest.sin6_port = htons(9999); 
-    dest->sin6_port = 0;
-    return dest;
-}*/
-
-/*void sendDataTo(void *buffer, struct sockaddr *dest, size_t size, int raw_sock) {
-    // TODO: the sizes are different, how does it manage automatically
-    printf("norm %u, 6version %u,\n", sizeof(struct sockaddr), sizeof(sockaddr_in6));
-    int result = sendto(raw_sock,
-                        &buffer,
-                        size,
-                        0,
-                        dest,
-                        // TODO: this is not generic enough
-                        sizeof(sockaddr_in6));
-    if (result < 0) {
-        perror("error in sending");
-    } else {
-        // checking if sending all the data needed
-        assert((unsigned)result == size);
-    }
-}*/
