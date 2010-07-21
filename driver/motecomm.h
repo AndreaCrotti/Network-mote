@@ -15,6 +15,12 @@
 #define ALLOW_ASSERT 0
 #endif
 
+// for a not completely understood reason, nibbles in bitfields are interpreted
+// the wrong way around, hence, 15 is converted to 5,1 which is obviously not what we want.
+// However: if your architecture does it differently, pass it so as compile flag.
+#ifndef NX_SWAP_NIBBLES
+#define NX_SWAP_NIBBLES 1
+#endif
 
 #include "motecomm.sizes.h"
 #include "hostname.h"
@@ -30,12 +36,6 @@ typedef void* serial_source_msg;
 #define ARCHITECTURE_IDENTIFICATION ((stream_t const* const)HOSTNAME)
 #define ARCHITECTURE_IDENTIFICATION_SIZE sizeof(ARCHITECTURE_IDENTIFICATION)
 
-// for a not completely understood reason, nibbles in bitfields are interpreted
-// the wrong way around, hence, 15 is converted to 5,1 which is obviously not what we want.
-// However: if your architecture does it differently, pass it so as compile flag.
-#ifndef NX_SWAP_NIBBLES
-#define NX_SWAP_NIBBLES 1
-#endif
 
 #ifndef READ_NON_BLOCKING
 #define READ_NON_BLOCKING 0

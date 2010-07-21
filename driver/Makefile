@@ -61,7 +61,7 @@ motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 	$(CC) $(FLAGS) -c motecomm.c -E -o motecomm.pre
 
 motecomm: motecomm.c motecomm.h motecomm.sizes.h
-	$(CC) $(FLAGS) -DSTANDALONE motecomm.c $(EXTERNALS) -o motecomm
+	$(CC) $(FLAGS) -DSTANDALONE motecomm.c util.o $(EXTERNALS) -o motecomm
 
 
 #### PHONIES ####
