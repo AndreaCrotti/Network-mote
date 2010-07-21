@@ -18,6 +18,6 @@ enum {
     MTU = 256,
 };
 
-#define TUNTAP_INTERFACE IFF_TAP
+#define TUNTAP_INTERFACE IFF_TUN
 
 #endif

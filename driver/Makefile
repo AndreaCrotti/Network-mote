@@ -74,9 +74,12 @@ diag:
 run:
 	motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
 
+ping:
+	ping -fbi 0.1 10.0.0.2
+
 autogen: hostname.h
 
 force: clean tuntest
 
-.PHONY: clean diag force autogen run $(EXTRAPHONIES)
+.PHONY: clean diag force autogen run ping $(EXTRAPHONIES)
 .SILENT: clean $(NOPS)
