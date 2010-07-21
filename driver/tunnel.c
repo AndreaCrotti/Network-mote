@@ -20,6 +20,7 @@
 #include <arpa/inet.h>  
 #include <net/route.h>
 #include <signal.h>
+#include <assert.h>
 
 #include "tunnel.h"
 #include "structs.h"
@@ -31,6 +32,10 @@ char *ifname;
 
 // all possible tun_devices
 tundev tun_devices[MAX_CLIENTS];
+
+char *fetch_from_queue(write_queue *queue);
+void add_to_queue(write_queue *queue, char *element);
+
 
 /** 
  * Creates a new tun/tap device, or connects to a already existent one depending
@@ -124,3 +129,35 @@ int tun_write(int fd, char *buf, int length){
     return nwrite;
 }
 
+// every time I add something I try to write out everything
+void addToWriteQueue(int client_no, char *buf, int len) {
+    int fd = tun_devices[client_no].fd;
+    write_queue *queue = &(tun_devices[client_no].queue);
+    add_to_queue(queue, buf);
+    // now use a select to try to send out everything
+    
+    char *message;
+    do {
+        message = fetch_from_queue(queue);
+        // TODO: now check with a select if we can write and call
+    } while (message);
+}
+
+// add one element to the queue
+void add_to_queue(write_queue *queue, char *element) {
+    int pos = (queue->head + 1) % MAX_QUEUED;
+    // this mean that the queue is full!
+    assert(pos != queue->bottom);
+    queue->messages[pos] = element;
+    queue->head = pos;
+}
+
+char *fetch_from_queue(write_queue *queue) {
+    if (queue->head == queue->bottom)
+        return NULL;
+    else {
+        queue->bottom--;
+        // mm maybe another variable is better here
+        return queue->messages[queue->bottom + 1];
+    }
+}
