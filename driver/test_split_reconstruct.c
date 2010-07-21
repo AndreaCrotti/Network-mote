@@ -42,13 +42,13 @@ int main(int argc, char *argv[]) {
     } while (chunks_left);
     
     initReconstruction();
+    printf("sizeof %d\n", sizeof(myPacketHeader) + MAX_CARRIED);
 
     for (int i = 0; i < count; i++) {
         addChunk((void *) &(p2[i]));
         printf("%d, %d\n", get_seq_no(&p2[i]), get_ord_no(&p2[i]));
     }
 
-    
     // supposing now we have the right array of packets there
     return 0;
 }

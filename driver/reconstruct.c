@@ -161,8 +161,6 @@ int get_ord_no(ipv6Packet *packet) {
 
 int get_plen(ipv6Packet *packet) {
     int plen = packet->header.ip6_hdr.plen;
-    if (DEBUG)
-        printf("got length = %d\n", plen);
     return plen;
 }
 
@@ -172,8 +170,8 @@ int get_parts(ipv6Packet *packet) {
 
 int get_size(ipv6Packet *packet) {
     if (is_last(packet)) {
-        printf("in last chunk\n");
-        return (ntohs(get_plen(packet)) - sizeof(packet->header));
+        // we need to invert from htons!!
+        return (ntohs(get_plen(packet)) - sizeof(myPacketHeader));
     } else {
         return MAX_CARRIED;
     }
