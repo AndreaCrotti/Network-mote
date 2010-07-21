@@ -28,7 +28,7 @@ all: autogen tuntest $(NOPS)
 tuntest: $(OBJECTS)
 	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
-$(OBJECTS): %.o: %.c %.h? $(HEADERS)
+$(OBJECTS): %.o: %.c %.h $(HEADERS)
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(NOPS): %.o: %.c %.h
