@@ -1,4 +1,4 @@
-#ifdef STANDALONE
+#ifdef TEST
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,9 +17,8 @@ void read_device();
 
 int main(int argc, char *argv[]) {
     int fd = open("/dev/urandom", O_RDONLY);
-    stream_t *buff[MSG_SIZE];
+    stream_t buff[MSG_SIZE];
     int nread = read(fd, buff, MSG_SIZE);
-    printf("read %d bytes from random\n", nread);
     
     // now we split the data and try to reconstruct it
     payload_t payload;
@@ -52,7 +51,7 @@ int main(int argc, char *argv[]) {
     // check if we got back the right data
     stream_t *chunks = getChunks(seq_no);
     for (int i = 0; i < MSG_SIZE; i++) {
-        printf("%d == %d\n", chunks[i], buff[i]);
+        /* printf("%d == %d\n", chunks[i], buff[i]); */
         assert(chunks[i] == buff[i]);
     }
     
@@ -60,14 +59,4 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void read_device() {
-    char buf[10];
-    FILE *fp = fopen("curdev", "r");
-    int read = fscanf(fp, "%s", buf);
-    printf("read %d chars and string %s\n", read, buf);
-
-    FILE *wp = fopen("curdev2", "w");
-    // we can use also fwrite to write out
-}
-
-#endif
+#endif //TEST

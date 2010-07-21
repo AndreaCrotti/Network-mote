@@ -105,12 +105,13 @@ stream_t *getChunks(int seq_no) {
     return NULL;
 }
 
+
 int is_completed(packet_t *pkt) {
     return (pkt->completed_bitmask == 0);
 }
 
 // TODO: change name or change what is done inside here
-void send_if_completed(packet_t *pkt, int new_bm) {
+send_if_completed(packet_t *pkt, int new_bm) {
     if (new_bm == pkt->completed_bitmask)
         printf("adding twice the same chunk!!!!\n");
     else 
@@ -123,6 +124,7 @@ void send_if_completed(packet_t *pkt, int new_bm) {
             printf("packet completed\n");
         // TODO: implement the sending (writing on tap0 probably?)
         /* tun_write(getFd(), (char *) pkt->chunks, pkt->tot_size); */
+        /* tun_write(getFd(), (char *) */
     }
 }
 
