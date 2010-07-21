@@ -44,10 +44,12 @@ hostname.h: hostname.sh
 #### DEBUG ####
 
 reconstruct: reconstruct.c
-	$(CC) $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
+	$(CC) $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c chunker.c
 
-split_rec: test_split_reconstruct.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DSTANDALONE -o split_rec test_split_reconstruct.c
+variables.o: variables.c
+
+split_rec: test_split_reconstruct.c variables.o
+	$(CC) variables.o $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DSTANDALONE -o split_rec test_split_reconstruct.c
 
 tuntest.dbg: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg

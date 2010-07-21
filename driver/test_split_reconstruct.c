@@ -9,8 +9,11 @@
 #include "reconstruct.h"
 #include "util.h"
 #include "structs.h"
+#include "variables.h"
 
 #define MSG_SIZE (1 << 10)
+
+void read_device();
 
 int main(int argc, char *argv[]) {
     int fd = open("/dev/urandom", O_RDONLY);
@@ -23,13 +26,34 @@ int main(int argc, char *argv[]) {
     payload.stream = (stream_t *) buff;
     payload.len = MSG_SIZE;
     
+    payload_t * const pointer = &payload;
+    
     ipv6Packet *p = malloc(sizeof(ipv6Packet) * 10);
     // now send the message
-    unsigned *send_size = malloc(sizeof(unsigned));
-    int x = genIpv6Packet(payload, p, send_size, 0);
+    /* unsigned *send_size = malloc(sizeof(unsigned)); */
+    /* int x = genIpv6Packet(&payload, p, send_size, 0); */
 
-    printf("splitting the packets we've got %x data \n", x);
+    /* printf("splitting the packets we've got %x data \n", x); */
+
+    // supposing now we have the right array of packets there
+    read_device();
+    
+    int x = getFd();
+    setFd(10);
+    
+    printf("before %d now %d\n", x, getFd());
+    setFd(3);
     return 0;
+}
+
+void read_device() {
+    char buf[10];
+    FILE *fp = fopen("curdev", "r");
+    int read = fscanf(fp, "%s", buf);
+    printf("read %d chars and string %s\n", read, buf);
+
+    FILE *wp = fopen("curdev2", "w");
+    // we can use also fwrite to write out
 }
 
 #endif
