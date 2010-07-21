@@ -51,7 +51,7 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     assert(packet);
     assert(payload);
     assert(payload->len > 0);
-    static struct myPacketHeader pkt = {.seq_no = 0xFF, .ord_no = 0xFF, .checksum = 0};
+    static struct myPacketHeader pkt = {.seq_no = 0xFF, .ord_no = 0xFF};
 
     if (pkt.seq_no != seq_no) {
       pkt.seq_no = seq_no;
