@@ -35,18 +35,20 @@ int main(int argc, char *argv[]) {
 
     char chunks_left;
     int count = 0;
+    int chunks_no = needed_chunks(nread);
     do {
-        chunks_left = genIpv6Packet(&payload, &(p[count]), &send_size, 0);
+        chunks_left = genIpv6Packet(&payload, &(p[count]), &send_size, 0, chunks_no);
         count++;
     } while (chunks_left);
     
     initReconstruction();
+    printf("sizeof %d\n", sizeof(myPacketHeader) + MAX_CARRIED);
 
     for (int i = 0; i < count; i++) {
         addChunk((void *) &(p2[i]));
         printf("%d, %d\n", get_seq_no(&p2[i]), get_ord_no(&p2[i]));
     }
-    
+
     // supposing now we have the right array of packets there
     return 0;
 }
