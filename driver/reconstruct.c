@@ -15,13 +15,10 @@
 // When one packet is ready it should go in another structure and maybe we can use a callback
 // function to send it away automatically
 
-// Maybe we could use this http://www.cl.cam.ac.uk/~cwc22/hashtable/ as data structure
-
-// FIXME: now when the index changes we don't find it anymore
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
 #ifndef DEBUG
-#define DEBUG 0
+#define DEBUG 1
 #endif
 
 void reset_packet(packet_t *pkt);
@@ -43,11 +40,11 @@ static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 
 // pass a callback function to send somewhere else the messages when they're over
-void initReconstruction(void (*callback)(ipv6Packet *completed)) {
+void initReconstruction(void) { // (*callback)(ipv6Packet *completed)) {
     if (DEBUG)
         printf("initializing the reconstruction\n");
 
-    send_back = callback;
+    /* send_back = callback; */
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         // is it always a new packet_t right?
         packet_t t;
@@ -76,13 +73,12 @@ void addChunk(void *data) {
     if (pkt->seq_no != seq_no) {
         if (DEBUG)
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
-
         
+        // resetting to the initial configuration
         pkt->completed_bitmask = (1 << get_parts(original)) - 1;
         pkt->tot_size = 0;
         pkt->seq_no = seq_no;
     }
-    int new_bm = (pkt->completed_bitmask) & ~(1 << ord_no);
 
     // this is to make sure that we don't decrement missing_chunks even when not adding
     // fetch the real data of the payload, check if it's the last one
@@ -91,6 +87,8 @@ void addChunk(void *data) {
 
     // we can always do this since only the last one is not fullsize
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
+
+    int new_bm = (pkt->completed_bitmask) & ~(1 << ord_no);
     send_if_completed(pkt, new_bm);
 
     free(original);
@@ -100,6 +98,7 @@ int is_completed(packet_t *pkt) {
     return (pkt->completed_bitmask == 0);
 }
 
+// TODO: change name or change what is done inside here
 void send_if_completed(packet_t *pkt, int new_bm) {
     if (new_bm == pkt->completed_bitmask)
         printf("adding twice the same chunk!!!!\n");
@@ -214,8 +213,8 @@ int main(int argc, char *argv[]) {
 
     test_addressing();
 
-    // assertions to check we really have those values there
-    // check 
+    // TODO: add assertions for correct tot_size and more
+
     free(pkt);
     return 0;
 }

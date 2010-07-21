@@ -27,7 +27,7 @@ typedef struct {
  * 
  * @param callback takes a function which will send back packets when they're completed
  */
-void initReconstruction(void (*callback)(ipv6Packet *completed));
+void initReconstruction(void); //void (*callback)(ipv6Packet *completed));
 
 void addChunk(void *data);
 

@@ -26,23 +26,28 @@ int main(int argc, char *argv[]) {
     payload.stream = (stream_t *) buff;
     payload.len = MSG_SIZE;
     
-    payload_t * const pointer = &payload;
+    payload_t *pointer = &payload;
     
-    ipv6Packet *p = malloc(sizeof(ipv6Packet) * 10);
+    ipv6Packet p[20];
+    ipv6Packet *p2 = p;
     // now send the message
-    /* unsigned *send_size = malloc(sizeof(unsigned)); */
-    /* int x = genIpv6Packet(&payload, p, send_size, 0); */
+    unsigned send_size;
 
-    /* printf("splitting the packets we've got %x data \n", x); */
+    char chunks_left;
+    int count = 0;
+    do {
+        chunks_left = genIpv6Packet(&payload, &(p[count]), &send_size, 0);
+        count++;
+    } while (chunks_left);
+    
+    initReconstruction();
 
+    for (int i = 0; i < count; i++) {
+        addChunk((void *) &(p2[i]));
+        printf("%d, %d\n", get_seq_no(&p2[i]), get_ord_no(&p2[i]));
+    }
+    
     // supposing now we have the right array of packets there
-    read_device();
-    
-    int x = getFd();
-    setFd(10);
-    
-    printf("before %d now %d\n", x, getFd());
-    setFd(3);
     return 0;
 }
 
