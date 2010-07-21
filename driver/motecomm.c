@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 /****** copied from serialsource.c ******/
 typedef int bool;
 #define BUFSIZE 256
@@ -94,28 +93,28 @@ void _serialif_t_openMessage(serial_source_msg problem) {
   }
 }
 
-struct message_header_t {
-    unsigned char amid;
-    unsigned short destaddr;
-    unsigned short sourceaddr;
-    unsigned char msglen;
-    unsigned char groupid;
-    unsigned char handlerid;
-} __attribute__((__packed__));
+struct message_header_mine_t { // __attribute__((packed)) {
+    char amid;
+    uint16_t destaddr;
+    uint16_t sourceaddr;
+    uint8_t msglen;
+    uint8_t groupid;
+    uint8_t handlerid;
+};
 
 int _serialif_t_send(serialif_t* this, payload_t const payload) {
   assert(this);
   payload_t buf;
-  buf.len = sizeof(struct message_header_t)+payload.len*sizeof(stream_t);
+  buf.len = sizeof(struct message_header_mine_t)+payload.len*sizeof(stream_t);
   buf.stream = malloc(buf.len);
-  memset((void*)buf.stream,0,sizeof(struct message_header_t));
-  struct message_header_t* mh = (struct message_header_t*)(buf.stream);
+  memset((void*)buf.stream,0,sizeof(struct message_header_mine_t));
+  struct message_header_mine_t* mh = (struct message_header_mine_t*)(buf.stream);
   mh->destaddr = 0xFFFF;
   mh->handlerid = 0;
   mh->groupid = 0;
   mh->amid = 0;
   mh->msglen = payload.len;
-  memcpy((void*)(buf.stream + sizeof(struct message_header_t)),payload.stream,payload.len*sizeof(stream_t));
+  memcpy((void*)(buf.stream + sizeof(struct message_header_mine_t)),payload.stream,payload.len*sizeof(stream_t));
   printf("Header:\n");
   unsigned int i = 0;
   for(; i<buf.len; i++){
@@ -578,11 +577,34 @@ ifp_t* ifp(ifp_t* this, mcp_t* const _mcp) {
 
 
 
+/**********************************************************
+ **********************************************************
+ **********************************************************
+ **********************************************************
+ **********************************************************
+ **********************************************************
+ *********************************************************/
 
 
 #if STANDALONE
 
 int main(int argc, char** args) {
+  //
+  mcp_header_t mht;
+  mht.stream = (stream_t*)malloc(100);
+  mht.header->version = 1;
+  mht.header->header = 5;
+  mht.header->ident = 0xDE;
+  mht.header->type = 0xAD;
+  mht.header->port = 0xBE;
+  mht.header->payload = 0xEF;
+  int i = 0;
+  printf("If it works, you should see '15 DE AD BE EF'\n");
+  printf("NX_SWAP_NIBBLES: %u\n",(unsigned)NX_SWAP_NIBBLES);
+  for (; i < MCP_HEADER_BYTES; i++) {
+    printf("%02X ",(unsigned)(mht.stream[i]));
+  }
+  return 0;
   assert(argc >= 3);
   mcp_t* mcp = openMcpConnection(args[1],args[2],NULL);
   if (!mcp) {
