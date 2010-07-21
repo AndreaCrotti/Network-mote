@@ -54,14 +54,14 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     static struct myPacketHeader pkt = {.seq_no = 0xFF, .ord_no = 0xFF};
 
     if (pkt.seq_no != seq_no) {
-      pkt.seq_no = seq_no;
-      pkt.ord_no = 0;
+        pkt.seq_no = seq_no;
+        pkt.ord_no = 0;
     }
-
+    
     genIpv6Header(&(packet->header.ip6_hdr),sizeof(myPacketHeader) + MAX_CARRIED /* FIXME: is this actually correct?*/);
     packet->header.packetHeader = pkt;
     pkt.ord_no++;
-    *sendsize = (payload->len < MAX_CARRIED)?payload->len:MAX_CARRIED;
+    *sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
     memcpy(packet->payload,payload->stream,*sendsize);
     payload->len -= *sendsize;
     payload->stream += *sendsize;
