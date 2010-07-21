@@ -59,9 +59,10 @@ void tunReceive(fdglue_handler_t* that) {
     payload_t payload = {.stream = buf, .len = size};
     ipv6Packet ipv6;
     unsigned sendsize = 0;
+    int no_chunks = needed_chunks(size);
     char chunks_left;
     do{
-        chunks_left = genIpv6Packet(&payload,&ipv6,&sendsize,seqno);
+        chunks_left = genIpv6Packet(&payload,&ipv6,&sendsize,seqno, no_chunks);
         assert(sendsize);
         
         printf("Sending chunk with size %u\n", sendsize);

@@ -16,6 +16,8 @@
  * 
  * @return 
  */
-int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, int const seq_no);
+int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, int const seq_no, int const chunk_number);
+
+unsigned needed_chunks(int data_size);
 
 #endif
