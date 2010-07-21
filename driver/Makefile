@@ -25,10 +25,10 @@ EXTRAPHONIES =
 
 all: autogen tuntest $(NOPS)
 
-tuntest: $(OBJECTS) client.c
+tuntest: $(OBJECTS)
 	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
-$(OBJECTS): %.o: %.c $(wildcard %*.h) $(HEADERS)
+$(OBJECTS): %.o: %.c %.h? $(HEADERS)
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(NOPS): %.o: %.c %.h
@@ -71,9 +71,12 @@ clean:
 diag:
 	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE)
 
+run:
+	motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
+
 autogen: hostname.h
 
 force: clean tuntest
 
-.PHONY: clean diag force autogen $(EXTRAPHONIES)
+.PHONY: clean diag force autogen run $(EXTRAPHONIES)
 .SILENT: clean $(NOPS)
