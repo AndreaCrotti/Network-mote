@@ -139,7 +139,7 @@ implementation{
     /************/
     /* Handlers */
     /************/
-    void payload_rec_handler(ifp_handler_t* that, payload_t const payload){
+    void payload_rec_handler(motecomm_handler_t* that, payload_t const payload){
         struct ipv6Packet packetBuf; 
         unsigned real_payload_len;
 
@@ -147,7 +147,7 @@ implementation{
 
         
         // Check whether the packet is not to small
-        if(payload.len < sizeof(struct ipv6Packet)){
+        if(payload.len < sizeof(struct ipv6PacketHeader)){
             failBlink();
             return;
         }
@@ -185,13 +185,14 @@ implementation{
         serialif(&if_sif,0,0,0);
         
         motecomm(&if_motecomm,&if_sif);
-        mcp(&if_mcp,&if_motecomm);
-        mccmp(&if_mccmp,&if_mcp);
-        laep(&if_laep,&if_mcp);
-        ifp(&if_ifp,&if_mcp);
+        /* mcp(&if_mcp,&if_motecomm); */
+        /* mccmp(&if_mccmp,&if_mcp); */
+        /* laep(&if_laep,&if_mcp); */
+        /* ifp(&if_ifp,&if_mcp); */
         
         // Define Handlers
-        if_ifp.setHandler(&if_ifp, (ifp_handler_t){.p = 0, .handle=payload_rec_handler});
+        if_motecomm.setHandler(&if_motecomm, (motecomm_handler_t){.p = 0, .receive=payload_rec_handler});
+        
 
         // Initialize devices
         call RadioControl.start();
@@ -212,6 +213,7 @@ implementation{
     }
 
     event void IP.recv(struct ip6_hdr *iph, void *payload, struct ip_metadata *meta){
+        serialBlink();
 
         // Get the transmitted payload length
         uint16_t payload_len = iph->plen;
@@ -242,32 +244,7 @@ implementation{
     event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len) {
         
         /* failBlink(); */
-
-        mcp_header_t header;
-        char *first = (char*)payload;
-        ipv6Packet *packet = (ipv6Packet*)payload;
-
-        call Leds.set(len);
-        /* call Leds.set(packet->header.packetHeader.seq_no); */
-
-        /* if(call SerialPacket.payloadLength(m)==len){ */
-        /*     serialBlink(); */
-        /* }else{ */
-        /*     failBlink(); */
-        /* } */
-
-        return m;
         
-        header.stream = payload;
-        /* if(header.header->version !=  MCP_HEADER_BYTES){ */
-        /*     failBlink(); */
-        /* } */
-        /* if(header.header->header != MCP_VERSION){ */
-        /*     serialBlink(); */
-        /* } */
-
-        
-
         ser_in_consume = m;
         if_motecomm.read(&if_motecomm);
                
