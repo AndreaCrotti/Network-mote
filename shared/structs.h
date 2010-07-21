@@ -8,7 +8,14 @@
 //#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(ipv6PacketHeader) - MCP_HEADER_BYTES - 5)
 #define TOT_PACKET_SIZE(payload_len) (sizeof(struct ipv6PacketHeader) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
+// TODO: change it to max ipv4 packet length
 #define MAX_ETHERNET_FRAME_SIZE 2048
+// see total length for ipv4
+/* Total Length  */
+/* This 16-bit field defines the entire datagram size, including header and data, in bytes. The minimum-length datagram is 20 bytes (20-byte header + 0 bytes data) and the maximum is 65,535 — the maximum value of a 16-bit word. The minimum size datagram that any host is required to be able to handle is 576 bytes, but most modern hosts handle much larger packets. Sometimes subnetworks impose further restrictions on the size, in which case datagrams must be fragmented. Fragmentation is handled in either the host or packet switch in IPv4 (see Fragmentation and reassembly). */
+
+// max number of clients we support
+#define MAX_CLIENTS 10
 
 #include <ip.h>
 

@@ -22,9 +22,15 @@
 #include <signal.h>
 
 #include "tunnel.h"
+#include "structs.h"
+
+#define TUN_DEV "/dev/net/tun"
 
 // The name of the interface 
 char *ifname;
+
+// all possible tun_devices
+tundev tun_devices[MAX_CLIENTS];
 
 /** 
  * Creates a new tun/tap device, or connects to a already existent one depending
@@ -37,16 +43,18 @@ char *ifname;
  * 
  * @return Error-code.
  */
-int tun_open(char *dev, int flags){
-    
+// TODO: flags could maybe moved away somewhere?
+int tun_open(int client_no, char *dev, int flags) {
     struct ifreq ifr;
-    int fd, err;
-    char *clonedev = "/dev/net/tun";
+    int err;
+    char *clonedev = TUN_DEV;
+    int *fd = &(tun_devices[client_no].fd);
     
     // Open the clone device
-    if( (fd = open(clonedev , O_RDWR)) < 0 ) {
+    // FIXME: why do we return the fd even if the open is not correctly done??
+    if( (*fd = open(clonedev , O_RDWR)) < 0 ) {
         perror("Opening /dev/net/tun");
-        return fd;
+        return *fd;
     }
     
     // prepare ifr
@@ -55,13 +63,13 @@ int tun_open(char *dev, int flags){
     ifr.ifr_flags = flags;
 
     // If a device name was specified it is put to ifr
-    if(*dev){
+    if (*dev) {
         strncpy(ifr.ifr_name, dev, IFNAMSIZ);
     }
 
     // Try to create the device
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
-        close(fd);
+    if( (err = ioctl(*fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+        close(*fd);
         perror("Creating the device");
         return err;
     }
@@ -69,10 +77,11 @@ int tun_open(char *dev, int flags){
     // Write the name of the new interface to device
     strcpy(dev, ifr.ifr_name);
 
+    // FIXME: why allocating and never using or freeing??
     // allocate 10 Bytes for the interface name
     ifname = malloc(10);
 
-    return fd;
+    return *fd;
 }
 
 /** 
@@ -114,3 +123,4 @@ int tun_write(int fd, char *buf, int length){
     }
     return nwrite;
 }
+
