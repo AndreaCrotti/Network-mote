@@ -53,8 +53,8 @@ test: *.c
 reconstruct: reconstruct.c
 	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
-split: test_split_reconstruct.c
-	$(CC) chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DTEST -o split_rec test_split_reconstruct.c
+split: split_reconstruct.c
+	$(CC) chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DSTANDALONE -o split_rec split_reconstruct.c
 
 tunnel: tunnel.c
 	$(CC) $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DSTANDALONE -o tunnel tunnel.c

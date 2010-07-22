@@ -178,7 +178,7 @@ void add_to_queue(write_queue *queue, char *element) {
     // this mean that the queue is full!
     assert(pos != queue->bottom);
     printf("adding %s to the queue\n", element);
-    queue->messages[pos] = element;
+    queue->messages[queue->head] = element;
     queue->head = pos;
 }
 
