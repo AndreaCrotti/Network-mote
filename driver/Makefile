@@ -21,17 +21,21 @@ EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
 SRC = client.c
 EXTRAPHONIES = 
 
+
+#TIME := time -f '\t%E' --
+TIME := 
+
 #### RULES ####
 
 all: autogen tuntest $(NOPS)
 
 tuntest: $(OBJECTS)
 	@echo "Linking <$@>."
-	@$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
+	@$(TIME) $(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
 $(OBJECTS): %.o: %.c %.h $(HEADERS)
-	@echo "Compiling <$@>."
-	@$(CC) $(FLAGS) -c $< -o $@
+	@echo    "Compiling <$@>."
+	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
 
 $(NOPS): %.o: %.c %.h
 	@echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@

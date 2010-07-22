@@ -35,7 +35,7 @@ packet_t *get_packet(int seq_no);
 myPacketHeader *get_header(ipv6Packet *ip6_pkt);
 
 // just using a send function would be fine
-static void (*send_back)(ipv6Packet *completed);
+//static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 
 /** 

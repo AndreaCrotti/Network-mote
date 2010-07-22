@@ -167,7 +167,7 @@ void addToWriteQueue(int client_no, char *buf, int len) {
 int is_writable(int fd) {
    fd_set fds;
    struct timeval timeout = {.tv_sec = 3, .tv_usec = 0};
-   int rc, result;
+   int rc;
    FD_ZERO(&fds);
    FD_SET(fd, &fds);
    
