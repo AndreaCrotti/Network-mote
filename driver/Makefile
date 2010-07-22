@@ -26,19 +26,22 @@ EXTRAPHONIES =
 all: autogen tuntest $(NOPS)
 
 tuntest: $(OBJECTS)
-	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
+	@echo "Linking <$@>."
+	@$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
 $(OBJECTS): %.o: %.c %.h $(HEADERS)
-	$(CC) $(FLAGS) -c $< -o $@
+	@echo "Compiling <$@>."
+	@$(CC) $(FLAGS) -c $< -o $@
 
 $(NOPS): %.o: %.c %.h
-	echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
+	@echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
 
 
 #### OTHER ####
 
 hostname.h: hostname.sh
-	bash hostname.sh
+	@echo "Creating <hostname.h>."
+	@bash hostname.sh
 
 
 #### DEBUG ####
@@ -72,13 +75,14 @@ motecomm: motecomm.c motecomm.h motecomm.sizes.h
 
 #### PHONIES ####
 clean:
-	rm *.o hostname.h tuntest > /dev/null 2>&1 ; echo cleaned.
+	@echo "Cleaning."
+	@rm *.o hostname.h tuntest > /dev/null 2>&1
 
 diag:
 	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE)
 
 run:
-	motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
+	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
 
 ping:
 	ping -fbi 0.1 10.0.0.2
@@ -88,4 +92,3 @@ autogen: hostname.h
 force: clean tuntest
 
 .PHONY: clean diag force autogen run ping $(EXTRAPHONIES)
-.SILENT: clean $(NOPS)

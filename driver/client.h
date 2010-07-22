@@ -11,13 +11,11 @@
 /*                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x65}}}; */
 
 // XXX seriously, this is not how you do things in C
-enum {
+/*enum {
     FALSE = 0,
     TRUE = 1,
     BUFSIZE = 256,
     MTU = 256,
-};
-
-#define TUNTAP_INTERFACE IFF_TUN
+};*/
 
 #endif
