@@ -82,9 +82,10 @@ int tun_open(int client_no, char *dev, int flags) {
     // Write the name of the new interface to device
     strcpy(dev, ifr.ifr_name);
 
-    // FIXME: why allocating and never using or freeing??
+    // FIXME: This has to be freed somewhere!
     // allocate 10 Bytes for the interface name
-    ifname = malloc(10);
+    ifname = malloc(IFNAMSIZ);
+    *ifname = *dev;
 
     return *fd;
 }

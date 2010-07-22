@@ -38,6 +38,8 @@ module MoteNetAppP{
     
         interface Leds;
 
+        interface Timer<TMilli> as Timer;
+
     }
 }
 implementation{
@@ -202,6 +204,7 @@ implementation{
         }else{
             failBlink();
         }
+        call Timer.startPeriodic(1000);
 
         // Initialize devices
         call RadioControl.start();
@@ -209,6 +212,14 @@ implementation{
 
         // Store this mote's IP
         call IPAddress.getIPAddr(&ip_address);
+    }
+    
+    event void Timer.fired(){
+        if(call IPAddress.haveAddress()){
+            radioBlink();
+        }else{
+            failBlink();
+        }
     }
 
     event void RadioControl.startDone(error_t err){
