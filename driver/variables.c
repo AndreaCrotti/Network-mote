@@ -23,6 +23,6 @@ void setFd(int fd) {
 }
 
 void setTunName(char *name) {
-    assert(tun_name == TUN_NAME_NOT_SET);
+    assert(!strcmp(tun_name, TUN_NAME_NOT_SET));
     strcpy(tun_name, name);
 }

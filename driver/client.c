@@ -50,9 +50,9 @@ void tunReceive(fdglue_handler_t* that) {
     printf("tunReceive called\n");
     
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
-    static stream_t buf[MAX_ETHERNET_FRAME_SIZE];
-    memset(buf,0,MAX_ETHERNET_FRAME_SIZE);
-    int size = tun_read(this->fd,(char*)buf,MAX_ETHERNET_FRAME_SIZE);
+    static stream_t buf[MAX_FRAME_SIZE];
+    memset(buf,0,MAX_FRAME_SIZE);
+    int size = tun_read(this->fd,(char*)buf,MAX_FRAME_SIZE);
     assert(size);
     static int seqno = 0;
     ++seqno;

@@ -100,7 +100,7 @@ void addChunk(void *data) {
 stream_t *getChunks(int seq_no) {
     packet_t *pkt = get_packet(seq_no);
     if (pkt)
-        return &(pkt->chunks);
+        return pkt->chunks;
 
     return NULL;
 }
@@ -111,7 +111,7 @@ int is_completed(packet_t *pkt) {
 }
 
 // TODO: change name or change what is done inside here
-send_if_completed(packet_t *pkt, int new_bm) {
+void send_if_completed(packet_t *pkt, int new_bm) {
     if (new_bm == pkt->completed_bitmask)
         printf("adding twice the same chunk!!!!\n");
     else 

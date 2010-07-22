@@ -8,7 +8,18 @@
 //#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(ipv6PacketHeader) - MCP_HEADER_BYTES - 5)
 #define TOT_PACKET_SIZE(payload_len) (sizeof(struct ipv6PacketHeader) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
-#define MAX_ETHERNET_FRAME_SIZE 2048
+
+
+#define TUNTAP_INTERFACE IFF_TUN
+
+#if TUNTAP_INTERFACE == IFF_TAP
+#define MAX_FRAME_SIZE 2048
+#elif TUNTAP_INTERFACE == IFF_TUN
+#define MAX_FRAME_SIZE 65536
+#else
+#error "Unsupported tun/tap interface."
+#endif
+
 
 #include <ip.h>
 
