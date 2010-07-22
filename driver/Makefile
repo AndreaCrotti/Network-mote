@@ -43,11 +43,19 @@ hostname.h: hostname.sh
 
 #### DEBUG ####
 
+# whatever changes we have to recompile the tests
+test: *.c
+	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG
+
 reconstruct: reconstruct.c
 	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
-split_rec: test_split_reconstruct.c
+split: test_split_reconstruct.c
 	$(CC) chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DTEST -o split_rec test_split_reconstruct.c
+
+tunnel: tunnel.c
+	$(CC) $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DSTANDALONE -o tunnel tunnel.c
+
 
 tuntest.dbg: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg

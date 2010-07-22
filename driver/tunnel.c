@@ -32,6 +32,7 @@ char *fetch_from_queue(write_queue *queue);
 void add_to_queue(write_queue *queue, char *element);
 int is_writable(int fd);
 int *get_fd(int client_no);
+void delete_last(write_queue *queue);
 
 /** 
  * Setup the flags, basically if using TUN or TAP device
@@ -51,7 +52,6 @@ int tunOpen(int client_no, char *dev) {
     int *fd = get_fd(client_no);
     
     // Open the clone device
-    // FIXME: why do we return the fd even if the open is not correctly done??
     if( (*fd = open(clonedev , O_RDWR)) < 0 ) {
         perror("Opening /dev/net/tun");
         return *fd;
@@ -68,7 +68,7 @@ int tunOpen(int client_no, char *dev) {
     }
 
     // Try to create the device
-    if( (err = ioctl(*fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+    if( (err = ioctl(*fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
         close(*fd);
         perror("Creating the device");
         return err;
@@ -115,6 +115,7 @@ int tun_write(int fd, char *buf, int length){
         perror("Writing data");
         exit(1);
     }
+
     return nwrite;
 }
 
@@ -130,11 +131,19 @@ void addToWriteQueue(int client_no, char *buf, int len) {
     // quit immediately the loop if we sent everything or is not writable
     while (1) {
         message = fetch_from_queue(queue);
+        printf("got message %s from the queue\n", message);
         if (!message)
             break;
         
-        if (is_writable(fd))
-            tun_write(fd, buf, len);
+        if (is_writable(fd)) {
+            int nwrite = tun_write(fd, buf, len);
+            if (nwrite) {
+                // otherwise means partially written data
+                assert(nwrite == len);
+                // only now we can remove it from the queue
+                delete_last(queue);
+            }
+        }
         else
             break;
     }
@@ -168,6 +177,7 @@ void add_to_queue(write_queue *queue, char *element) {
     int pos = (queue->head + 1) % MAX_QUEUED;
     // this mean that the queue is full!
     assert(pos != queue->bottom);
+    printf("adding %s to the queue\n", element);
     queue->messages[pos] = element;
     queue->head = pos;
 }
@@ -179,19 +189,32 @@ void add_to_queue(write_queue *queue, char *element) {
  */
 char *fetch_from_queue(write_queue *queue) {
     if (queue->head != queue->bottom) {
-        queue->bottom--;
-        // mm maybe another variable is better here
-        return queue->messages[queue->bottom + 1];
+         return queue->messages[queue->bottom];
     }
     return NULL;
 }
 
+void delete_last(write_queue *queue) {
+    queue->bottom--;
+}
+
 #ifdef STANDALONE
+#include <linux/if_tun.h>
 
 // testing the creation and writing/reading from with the tunnel
 int main(int argc, char *argv[]) {
     // setup a tun device and then work with it
-
+    int client = 0;
+    tunSetup(IFF_TUN);
+    char tun_name[IFNAMSIZ];
+    tun_name[0] = 0;
+    char buff[10] = "ciao ciao\0";
+    // tunnel for client 0 created correctly
+    if (tunOpen(client, tun_name)) {
+        addToWriteQueue(client, buff, 10);
+    } else {
+        printf("not possible to create the tunnel\n");
+    }
 }
 
 void test_tun_write(void) {
