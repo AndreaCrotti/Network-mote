@@ -2,6 +2,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "variables.h"
+
 #define FD_NOT_SET (-1)
 #define TUN_NAME_NOT_SET ""
 
