@@ -20,7 +20,7 @@
 #define TUN_DEV "/dev/net/tun"
 
 // The name of the interface 
-char *ifname;
+char ifname[IFNAMSIZ];
 
 // all possible tun_devices
 static tundev tun_devices[MAX_CLIENTS];
@@ -83,9 +83,8 @@ int tunOpen(int client_no, char *dev) {
     // Write the name of the new interface to device
     strcpy(dev, ifr.ifr_name);
 
-    // FIXME: why allocating and never using or freeing??
-    // allocate 10 Bytes for the interface name
-    ifname = malloc(10);
+    // Set the global ifname variable 
+    memcpy(ifname, dev, IFNAMSIZ);
 
     return *fd;
 }
