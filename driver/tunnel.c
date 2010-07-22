@@ -28,7 +28,7 @@
 #define TUN_DEV "/dev/net/tun"
 
 // The name of the interface 
-char *ifname;
+char ifname[IFNAMSIZ];
 
 // all possible tun_devices
 tundev tun_devices[MAX_CLIENTS];
@@ -82,10 +82,8 @@ int tun_open(int client_no, char *dev, int flags) {
     // Write the name of the new interface to device
     strcpy(dev, ifr.ifr_name);
 
-    // FIXME: This has to be freed somewhere!
-    // allocate 10 Bytes for the interface name
-    ifname = malloc(IFNAMSIZ);
-    *ifname = *dev;
+    // Set the global ifname variable 
+    memcpy(ifname, dev, IFNAMSIZ);
 
     return *fd;
 }
