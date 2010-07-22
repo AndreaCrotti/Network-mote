@@ -62,7 +62,7 @@ void _fdglue_t_listen(fdglue_t* this, unsigned timeout) {
         FD_SET(it->fd,fdmap[it->type]);
     }
     struct timeval tv = {.tv_sec = timeout, .tv_usec = 0};
-    if (-1 != select(this->nfds+1,&rd,&wr,&er,&tv)) {
+    if (-1 != select(this->nfds+1, &rd, &wr, &er, &tv)) {
         for (it = this->handlers; it; it = it->next) {
             if (FD_ISSET(it->fd,fdmap[it->type])) {
                 it->hnd.handle(&(it->hnd));

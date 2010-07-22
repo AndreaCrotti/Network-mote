@@ -8,7 +8,7 @@ STD = -std=c99
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED)
 # this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
 LOW6PAN_CARRIED=102
-CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)
+CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT
 WARN = -Wall -Wextra
 DEBUG = -ggdb -O0 -pg
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
@@ -46,10 +46,8 @@ hostname.h: hostname.sh
 reconstruct: reconstruct.c
 	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
-variables.o: variables.c
-
-split_rec: test_split_reconstruct.c variables.o
-	$(CC) variables.o chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DTEST -o split_rec test_split_reconstruct.c
+split_rec: test_split_reconstruct.c
+	$(CC) chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DTEST -o split_rec test_split_reconstruct.c
 
 tuntest.dbg: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg

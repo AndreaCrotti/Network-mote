@@ -25,9 +25,9 @@ typedef struct tundev {
 /*************************/
 /* Function declarations */
 /*************************/
-int tun_open(int client_no, char *dev, int flags);
-int tun_read(int fd, char *buf, int n);
-int tun_write(int fd, char *buf, int n);
+int tunOpen(int client_no, char *dev);
+int tunRead(int client_no, char *buf, int n);
 void addToWriteQueue(int client_no, char *buf, int len);
+void tunSetup(int tun_flags);
 
 #endif
