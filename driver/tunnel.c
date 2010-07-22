@@ -20,6 +20,8 @@
 #include "structs.h"
 
 #define TUN_DEV "/dev/net/tun"
+#define NEXT(x) ((x + 1) % MAX_QUEUED)
+
 
 // The name of the interface 
 char ifname[IFNAMSIZ];
@@ -30,6 +32,8 @@ static int flags;
 
 char *fetch_from_queue(write_queue *queue);
 void add_to_queue(write_queue *queue, char *element);
+int queue_empty(write_queue *queue);
+int queue_full(write_queue *queue);
 int is_writable(int fd);
 int *get_fd(int client_no);
 void delete_last(write_queue *queue);
@@ -41,6 +45,11 @@ void delete_last(write_queue *queue);
  */
 void tunSetup(int tun_flags) {
     flags = tun_flags;
+    // setup the queue for each of the clients
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        tun_devices[i].queue.first = 0;
+        tun_devices[i].queue.last = 0;
+    }
 }
 
 // TODO: remove the need of *dev also, this should be tun_new and always \0
@@ -124,6 +133,7 @@ void addToWriteQueue(int client_no, char *buf, int len) {
     // add the message to the queue
     write_queue *queue = &(tun_devices[client_no].queue);
     add_to_queue(queue, buf);
+    /* printf("now queue %d <-> %d\n", queue->first, queue->last); */
     // now use a select to try to send out everything
     
     // try to send out as many messages as possible
@@ -131,12 +141,12 @@ void addToWriteQueue(int client_no, char *buf, int len) {
     // quit immediately the loop if we sent everything or is not writable
     while (1) {
         message = fetch_from_queue(queue);
-        printf("got message %s from the queue\n", message);
         if (!message)
             break;
         
         if (is_writable(fd)) {
             int nwrite = tun_write(fd, buf, len);
+            /* printf("wrote %d bytes\n", nwrite); */
             if (nwrite) {
                 // otherwise means partially written data
                 assert(nwrite == len);
@@ -161,7 +171,7 @@ int is_writable(int fd) {
    FD_ZERO(&fds);
    FD_SET(fd, &fds);
    
-   // nds must be greater than any other
+   // is this fd+1 exactly what we need here?
    rc = select(fd + 1, NULL, &fds, NULL, &timeout);
    return FD_ISSET(fd,&fds) ? 1 : 0;
 }
@@ -174,12 +184,19 @@ int is_writable(int fd) {
  * @param element element to add to the queue
  */
 void add_to_queue(write_queue *queue, char *element) {
-    int pos = (queue->head + 1) % MAX_QUEUED;
-    // this mean that the queue is full!
-    assert(pos != queue->bottom);
-    printf("adding %s to the queue\n", element);
-    queue->messages[queue->head] = element;
-    queue->head = pos;
+    assert(!queue_full(queue));
+    /* printf("adding %s to the queue\n", element); */
+    queue->messages[queue->last] = element;
+    // going forward of one position
+    queue->last = NEXT(queue->last);
+}
+
+int queue_full(write_queue *queue) {
+    return (NEXT(queue->last) == (queue->first));
+}
+
+int queue_empty(write_queue *queue) {
+    return (queue->first == queue->last);
 }
 
 /** 
@@ -188,14 +205,14 @@ void add_to_queue(write_queue *queue, char *element) {
  * @return the first element inserted into the queue or NULL if not found
  */
 char *fetch_from_queue(write_queue *queue) {
-    if (queue->head != queue->bottom) {
-         return queue->messages[queue->bottom];
-    }
+    if (!queue_empty(queue))
+         return queue->messages[queue->first];
+
     return NULL;
 }
 
 void delete_last(write_queue *queue) {
-    queue->bottom--;
+    queue->first = NEXT(queue->first);
 }
 
 #ifdef STANDALONE
@@ -211,10 +228,15 @@ int main(int argc, char *argv[]) {
     char buff[10] = "ciao ciao\0";
     // tunnel for client 0 created correctly
     if (tunOpen(client, tun_name)) {
-        addToWriteQueue(client, buff, 10);
+        for (int i = 0; i < 100; i++) {
+            addToWriteQueue(client, buff, 10);
+        }
     } else {
         printf("not possible to create the tunnel\n");
     }
+    // in the end I want to make sure it's empty
+    write_queue *queue = &(tun_devices[client].queue);
+    assert(queue_empty(queue));
 }
 
 void test_tun_write(void) {
