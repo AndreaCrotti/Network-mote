@@ -1,3 +1,5 @@
+// TODO: add a free function to reset everything
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,16 +42,8 @@ void tunSetup(int tun_flags) {
     flags = tun_flags;
 }
 
-/** 
- * Creates a new tun/tap device, or connects to a already existent one depending
- * on the arguments.
- * 
- * @param dev The name of the device to connect to or '\0' when a new device should be
- *            should be created.
- * 
- * @return Error-code.
- */
 // TODO: remove the need of *dev also, this should be tun_new and always \0
+// FIXME: should it ever connect to the same device twice?
 int tunOpen(int client_no, char *dev) {
     struct ifreq ifr;
     int err;
@@ -93,15 +87,6 @@ int *get_fd(int client_no) {
     return &(tun_devices[client_no].fd);
 }
 
-/** 
- * Reads data from the tunnel and exits if a error occurred.
- * 
- * @param fd The tunnel device.
- * @param buf This is where the read data are written.
- * @param length maximum number of bytes to read.
- * 
- * @return number of bytes read.
- */
 int tunRead(int client_no, char *buf, int length){
     int fd = *(get_fd(client_no));
     int nread;
@@ -133,14 +118,6 @@ int tun_write(int fd, char *buf, int length){
     return nwrite;
 }
 
-/** 
- * Add one message to the write queue
- * and then try to send them all out
- * 
- * @param client_no client connected
- * @param buf buffer to send
- * @param len length of the buffer
- */
 void addToWriteQueue(int client_no, char *buf, int len) {
     int fd = tun_devices[client_no].fd;
     // add the message to the queue
