@@ -33,12 +33,24 @@
 #include "glue.h"
 #include "../shared/structs.h"
 
+#ifdef CLIENT
+#define CLIENT_NO 0
+
+#elif GATEWAY
+#define CLIENT_NO get_client_no()
+
+#endif
+
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void serialReceive(fdglue_handler_t* that) {
     mcp_t* this = (mcp_t*)(that->p);
     this->getComm(this)->read(this->getComm(this));
 }
 
+// TODO: change me, this will have to return the client we work on on the gateway
+int get_client_no() {
+    return 0;
+}
 
 struct TunHandlerInfo {
     int fd;
@@ -52,7 +64,7 @@ void tunReceive(fdglue_handler_t* that) {
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
     static stream_t buf[MAX_FRAME_SIZE];
     memset(buf,0,MAX_FRAME_SIZE);
-    int size = tun_read(this->fd,(char*)buf,MAX_FRAME_SIZE);
+    int size = tunRead(CLIENT_NO, (char*)buf,MAX_FRAME_SIZE);
     assert(size);
     static int seqno = 0;
     ++seqno;
@@ -103,11 +115,13 @@ int main(int argc, char** argv) {
     (void)argv;
 
     char tun_name[IFNAMSIZ];
+    tunSetup(TUNTAP_INTERFACE);
 
     // a new device should be opened!
     tun_name[0] = 0;    
     // create the tap-device
-    int tun_fd = tun_open(tun_name, TUNTAP_INTERFACE);
+    // only in the gateway the first argument should be != 0
+    int tun_fd = tunOpen(CLIENT_NO, tun_name);
     if (tun_fd < 1) {
         printf("Could not create tunnel device. Fatal.\n");
         return 1;
@@ -149,7 +163,7 @@ int main(int argc, char** argv) {
     }
     fflush(stdout);
     struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp, .mcomm = mcp->getComm(mcp)};
-    fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t){
+    fdg.setHandler(&fdg,sif->fd(sif),FDGHT_READ,(fdglue_handler_t) {
             .p = mcp,
                 .handle = serialReceive},FDGHR_APPEND);
     fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){

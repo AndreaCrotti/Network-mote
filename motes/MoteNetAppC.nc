@@ -39,9 +39,12 @@ implementation{
 
     components IPDispatchC;
     MoteNetAppP.RadioControl -> IPDispatchC;
-    MoteNetAppP.IP -> IPDispatchC.IP[13];
+    MoteNetAppP.IP -> IPDispatchC.IP[15];
     MoteNetAppP.IPAddress -> IPDispatchC;
     
     components Ieee154MessageC as Radio;
     MoteNetAppP.RadioSend -> Radio;
+
+    components new TimerMilliC() as Timer;
+    MoteNetAppP.Timer -> Timer;
 }

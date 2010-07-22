@@ -1,10 +1,4 @@
-/*******************************************************************************/
-/* tunnel.c                                                                    */
-/*                                                                             */
-/* This file contains a new and simple implementation for the tun/tap drivers  */
-/* WITH COMMENTS!                                                              */
-/*******************************************************************************/
-// Probably is not needed to use a socket at all, we can setup everything in a script
+// TODO: add a free function to reset everything
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,33 +14,47 @@
 #include <arpa/inet.h>  
 #include <net/route.h>
 #include <signal.h>
+#include <assert.h>
 
 #include "tunnel.h"
+#include "structs.h"
+
+#define TUN_DEV "/dev/net/tun"
 
 // The name of the interface 
-char *ifname;
+char ifname[IFNAMSIZ];
+
+// all possible tun_devices
+static tundev tun_devices[MAX_CLIENTS];
+static int flags;
+
+char *fetch_from_queue(write_queue *queue);
+void add_to_queue(write_queue *queue, char *element);
+int is_writable(int fd);
+int *get_fd(int client_no);
 
 /** 
- * Creates a new tun/tap device, or connects to a already existent one depending
- * on the arguments.
+ * Setup the flags, basically if using TUN or TAP device
  * 
- * @param dev The name of the device to connect to or '\0' when a new device should be
- *            should be created.
- * @param flags IFF_TUN of IFF_TAP, depending on whether tun or tap should be used.
- *              Additionally IFF_NO_PI can be set.
- * 
- * @return Error-code.
+ * @param tun_flags 
  */
-int tun_open(char *dev, int flags){
-    
+void tunSetup(int tun_flags) {
+    flags = tun_flags;
+}
+
+// TODO: remove the need of *dev also, this should be tun_new and always \0
+// FIXME: should it ever connect to the same device twice?
+int tunOpen(int client_no, char *dev) {
     struct ifreq ifr;
-    int fd, err;
-    char *clonedev = "/dev/net/tun";
+    int err;
+    char *clonedev = TUN_DEV;
+    int *fd = get_fd(client_no);
     
     // Open the clone device
-    if( (fd = open(clonedev , O_RDWR)) < 0 ) {
+    // FIXME: why do we return the fd even if the open is not correctly done??
+    if( (*fd = open(clonedev , O_RDWR)) < 0 ) {
         perror("Opening /dev/net/tun");
-        return fd;
+        return *fd;
     }
     
     // prepare ifr
@@ -55,13 +63,13 @@ int tun_open(char *dev, int flags){
     ifr.ifr_flags = flags;
 
     // If a device name was specified it is put to ifr
-    if(*dev){
+    if (*dev) {
         strncpy(ifr.ifr_name, dev, IFNAMSIZ);
     }
 
     // Try to create the device
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
-        close(fd);
+    if( (err = ioctl(*fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+        close(*fd);
         perror("Creating the device");
         return err;
     }
@@ -69,23 +77,18 @@ int tun_open(char *dev, int flags){
     // Write the name of the new interface to device
     strcpy(dev, ifr.ifr_name);
 
-    // allocate 10 Bytes for the interface name
-    ifname = malloc(10);
+    // Set the global ifname variable 
+    memcpy(ifname, dev, IFNAMSIZ);
 
-    return fd;
+    return *fd;
 }
 
-/** 
- * Reads data from the tunnel and exits if a error occurred.
- * 
- * @param fd The tunnel device.
- * @param buf This is where the read data are written.
- * @param length maximum number of bytes to read.
- * 
- * @return number of bytes read.
- */
-int tun_read(int fd, char *buf, int length){
-    
+int *get_fd(int client_no) {
+    return &(tun_devices[client_no].fd);
+}
+
+int tunRead(int client_no, char *buf, int length){
+    int fd = *(get_fd(client_no));
     int nread;
 
     if((nread = read(fd, buf, length)) < 0){
@@ -114,3 +117,85 @@ int tun_write(int fd, char *buf, int length){
     }
     return nwrite;
 }
+
+void addToWriteQueue(int client_no, char *buf, int len) {
+    int fd = tun_devices[client_no].fd;
+    // add the message to the queue
+    write_queue *queue = &(tun_devices[client_no].queue);
+    add_to_queue(queue, buf);
+    // now use a select to try to send out everything
+    
+    // try to send out as many messages as possible
+    char *message;
+    // quit immediately the loop if we sent everything or is not writable
+    while (1) {
+        message = fetch_from_queue(queue);
+        if (!message)
+            break;
+        
+        if (is_writable(fd))
+            tun_write(fd, buf, len);
+        else
+            break;
+    }
+ }
+
+/** 
+ * Check if the device is ready for writing
+ * 
+ * @param fd file descriptor to check
+ */
+int is_writable(int fd) {
+   fd_set fds;
+   struct timeval timeout = {.tv_sec = 3, .tv_usec = 0};
+   int rc, result;
+   FD_ZERO(&fds);
+   FD_SET(fd, &fds);
+   
+   // nds must be greater than any other
+   rc = select(fd + 1, NULL, &fds, NULL, &timeout);
+   return FD_ISSET(fd,&fds) ? 1 : 0;
+}
+
+
+/**
+ * Adding element, managing a full queue with assertion (because it should not happen)
+ * 
+ * @param queue queue to add to
+ * @param element element to add to the queue
+ */
+void add_to_queue(write_queue *queue, char *element) {
+    int pos = (queue->head + 1) % MAX_QUEUED;
+    // this mean that the queue is full!
+    assert(pos != queue->bottom);
+    queue->messages[pos] = element;
+    queue->head = pos;
+}
+
+/** 
+ * @param queue queue
+ * 
+ * @return the first element inserted into the queue or NULL if not found
+ */
+char *fetch_from_queue(write_queue *queue) {
+    if (queue->head != queue->bottom) {
+        queue->bottom--;
+        // mm maybe another variable is better here
+        return queue->messages[queue->bottom + 1];
+    }
+    return NULL;
+}
+
+#ifdef STANDALONE
+
+// testing the creation and writing/reading from with the tunnel
+int main(int argc, char *argv[]) {
+    // setup a tun device and then work with it
+
+}
+
+void test_tun_write(void) {
+    
+}
+
+#endif

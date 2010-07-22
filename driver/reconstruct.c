@@ -4,7 +4,6 @@
 #include "reconstruct.h"
 #include "chunker.h"
 #include "tunnel.h"
-#include "variables.h"
 
 // TODO: check that all the types are actually correct
 // TODO: (if there is time) add multiclient support (reading the source and create temp structure for both)
@@ -39,7 +38,10 @@ myPacketHeader *get_header(ipv6Packet *ip6_pkt);
 static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 
-// pass a callback function to send somewhere else the messages when they're over
+/** 
+ * Initializing the reconstruction module
+ * 
+ */
 void initReconstruction(void) { // (*callback)(ipv6Packet *completed)) {
     if (DEBUG)
         printf("initializing the reconstruction\n");
@@ -59,6 +61,7 @@ void initReconstruction(void) { // (*callback)(ipv6Packet *completed)) {
  * @param data 
  */
 void addChunk(void *data) {
+    // casting the structure to the original type
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
     memcpy(original, data, sizeof(ipv6Packet));
     int seq_no = get_seq_no(original);

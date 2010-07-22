@@ -20,6 +20,7 @@
 #error "Unsupported tun/tap interface."
 #endif
 
+#define MAX_CLIENTS 10
 
 #include <ip.h>
 
