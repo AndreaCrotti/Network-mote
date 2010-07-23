@@ -1,5 +1,3 @@
-#ifdef STANDALONE
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -37,11 +35,12 @@ int main() {
         count++;
     } while (chunks_left);
     
-    initReconstruction();
+    //TODO: use callback
+    initReconstruction(0);
     printf("sizeof %d\n", sizeof(myPacketHeader) + MAX_CARRIED);
 
     for (int i = 0; i < count; i++) {
-        addChunk((void *) &(p[i]));
+        // FIXME: addChunk((void *) &(p[i]));
         /* printf("%d, %d\n", get_seq_no(&p[i]), get_ord_no(&p[i])); */
     }
     
@@ -55,5 +54,3 @@ int main() {
     // supposing now we have the right array of packets there
     return 0;
 }
-
-#endif //STANDALONE

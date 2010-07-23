@@ -72,9 +72,6 @@ reconstruct: reconstruct.c
 split: split_reconstruct.c
 	$(CC) chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DSTANDALONE -o split_rec split_reconstruct.c
 
-tunnel: tunnel.c
-	$(CC) $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DSTANDALONE -o tunnel tunnel.c
-
 
 tuntest.dbg: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg
