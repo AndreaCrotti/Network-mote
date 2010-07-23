@@ -39,7 +39,6 @@ typedef struct in6_addr in6_dst;
 typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct ip6_hdr ip6_hdr;
 
-// TODO: add another field to keep the total number of parts needed
 // also the internal struct should be packed
 typedef struct myPacketHeader {
     uint8_t seq_no;
@@ -47,7 +46,6 @@ typedef struct myPacketHeader {
     uint8_t parts;
 } __attribute__((__packed__)) myPacketHeader;
 
-// FIXME: ipv6 header is not needed inside here anymore
 // only the final ipv6 packet must be "__packed__".
 typedef struct ipv6Packet {
     // sent data ...
