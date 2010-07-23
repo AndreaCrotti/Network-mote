@@ -208,7 +208,7 @@ void test_last();
 // doing some simple testing
 int main(int argc, char *argv[]) {
     // give it a real function
-    initReconstruction(NULL);
+    initReconstruction();
     ipv6Packet *pkt = calloc(num_packets, sizeof(ipv6Packet));
     
     // create some fake payload to create correctly the payload
