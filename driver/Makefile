@@ -51,9 +51,6 @@ hostname.h: hostname.sh
 #### DEBUG ####
 
 # whatever changes we have to recompile the tests
-test: *.c
-	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG
-
 reconstruct: reconstruct.c
 	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
@@ -82,6 +79,10 @@ clean:
 	@echo "Cleaning."
 	@rm *.o hostname.h tuntest > /dev/null 2>&1
 
+# we also need all the object EXCEPT client.o
+test: *.c
+	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE
+
 diag:
 	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE)
 
@@ -95,4 +96,4 @@ autogen: hostname.h
 
 force: clean tuntest
 
-.PHONY: clean diag force autogen run ping $(EXTRAPHONIES)
+.PHONY: clean diag force autogen run ping test $(EXTRAPHONIES)
