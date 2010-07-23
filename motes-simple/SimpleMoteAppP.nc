@@ -1,5 +1,5 @@
 #include "SimpleMoteApp.h"
-#include "../shared/structs.h"
+//#include "../shared/structs.h"
 
 module SimpleMoteAppP{
     uses{
@@ -64,17 +64,26 @@ implementation{
     event void SerialControl.stopDone(error_t err){}
 
     event void SerialSend.sendDone(message_t* m, error_t err){
-        serialBlink();
+        //serialBlink();
     }
     
-    event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len){
-        if(len < sizeof(struct ipv6PacketHeader)){
-            failBlink();
-            return m;
-        }
+    am_addr_t sR_dest;
+    message_t* sR_m;
+    uint8_t sR_len;
+    task void sendRadio(){
+        call RadioSend.send(sR_dest, sR_m, sR_len);
+    }
 
+    event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len){
+
+        /* if(len < sizeof(struct ipv6PacketHeader)){ */
+        /*     failBlink(); */
+        /*     return m; */
+        /* } */
+        
         // broadcast the message over the radio
-        call RadioSend.send(AM_BROADCAST_ADDR, m, len);
+        sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
+        post sendRadio();
 
         return m;
     }
@@ -84,14 +93,14 @@ implementation{
     event void RadioControl.stopDone(error_t err){}
 
     event void RadioSend.sendDone(message_t* m, error_t err){
-        radioBlink();
+        //radioBlink();
     }
     
     event message_t* RadioReceive.receive(message_t* m, void* payload, uint8_t len){
-        if(len < sizeof(struct ipv6PacketHeader)){
-            failBlink();
-            return m;
-        }
+        /* if(len < sizeof(struct ipv6PacketHeader)){ */
+        /*     failBlink(); */
+        /*     return m; */
+        /* } */
 
         // Just forward the message over the serial device
         call SerialSend.send(AM_BROADCAST_ADDR, m, len);

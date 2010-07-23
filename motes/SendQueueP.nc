@@ -15,6 +15,9 @@ generic module SendQueueP(uint8_t message_length) {
         interface AMPacket;
         // The tinyOS queue implementations
         interface Queue<message_t*> as Queue;
+
+        // For testing
+        interface Leds;
     }
     provides {
         // The sending interface that is provided
@@ -51,6 +54,8 @@ implementation{
      * otherwise.
      */
     command error_t AMSend.send(am_addr_t dest, message_t* msg, uint8_t len){
+        call Leds.led2Toggle();
+
         // Write the destination into the message header
         call AMPacket.setDestination(msg, dest);
         
