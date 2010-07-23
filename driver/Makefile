@@ -15,6 +15,7 @@ FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
 OBJECTS := $(patsubst %.c, %.o, $(wildcard *.c))
+OBJECTS_NOMAIN := $(patsubst %.o, %.test.o, $(patsubst client.o, ,$(OBJECTS)))
 NOPS =
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
@@ -37,6 +38,10 @@ $(OBJECTS): %.o: %.c %.h $(HEADERS)
 	@echo    "Compiling <$@>."
 	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
 
+$(OBJECTS_NOMAIN): %.test.o: %.c %.h $(HEADERS)
+	@echo    "Compiling <$@>."
+	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
+
 $(NOPS): %.o: %.c %.h
 	@echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
 
@@ -51,9 +56,6 @@ hostname.h: hostname.sh
 #### DEBUG ####
 
 # whatever changes we have to recompile the tests
-test: *.c
-	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG
-
 reconstruct: reconstruct.c
 	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
@@ -82,8 +84,12 @@ clean:
 	@echo "Cleaning."
 	@rm *.o hostname.h tuntest > /dev/null 2>&1
 
+# we also need all the object EXCEPT client.o
+test: *.c
+	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) $(OBJECTS_NOMAIN) -DSTANDALONE
+
 diag:
-	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE)
+	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE) OBJECTS: $(OBJECTS) OBJECTS_NOMAIN: $(OBJECTS_NOMAIN)
 
 run:
 	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
@@ -95,4 +101,4 @@ autogen: hostname.h
 
 force: clean tuntest
 
-.PHONY: clean diag force autogen run ping $(EXTRAPHONIES)
+.PHONY: clean diag force autogen run ping test $(EXTRAPHONIES)

@@ -29,8 +29,19 @@ typedef struct {
  */
 void initReconstruction(void); //void (*callback)(ipv6Packet *completed));
 
+/** 
+ * Adding a new chunk of data
+ * 
+ * @param data 
+ */
 void addChunk(void *data);
 
+
+/** 
+ * @param seq_no sequential number of the packet
+ * 
+ * @return pointer to the chunks
+ */
 stream_t *getChunks(int seq_no);
 
 #endif
