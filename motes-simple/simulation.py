@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-
 """
-TODO: instead of just printing to debug can I get and parse the output from the program?
-TODO: add a nice section to work with avrora, jython would be perfect to call it directly
-
 Usage:
 Run normally "python simulation.py", wait that the motes are booted and then, pressing C-c it will ask interactively to build a packet and will send it over the serial channel
 ow the instructions
@@ -149,6 +145,10 @@ class Simulation(object):
         for c in channels:
             self.add_channel(c)
 
+    def single_node(self):
+        print "adding a simple lonely node"
+        self.add_node(0)
+        
     def process(self):
         if not(self.test):
             self.sf.process()
@@ -409,13 +409,15 @@ class Simulation(object):
 
 if __name__ == '__main__':
     sim = Simulation(SERIAL_PORT, CHANNELS)
-    topo_file = "topo.txt"
+    # topo_file = "topo.txt"
 
-    if len(sys.argv) == 2:
-        # TODO: use some automated testing stuff if possible
-        topo_file = sys.argv[1]
+    # if len(sys.argv) == 2:
+    #     # TODO: use some automated testing stuff if possible
+    #     topo_file = sys.argv[1]
     
     # TODO: only creates the number of nodes present our file
-    sim.make_topology(topo_file)
-    sim.setup_noise("noise.txt")
+    # sim.make_topology(topo_file)
+    # sim.setup_noise("noise.txt")
+    sim.single_node()
     sim.start()
+

@@ -56,6 +56,9 @@ implementation{
      * When the device is booted, the radio and the serial device are initialized.
      */
     event void Boot.booted(){
+#ifdef TOSSIM
+        dbg("Boot", "starting the application\n");
+#endif
         call RadioControl.start();
         call SerialControl.start();
     }
@@ -93,6 +96,9 @@ implementation{
     event void RadioControl.stopDone(error_t err){}
 
     event void RadioSend.sendDone(message_t* m, error_t err){
+#ifdef TOSSIM
+        dbg("Radio", "received a radio message");
+#endif
         //radioBlink();
     }
     
@@ -101,7 +107,7 @@ implementation{
         /*     failBlink(); */
         /*     return m; */
         /* } */
-
+        
         // Just forward the message over the serial device
         call SerialSend.send(AM_BROADCAST_ADDR, m, len);
 
