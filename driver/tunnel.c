@@ -1,10 +1,4 @@
-/*******************************************************************************/
-/* tunnel.c                                                                    */
-/*                                                                             */
-/* This file contains a new and simple implementation for the tun/tap drivers  */
-/* WITH COMMENTS!                                                              */
-/*******************************************************************************/
-// Probably is not needed to use a socket at all, we can setup everything in a script
+// TODO: add a free function to reset everything
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,37 +20,47 @@
 #include "structs.h"
 
 #define TUN_DEV "/dev/net/tun"
+#define NEXT(x) ((x + 1) % MAX_QUEUED)
+
 
 // The name of the interface 
 char ifname[IFNAMSIZ];
 
 // all possible tun_devices
-tundev tun_devices[MAX_CLIENTS];
+static tundev tun_devices[MAX_CLIENTS];
+static int flags;
 
 char *fetch_from_queue(write_queue *queue);
 void add_to_queue(write_queue *queue, char *element);
-
+int queue_empty(write_queue *queue);
+int queue_full(write_queue *queue);
+int is_writable(int fd);
+int *get_fd(int client_no);
+void delete_last(write_queue *queue);
 
 /** 
- * Creates a new tun/tap device, or connects to a already existent one depending
- * on the arguments.
+ * Setup the flags, basically if using TUN or TAP device
  * 
- * @param dev The name of the device to connect to or '\0' when a new device should be
- *            should be created.
- * @param flags IFF_TUN of IFF_TAP, depending on whether tun or tap should be used.
- *              Additionally IFF_NO_PI can be set.
- * 
- * @return Error-code.
+ * @param tun_flags 
  */
-// TODO: flags could maybe moved away somewhere?
-int tun_open(int client_no, char *dev, int flags) {
+void tunSetup(int tun_flags) {
+    flags = tun_flags;
+    // setup the queue for each of the clients
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        tun_devices[i].queue.first = 0;
+        tun_devices[i].queue.last = 0;
+    }
+}
+
+// TODO: remove the need of *dev also, this should be tun_new and always \0
+// FIXME: should it ever connect to the same device twice?
+int tunOpen(int client_no, char *dev) {
     struct ifreq ifr;
     int err;
     char *clonedev = TUN_DEV;
-    int *fd = &(tun_devices[client_no].fd);
+    int *fd = get_fd(client_no);
     
     // Open the clone device
-    // FIXME: why do we return the fd even if the open is not correctly done??
     if( (*fd = open(clonedev , O_RDWR)) < 0 ) {
         perror("Opening /dev/net/tun");
         return *fd;
@@ -73,7 +77,7 @@ int tun_open(int client_no, char *dev, int flags) {
     }
 
     // Try to create the device
-    if( (err = ioctl(*fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+    if( (err = ioctl(*fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
         close(*fd);
         perror("Creating the device");
         return err;
@@ -88,17 +92,12 @@ int tun_open(int client_no, char *dev, int flags) {
     return *fd;
 }
 
-/** 
- * Reads data from the tunnel and exits if a error occurred.
- * 
- * @param fd The tunnel device.
- * @param buf This is where the read data are written.
- * @param length maximum number of bytes to read.
- * 
- * @return number of bytes read.
- */
-int tun_read(int fd, char *buf, int length){
-    
+int *get_fd(int client_no) {
+    return &(tun_devices[client_no].fd);
+}
+
+int tunRead(int client_no, char *buf, int length){
+    int fd = *(get_fd(client_no));
     int nread;
 
     if((nread = read(fd, buf, length)) < 0){
@@ -120,43 +119,135 @@ int tun_read(int fd, char *buf, int length){
 int tun_write(int fd, char *buf, int length){
     int nwrite;
     
+    // should not exit directly here maybe?
     //TODO: Maybe send is better here
-    if((nwrite=write(fd, buf, length)) < 0){
+    if((nwrite = write(fd, buf, length)) < 0){
         perror("Writing data");
         exit(1);
     }
+
     return nwrite;
 }
 
-// every time I add something I try to write out everything
+void tunWriteNoQueue(int client_no, char *buf, int len) {
+    int fd = *get_fd(client_no);
+    // use some simple error checking here instead
+    assert(tun_write(fd, buf, len) == len);
+}
+
 void addToWriteQueue(int client_no, char *buf, int len) {
-    int fd = tun_devices[client_no].fd;
+    int fd = *get_fd(client_no);
+    // add the message to the queue
     write_queue *queue = &(tun_devices[client_no].queue);
     add_to_queue(queue, buf);
+    /* printf("now queue %d <-> %d\n", queue->first, queue->last); */
     // now use a select to try to send out everything
     
+    // try to send out as many messages as possible
     char *message;
-    do {
+    // quit immediately the loop if we sent everything or is not writable
+    while (1) {
         message = fetch_from_queue(queue);
-        // TODO: now check with a select if we can write and call
-    } while (message);
-}
-
-// add one element to the queue
-void add_to_queue(write_queue *queue, char *element) {
-    int pos = (queue->head + 1) % MAX_QUEUED;
-    // this mean that the queue is full!
-    assert(pos != queue->bottom);
-    queue->messages[pos] = element;
-    queue->head = pos;
-}
-
-char *fetch_from_queue(write_queue *queue) {
-    if (queue->head == queue->bottom)
-        return NULL;
-    else {
-        queue->bottom--;
-        // mm maybe another variable is better here
-        return queue->messages[queue->bottom + 1];
+        if (!message)
+            break;
+        
+        if (is_writable(fd)) {
+            int nwrite = tun_write(fd, buf, len);
+            /* printf("wrote %d bytes\n", nwrite); */
+            if (nwrite) {
+                // otherwise means partially written data
+                assert(nwrite == len);
+                // only now we can remove it from the queue
+                delete_last(queue);
+            }
+        }
+        else
+            break;
     }
+ }
+
+/** 
+ * Check if the device is ready for writing
+ * 
+ * @param fd file descriptor to check
+ */
+int is_writable(int fd) {
+   fd_set fds;
+   struct timeval timeout = {.tv_sec = 3, .tv_usec = 0};
+   int rc;
+   FD_ZERO(&fds);
+   FD_SET(fd, &fds);
+   
+   // is this fd+1 exactly what we need here?
+   rc = select(fd + 1, NULL, &fds, NULL, &timeout);
+   return FD_ISSET(fd,&fds) ? 1 : 0;
 }
+
+
+/**
+ * Adding element, managing a full queue with assertion (because it should not happen)
+ * 
+ * @param queue queue to add to
+ * @param element element to add to the queue
+ */
+void add_to_queue(write_queue *queue, char *element) {
+    assert(!queue_full(queue));
+    /* printf("adding %s to the queue\n", element); */
+    queue->messages[queue->last] = element;
+    // going forward of one position
+    queue->last = NEXT(queue->last);
+}
+
+int queue_full(write_queue *queue) {
+    return (NEXT(queue->last) == (queue->first));
+}
+
+int queue_empty(write_queue *queue) {
+    return (queue->first == queue->last);
+}
+
+/** 
+ * @param queue queue
+ * 
+ * @return the first element inserted into the queue or NULL if not found
+ */
+char *fetch_from_queue(write_queue *queue) {
+    if (!queue_empty(queue))
+         return queue->messages[queue->first];
+
+    return NULL;
+}
+
+void delete_last(write_queue *queue) {
+    queue->first = NEXT(queue->first);
+}
+
+#ifdef STANDALONE
+#include <linux/if_tun.h>
+
+// testing the creation and writing/reading from with the tunnel
+int main(int argc, char *argv[]) {
+    // setup a tun device and then work with it
+    int client = 0;
+    tunSetup(IFF_TUN);
+    char tun_name[IFNAMSIZ];
+    tun_name[0] = 0;
+    char buff[10] = "ciao ciao\0";
+    // tunnel for client 0 created correctly
+    if (tunOpen(client, tun_name)) {
+        for (int i = 0; i < 100; i++) {
+            addToWriteQueue(client, buff, 10);
+        }
+    } else {
+        printf("not possible to create the tunnel\n");
+    }
+    // in the end I want to make sure it's empty
+    write_queue *queue = &(tun_devices[client].queue);
+    assert(queue_empty(queue));
+}
+
+void test_tun_write(void) {
+    
+}
+
+#endif

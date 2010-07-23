@@ -8,7 +8,7 @@ STD = -std=c99
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED)
 # this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
 LOW6PAN_CARRIED=102
-CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED)
+CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT
 WARN = -Wall -Wextra
 DEBUG = -ggdb -O0 -pg
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
@@ -21,35 +21,48 @@ EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
 SRC = client.c
 EXTRAPHONIES = 
 
+
+#TIME := time -f '\t%E' --
+TIME := 
+
 #### RULES ####
 
 all: autogen tuntest $(NOPS)
 
 tuntest: $(OBJECTS)
-	$(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
+	@echo "Linking <$@>."
+	@$(TIME) $(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
 $(OBJECTS): %.o: %.c %.h $(HEADERS)
-	$(CC) $(FLAGS) -c $< -o $@
+	@echo    "Compiling <$@>."
+	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
 
 $(NOPS): %.o: %.c %.h
-	echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
+	@echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
 
 
 #### OTHER ####
 
 hostname.h: hostname.sh
-	bash hostname.sh
+	@echo "Creating <hostname.h>."
+	@bash hostname.sh
 
 
 #### DEBUG ####
 
+# whatever changes we have to recompile the tests
+test: *.c
+	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG
+
 reconstruct: reconstruct.c
 	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
 
-variables.o: variables.c
+split: split_reconstruct.c
+	$(CC) chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DSTANDALONE -o split_rec split_reconstruct.c
 
-split_rec: test_split_reconstruct.c variables.o
-	$(CC) variables.o chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DTEST -o split_rec test_split_reconstruct.c
+tunnel: tunnel.c
+	$(CC) $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DSTANDALONE -o tunnel tunnel.c
+
 
 tuntest.dbg: $(OBJECTS) client.c
 	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg
@@ -66,13 +79,14 @@ motecomm: motecomm.c motecomm.h motecomm.sizes.h
 
 #### PHONIES ####
 clean:
-	rm *.o hostname.h tuntest > /dev/null 2>&1 ; echo cleaned.
+	@echo "Cleaning."
+	@rm *.o hostname.h tuntest > /dev/null 2>&1
 
 diag:
 	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE)
 
 run:
-	motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
+	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
 
 ping:
 	ping -fbi 0.1 10.0.0.2
@@ -82,4 +96,3 @@ autogen: hostname.h
 force: clean tuntest
 
 .PHONY: clean diag force autogen run ping $(EXTRAPHONIES)
-.SILENT: clean $(NOPS)
