@@ -119,8 +119,9 @@ int tunRead(int client_no, char *buf, int length){
 int tun_write(int fd, char *buf, int length){
     int nwrite;
     
+    // should not exit directly here maybe?
     //TODO: Maybe send is better here
-    if((nwrite=write(fd, buf, length)) < 0){
+    if((nwrite = write(fd, buf, length)) < 0){
         perror("Writing data");
         exit(1);
     }
@@ -128,8 +129,14 @@ int tun_write(int fd, char *buf, int length){
     return nwrite;
 }
 
+void tunWriteNoQueue(int client_no, char *buf, int len) {
+    int fd = *get_fd(client_no);
+    // use some simple error checking here instead
+    assert(tun_write(fd, buf, len) == len);
+}
+
 void addToWriteQueue(int client_no, char *buf, int len) {
-    int fd = tun_devices[client_no].fd;
+    int fd = *get_fd(client_no);
     // add the message to the queue
     write_queue *queue = &(tun_devices[client_no].queue);
     add_to_queue(queue, buf);

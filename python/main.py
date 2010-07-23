@@ -208,6 +208,8 @@ class Merger(object):
     def add(self, packet):
         "Add a new packet, manipulating the dictionaries"
         # make it more automatic, don't have to call this from here
+        # TODO: this for example is bad for testing
+        # we want to test every possible thing separated from the other one
         head = Packer(*MyPacket.HEADER)
         un = UnPacket(head, str(packet))
         seq_no, ord_no, parts, chk, data = un.unpack()

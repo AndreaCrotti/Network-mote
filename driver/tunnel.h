@@ -59,6 +59,16 @@ int tunRead(int client_no, char *buf, int n);
 void addToWriteQueue(int client_no, char *buf, int len);
 
 /** 
+ * Write on tun device without using the fancy queue
+ * 
+ * @param client_no client connected
+ * @param buf buffer to send 
+ * @param len length of the buffer
+ */
+void tunWriteNoQueue(int client_no, char *buf, int len);
+
+
+/** 
  * Setup the tunnel module
  * 
  * @param tun_flags IFF_TUN or IFF_TAP basically for tun/tap devices
