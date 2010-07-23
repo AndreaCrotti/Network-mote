@@ -1,4 +1,5 @@
 #include "SimpleMoteApp.h"
+#include "../shared/structs.h"
 
 module SimpleMoteAppP{
     uses{
@@ -55,8 +56,8 @@ implementation{
      * When the device is booted, the radio and the serial device are initialized.
      */
     event void Boot.booted(){
-        /* call RadioControl.start(); */
-        /* call SerialControl.start(); */
+        call RadioControl.start();
+        call SerialControl.start();
     }
 
     event void SerialControl.startDone(error_t err){}
@@ -67,6 +68,14 @@ implementation{
     }
     
     event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len){
+        if(len < sizeof(struct ipv6PacketHeader)){
+            failBlink();
+            return m;
+        }
+
+        // broadcast the message over the radio
+        call RadioSend.send(AM_BROADCAST_ADDR, m, len);
+
         return m;
     }
 
@@ -79,6 +88,14 @@ implementation{
     }
     
     event message_t* RadioReceive.receive(message_t* m, void* payload, uint8_t len){
+        if(len < sizeof(struct ipv6PacketHeader)){
+            failBlink();
+            return m;
+        }
+
+        // Just forward the message over the serial device
+        call SerialSend.send(AM_BROADCAST_ADDR, m, len);
+
         return m;
     }
 }
