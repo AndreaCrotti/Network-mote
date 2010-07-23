@@ -14,8 +14,10 @@ DEBUG = -ggdb -O0 -pg
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
-OBJECTS := $(patsubst %.c, %.o, $(wildcard *.c))
-OBJECTS_NOMAIN := $(patsubst %.o, %.test.o, $(patsubst client.o, ,$(OBJECTS)))
+CODEFILES := $(patsubst %.test.c, , $(wildcard *.c))
+OBJECTS := $(patsubst %.c, %.o, $(CODEFILES))
+OBJECTS_NOMAIN := $(patsubst client.o, ,$(OBJECTS))
+TEST_TARGETS := $(patsubst %.test.c, tests/%, $(wildcard *.test.c))
 NOPS =
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
@@ -31,16 +33,17 @@ TIME :=
 all: autogen tuntest $(NOPS)
 
 tuntest: $(OBJECTS)
-	@echo "Linking <$@>."
+	@echo "Linking executable file <$@>."
 	@$(TIME) $(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
 $(OBJECTS): %.o: %.c %.h $(HEADERS)
-	@echo    "Compiling <$@>."
+	@echo    "Compiling object file <$@>."
 	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
 
-$(OBJECTS_NOMAIN): %.test.o: %.c %.h $(HEADERS)
-	@echo    "Compiling <$@>."
-	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
+$(TEST_TARGETS): tests/%: %.test.c $(OBJECTS_NOMAIN)
+	@echo "Linking test executable file <$@>."
+	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
+
 
 $(NOPS): %.o: %.c %.h
 	@echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
@@ -75,18 +78,15 @@ tuntest.pre: $(OBJECTS) client.c
 motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 	$(CC) $(FLAGS) -c motecomm.c -E -o motecomm.pre
 
-motecomm: motecomm.c motecomm.h motecomm.sizes.h
-	$(CC) $(FLAGS) -DSTANDALONE motecomm.c util.o $(EXTERNALS) -o motecomm
-
 
 #### PHONIES ####
 clean:
 	@echo "Cleaning."
-	@rm *.o hostname.h tuntest > /dev/null 2>&1
+	@rm *.o hostname.h tuntest $(TEST_TARGETS) > /dev/null 2>&1; true
 
-# we also need all the object EXCEPT client.o
-test: *.c
-	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) $(OBJECTS_NOMAIN) -DSTANDALONE
+tests: $(TEST_TARGETS)
+	@$(patsubst %, LAST_TEST='%' && echo "Running test file <$$LAST_TEST>." && ./$$LAST_TEST &&, $(TEST_TARGETS)) true
+
 
 diag:
 	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE) OBJECTS: $(OBJECTS) OBJECTS_NOMAIN: $(OBJECTS_NOMAIN)
@@ -101,4 +101,4 @@ autogen: hostname.h
 
 force: clean tuntest
 
-.PHONY: clean diag force autogen run ping test $(EXTRAPHONIES)
+.PHONY: clean diag force autogen run ping test tests $(EXTRAPHONIES)
