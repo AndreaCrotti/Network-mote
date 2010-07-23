@@ -15,7 +15,7 @@ FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
 OBJECTS := $(patsubst %.c, %.o, $(wildcard *.c))
-OBJECTS_NOMAIN := $(patsubst client.o, ,$(OBJECTS))
+OBJECTS_NOMAIN := $(patsubst %.o, %.test.o, $(patsubst client.o, ,$(OBJECTS)))
 NOPS =
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
@@ -35,6 +35,10 @@ tuntest: $(OBJECTS)
 	@$(TIME) $(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
 
 $(OBJECTS): %.o: %.c %.h $(HEADERS)
+	@echo    "Compiling <$@>."
+	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
+
+$(OBJECTS_NOMAIN): %.test.o: %.c %.h $(HEADERS)
 	@echo    "Compiling <$@>."
 	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
 
