@@ -132,7 +132,8 @@ int tun_write(int fd, char *buf, int length){
 void tunWriteNoQueue(int client_no, char *buf, int len) {
     int fd = *get_fd(client_no);
     // use some simple error checking here instead
-    assert(tun_write(fd, buf, len) == len);
+    int sent = tun_write(fd, buf, len);
+    assert(sent == len);
 }
 
 void addToWriteQueue(int client_no, char *buf, int len) {
@@ -146,25 +147,17 @@ void addToWriteQueue(int client_no, char *buf, int len) {
     // try to send out as many messages as possible
     char *message;
     // quit immediately the loop if we sent everything or is not writable
-    while (1) {
-        message = fetch_from_queue(queue);
-        if (!message)
-            break;
-        
-        if (is_writable(fd)) {
-            int nwrite = tun_write(fd, buf, len);
-            /* printf("wrote %d bytes\n", nwrite); */
-            if (nwrite) {
-                // otherwise means partially written data
-                assert(nwrite == len);
-                // only now we can remove it from the queue
-                delete_last(queue);
-            }
+    while ((message = fetch_from_queue(queue)) && is_writable(fd)) {
+        int nwrite = tun_write(fd, buf, len);
+        /* printf("wrote %d bytes\n", nwrite); */
+        if (nwrite) {
+            // otherwise means partially written data
+            assert(nwrite == len);
+            // only now we can remove it from the queue
+            delete_last(queue);
         }
-        else
-            break;
     }
- }
+}
 
 /** 
  * Check if the device is ready for writing

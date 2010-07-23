@@ -6,7 +6,6 @@
 #include "tunnel.h"
 
 // TODO: check that all the types are actually correct
-// TODO: (if there is time) add multiclient support (reading the source and create temp structure for both)
 // TODO: check with valgrind
 
 // a simple function is not enough, we need an "object" which keeps the state
