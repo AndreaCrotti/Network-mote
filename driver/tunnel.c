@@ -35,7 +35,7 @@ void add_to_queue(write_queue *queue, char *element);
 int queue_empty(write_queue *queue);
 int queue_full(write_queue *queue);
 int is_writable(int fd);
-int *get_fd(int client_no);
+void set_fd(int client_no, int fd);
 void delete_last(write_queue *queue);
 
 /** 
@@ -58,13 +58,15 @@ int tunOpen(int client_no, char *dev) {
     struct ifreq ifr;
     int err;
     char *clonedev = TUN_DEV;
-    int *fd = get_fd(client_no);
+    int fd;
     
     // Open the clone device
-    if( (*fd = open(clonedev , O_RDWR)) < 0 ) {
+    fd = open(clonedev , O_RDWR);
+    if (fd < 0) {
         perror("Opening /dev/net/tun");
-        return *fd;
+        exit(1);
     }
+    set_fd(client_no, fd);
     
     // prepare ifr
     memset(&ifr, 0, sizeof(ifr));
@@ -77,8 +79,8 @@ int tunOpen(int client_no, char *dev) {
     }
 
     // Try to create the device
-    if( (err = ioctl(*fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
-        close(*fd);
+    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
+        close(fd);
         perror("Creating the device");
         return err;
     }
@@ -89,15 +91,19 @@ int tunOpen(int client_no, char *dev) {
     // Set the global ifname variable 
     memcpy(ifname, dev, IFNAMSIZ);
 
-    return *fd;
+    return 1;
 }
 
-int *get_fd(int client_no) {
-    return &(tun_devices[client_no].fd);
+int getFd(int client_no) {
+    return tun_devices[client_no].fd;
+}
+
+void set_fd(int client_no, int fd) {
+    tun_devices[client_no].fd = fd;
 }
 
 int tunRead(int client_no, char *buf, int length){
-    int fd = *(get_fd(client_no));
+    int fd = getFd(client_no);
     int nread;
 
     if((nread = read(fd, buf, length)) < 0){
@@ -130,14 +136,14 @@ int tun_write(int fd, char *buf, int length){
 }
 
 void tunWriteNoQueue(int client_no, char *buf, int len) {
-    int fd = *get_fd(client_no);
+    int fd = getFd(client_no);
     // use some simple error checking here instead
     int sent = tun_write(fd, buf, len);
     assert(sent == len);
 }
 
 void addToWriteQueue(int client_no, char *buf, int len) {
-    int fd = *get_fd(client_no);
+    int fd = getFd(client_no);
     // add the message to the queue
     write_queue *queue = &(tun_devices[client_no].queue);
     add_to_queue(queue, buf);
@@ -237,10 +243,6 @@ int main(int argc, char *argv[]) {
     // in the end I want to make sure it's empty
     write_queue *queue = &(tun_devices[client].queue);
     assert(queue_empty(queue));
-}
-
-void test_tun_write(void) {
-    
 }
 
 #endif

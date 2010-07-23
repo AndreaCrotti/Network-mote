@@ -24,6 +24,9 @@
 
 #define CLIENT_NO 0
 
+void setup_routes(char *tun_name);
+
+
 int startClient(char const *dev) {
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
@@ -32,55 +35,38 @@ int startClient(char const *dev) {
     // a new device should be opened!
     tun_name[0] = 0;    
     // create the tap-device
-    // only in the gateway the first argument should be != 0
-    int tun_fd = tunOpen(CLIENT_NO, tun_name);
-    if (tun_fd < 1) {
-        printf("Could not create tunnel device. Fatal.\n");
-        return 1;
-    } else {
-        printf("created tunnel device: %s\n", tun_name);
-    }
+    
+    // it will exit abruptly if it doesn't open it correctly
+    tunOpen(CLIENT_NO, tun_name);
 
     fflush(stdout);
 
-    char script_cmd_p[30] = "sh route_setup.sh ";
-    char *script_cmd = (char *)malloc(strlen(script_cmd_p) + IFNAMSIZ); 
-    script_cmd = strcat(script_cmd_p, tun_name);
+    setup_routes(tun_name);
 
-    callScript(script_cmd, "tunnel succesfully setup", "routing setting up", 1);
-
+    // wrapper for select
     fdglue_t fdg;
     fdglue(&fdg);
-    char mote[] = "telosb";
-    serialif_t* sif = NULL;
-
-    mcp_t* mcp = openMcpConnection(dev, mote, &sif);
-    ifp_t _ifp;
-    ifp(&_ifp, mcp);
-    laep_t _laep;
-    laep(&_laep, mcp);
-    _laep.setHandler(&_laep,LAEP_REPLY,(laep_handler_t){.handle = laSet, .p = NULL});
-
-    if (mcp) {
-        printf("Connection to %s over device %s opened.\n",mote,dev);
-    } else {
-        printf("There was an error opening the connection to %s over device %s.\n",mote,dev);
-    }
+    
+    mcp_t *mcp;
+    serialif_t *sif = createSerialConnection(dev, &mcp);
 
     fflush(stdout);
     struct TunHandlerInfo thi = {
         .client_no = CLIENT_NO,
-        .ifp = &_ifp,
         .mcomm = mcp->getComm(mcp)
     };
-    
-    fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, (fdglue_handler_t) {
-            .p = mcp,
-                .handle = serialReceive},FDGHR_APPEND);
-    fdg.setHandler(&fdg,tun_fd,FDGHT_READ,(fdglue_handler_t){
-            .p = &thi,
-                // it says "warning: initialization from incompatible pointer type"
-                .handle = tunReceive},FDGHR_APPEND);
+
+    fdglue_handler_t hand_sif = {
+        .p = mcp,
+        .handle = serialReceive
+    };
+    fdglue_handler_t hand_thi = {
+        .p = &thi,
+        .handle = tunReceive
+    };
+
+    fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND);
+    fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
 
     unsigned lcount = 0;
 
@@ -89,4 +75,17 @@ int startClient(char const *dev) {
         fflush(stdout);
         fdg.listen(&fdg, 5 * 60);
     }
+}
+
+/** 
+ * Setting up the routing table, which need iproute2 to work!!
+ * 
+ */
+void setup_routes(char *tun_name) {
+    char script_cmd_p[30] = "sh route_setup.sh ";
+    char *script_cmd = (char *)malloc(strlen(script_cmd_p) + IFNAMSIZ); 
+    script_cmd = strcat(script_cmd_p, tun_name);
+
+    callScript(script_cmd, "tunnel succesfully setup", "routing setting up", 1);
+    // FIXME: can I free the memory now??
 }

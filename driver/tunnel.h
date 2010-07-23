@@ -37,6 +37,8 @@ typedef struct tundev {
  */
 int tunOpen(int client_no, char *dev);
 
+int getFd(int client_no);
+
 /** 
  * Reads data from the tunnel and exits if a error occurred.
  * 

@@ -16,8 +16,6 @@
 
 // Functions for using a tunnel device
 #include "tunnel.h"
-// Include the serial forwarder
-//#include <serialsource.h>
 
 // our own declarations
 #include "client.h"

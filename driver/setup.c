@@ -33,6 +33,24 @@ void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     }
 }
 
+serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
+    char mote[] = "telosb";
+    serialif_t *sif = NULL;
+
+    *mcp = openMcpConnection(dev, mote, &sif);
+    // at the moment we're not using these things
+    /* ifp(0, mcp); */
+    /* laep(0, mcp); */
+    /* _laep.setHandler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = laSet, .p = NULL}); */
+
+    if (*mcp) {
+        printf("Connection to %s over device %s opened.\n", mote, dev);
+    } else {
+        printf("There was an error opening the connection to %s over device %s.\n", mote, dev);
+    }
+    return sif;
+}
+
 void tunReceive(fdglue_handler_t* that) {
     printf("tunReceive called\n");
     
@@ -61,8 +79,6 @@ void tunReceive(fdglue_handler_t* that) {
         }
         printf("\n");
         
-        // Use the raw packet for now...
-        //this->ifp->send(this->ifp,(payload_t){.stream = (stream_t*)&ipv6, .len = sendsize});
         this->mcomm->send(this->mcomm, (payload_t){.stream = (stream_t*)&ipv6, .len = sendsize});
         
         sendsize = 0;

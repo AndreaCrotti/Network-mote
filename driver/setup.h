@@ -3,7 +3,6 @@
 
 struct TunHandlerInfo {
     int client_no;
-    ifp_t* ifp;
     motecomm_t* mcomm;
 };
 
@@ -24,3 +23,5 @@ void callScript(char *script_cmd, char *success, char *err, int is_fatal);
 
 
 void serialReceive(fdglue_handler_t* that);
+
+serialif_t * createSerialConnection(char const *dev, mcp_t **mcp);
