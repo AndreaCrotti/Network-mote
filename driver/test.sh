@@ -6,8 +6,11 @@ do
     $@ -o $TEST_FILE $x
 done
 
+TESTS="true"
 for t in tests/test_*
 do
-    echo "runnning $t"
-    ./$t
+    TESTS="$TESTS && $t"
 done
+
+echo "running tests"
+$TESTS
