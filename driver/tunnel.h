@@ -3,6 +3,7 @@
 #define __TUNNEL_H
 
 #include <arpa/inet.h>
+#include "util.h"
 
 #define MAX_QUEUED 10
 
@@ -58,7 +59,7 @@ int tunRead(int client_no, char *buf, int n);
  * @param buf buffer to send
  * @param len length of the buffer
  */
-void addToWriteQueue(int client_no, char *buf, int len);
+void addToWriteQueue(int client_no, payload_t data);
 
 /** 
  * Write on tun device without using the fancy queue
@@ -67,7 +68,7 @@ void addToWriteQueue(int client_no, char *buf, int len);
  * @param buf buffer to send 
  * @param len length of the buffer
  */
-void tunWriteNoQueue(int client_no, char *buf, int len);
+void tunWriteNoQueue(int client_no, payload_t data);
 
 
 /** 

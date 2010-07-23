@@ -37,6 +37,8 @@ int queue_full(write_queue *queue);
 int is_writable(int fd);
 void set_fd(int client_no, int fd);
 void delete_last(write_queue *queue);
+int tun_write(int fd, payload_t data);
+
 
 /** 
  * Setup the flags, basically if using TUN or TAP device
@@ -122,47 +124,50 @@ int tunRead(int client_no, char *buf, int length){
  * 
  * @return number of bytes written.
  */
-int tun_write(int fd, char *buf, int length){
+int tun_write(int fd, payload_t data){
     int nwrite;
     
     // should not exit directly here maybe?
     //TODO: Maybe send is better here
-    if((nwrite = write(fd, buf, length)) < 0){
+    if((nwrite = write(fd, data.stream, data.len)) < 0){
         perror("Writing data");
         exit(1);
     }
     return nwrite;
 }
 
-void tunWriteNoQueue(int client_no, char *buf, int len) {
+void tunWriteNoQueue(int client_no, payload_t data) {
     int fd = getFd(client_no);
     // use some simple error checking here instead
-    int sent = tun_write(fd, buf, len);
-    assert(sent == len);
+    unsigned sent = tun_write(fd, data);
+    assert(sent == data.len);
 }
 
-void addToWriteQueue(int client_no, char *buf, int len) {
-    int fd = getFd(client_no);
-    // add the message to the queue
-    write_queue *queue = &(tun_devices[client_no].queue);
-    add_to_queue(queue, buf);
-    /* printf("now queue %d <-> %d\n", queue->first, queue->last); */
-    // now use a select to try to send out everything
+// FIXME: add the payload_t instead to the queue
+/* void addToWriteQueue(int client_no, payload_t data) { */
+/*     assert(0); */
+/*     int fd = getFd(client_no); */
+/*     // add the message to the queue */
+/*     write_queue *queue = &(tun_devices[client_no].queue); */
+/*     add_to_queue(queue, data.stream); */
+/*     /\* printf("now queue %d <-> %d\n", queue->first, queue->last); *\/ */
+/*     // now use a select to try to send out everything */
     
-    // try to send out as many messages as possible
-    char *message;
-    // quit immediately the loop if we sent everything or is not writable
-    while ((message = fetch_from_queue(queue)) && is_writable(fd)) {
-        int nwrite = tun_write(fd, buf, len);
-        /* printf("wrote %d bytes\n", nwrite); */
-        if (nwrite) {
-            // otherwise means partially written data
-            assert(nwrite == len);
-            // only now we can remove it from the queue
-            delete_last(queue);
-        }
-    }
-}
+/*     // try to send out as many messages as possible */
+/*     char *message; */
+/*     // quit immediately the loop if we sent everything or is not writable */
+/*     while ((message = fetch_from_queue(queue)) && is_writable(fd)) { */
+/*         // FIXME: of course it's wrong */
+/*         int nwrite = tun_write(fd, data); */
+/*         /\* printf("wrote %d bytes\n", nwrite); *\/ */
+/*         if (nwrite) { */
+/*             // otherwise means partially written data */
+/*             assert(nwrite == data.len); */
+/*             // only now we can remove it from the queue */
+/*             delete_last(queue); */
+/*         } */
+/*     } */
+/* } */
 
 /** 
  * Check if the device is ready for writing
