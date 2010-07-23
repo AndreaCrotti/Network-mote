@@ -38,6 +38,13 @@ typedef struct tundev {
  */
 int tunOpen(int client_no, char *dev);
 
+/** 
+ * Get the fd for one client number
+ * 
+ * @param client_no 
+ * 
+ * @return 
+ */
 int getFd(int client_no);
 
 /** 
@@ -51,22 +58,21 @@ int getFd(int client_no);
  */
 int tunRead(int client_no, char *buf, int n);
 
-/** 
- * Add one message to the write queue
- * and then try to send them all out
- * 
- * @param client_no client connected
- * @param buf buffer to send
- * @param len length of the buffer
- */
-void addToWriteQueue(int client_no, payload_t data);
+/* /\**  */
+/*  * Add one message to the write queue */
+/*  * and then try to send them all out */
+/*  *  */
+/*  * @param client_no client connected */
+/*  * @param buf buffer to send */
+/*  * @param len length of the buffer */
+/*  *\/ */
+/* void addToWriteQueue(int client_no, payload_t data); */
 
 /** 
  * Write on tun device without using the fancy queue
  * 
  * @param client_no client connected
- * @param buf buffer to send 
- * @param len length of the buffer
+ * @param data payload to write
  */
 void tunWriteNoQueue(int client_no, payload_t data);
 

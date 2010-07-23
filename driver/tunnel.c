@@ -152,7 +152,7 @@ void tunWriteNoQueue(int client_no, payload_t data) {
 /*     add_to_queue(queue, data.stream); */
 /*     /\* printf("now queue %d <-> %d\n", queue->first, queue->last); *\/ */
 /*     // now use a select to try to send out everything */
-    
+
 /*     // try to send out as many messages as possible */
 /*     char *message; */
 /*     // quit immediately the loop if we sent everything or is not writable */
@@ -175,15 +175,15 @@ void tunWriteNoQueue(int client_no, payload_t data) {
  * @param fd file descriptor to check
  */
 int is_writable(int fd) {
-   fd_set fds;
-   struct timeval timeout = {.tv_sec = 3, .tv_usec = 0};
-   int rc;
-   FD_ZERO(&fds);
-   FD_SET(fd, &fds);
-   
-   // is this fd+1 exactly what we need here?
-   rc = select(fd + 1, NULL, &fds, NULL, &timeout);
-   return FD_ISSET(fd,&fds) ? 1 : 0;
+    fd_set fds;
+    struct timeval timeout = {.tv_sec = 3, .tv_usec = 0};
+    int rc;
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+    
+    // is this fd+1 exactly what we need here?
+    rc = select(fd + 1, NULL, &fds, NULL, &timeout);
+    return FD_ISSET(fd,&fds) ? 1 : 0;
 }
 
 
