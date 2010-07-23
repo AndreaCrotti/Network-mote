@@ -27,5 +27,20 @@
 #include "../shared/structs.h"
 
 void startGateway(char const *dev) {
+  (void)dev;//FIXME    
+}
+
+void usage(char* name) {
+    fprintf(stderr, "%s <device>\n",name);
+    exit(EX_USAGE);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        usage(argv[0]);
+    }
+    char const* dev = argv[1];
     
+    startGateway(dev);
+    return 0;
 }

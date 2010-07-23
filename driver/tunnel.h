@@ -76,6 +76,12 @@ int tunRead(int client_no, char *buf, int n);
  */
 void tunWriteNoQueue(int client_no, payload_t data);
 
+/**
+ * Check if a queue is empty.
+ *
+ * @param client_no which client?
+ */
+int queueEmpty(int client_no);
 
 /** 
  * Setup the tunnel module

@@ -14,6 +14,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <sysexits.h>
+
 
 #include "tunnel.h"
 // our own declarations
@@ -88,4 +90,19 @@ void setup_routes(char *tun_name) {
 
     callScript(script_cmd, "tunnel succesfully setup", "routing setting up", 1);
     // FIXME: can I free the memory now??
+}
+
+void usage(char* name) {
+    fprintf(stderr, "%s <device>\n",name);
+    exit(EX_USAGE);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        usage(argv[0]);
+    }
+    char const* dev = argv[1];
+
+    startClient(dev);
+    return 0;
 }

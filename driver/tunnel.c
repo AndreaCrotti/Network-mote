@@ -104,6 +104,10 @@ void set_fd(int client_no, int fd) {
     tun_devices[client_no].fd = fd;
 }
 
+int queueEmpty(int client_no) {
+    return queue_empty(&(tun_devices[client_no].queue));
+}
+
 int tunRead(int client_no, char *buf, int length){
     int fd = getFd(client_no);
     int nread;
@@ -225,28 +229,3 @@ void delete_last(write_queue *queue) {
     queue->first = NEXT(queue->first);
 }
 
-#ifdef STANDALONE
-#include <linux/if_tun.h>
-
-// testing the creation and writing/reading from with the tunnel
-int main(int argc, char *argv[]) {
-    // setup a tun device and then work with it
-    int client = 0;
-    tunSetup(IFF_TUN);
-    char tun_name[IFNAMSIZ];
-    tun_name[0] = 0;
-    char buff[10] = "ciao ciao\0";
-    // tunnel for client 0 created correctly
-    if (tunOpen(client, tun_name)) {
-        for (int i = 0; i < 100; i++) {
-            addToWriteQueue(client, buff, 10);
-        }
-    } else {
-        printf("not possible to create the tunnel\n");
-    }
-    // in the end I want to make sure it's empty
-    write_queue *queue = &(tun_devices[client].queue);
-    assert(queue_empty(queue));
-}
-
-#endif

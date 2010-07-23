@@ -16,13 +16,13 @@
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void serialReceive(fdglue_handler_t* that) {
     mcp_t* this = (mcp_t*)(that->p);
-    // future use
-    /* this->getComm(this)->read(this->getComm(this)); */
+    this->getComm(this)->read(this->getComm(this));
     
 }
 
 // function to overwrite the handler and process data from serial 
 void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
+    (void)that;
     addChunk(payload);
 }
 
@@ -33,7 +33,7 @@ void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     if (err != 0) {
         perror(err_msg);
     } else {
-        printf(success);
+        printf("%s",success);
         if (is_fatal) {
             exit(1);
         }
@@ -49,6 +49,12 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
     /* ifp(0, mcp); */
     /* laep(0, mcp); */
     /* _laep.setHandler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = laSet, .p = NULL}); */
+    // XXX HACK:
+    motecomm_t* mc = (*mcp)->getComm(*mcp);
+    mc->setHandler(mc,(motecomm_handler_t) {
+      .p = 0,
+      .receive = serialProcess
+    });
 
     if (*mcp) {
         printf("Connection to %s over device %s opened.\n", mote, dev);

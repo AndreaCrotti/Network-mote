@@ -14,15 +14,17 @@ DEBUG = -ggdb -O0 -pg
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
-CODEFILES := $(patsubst %.test.c, , $(wildcard *.c))
-OBJECTS := $(patsubst %.c, %.o, $(CODEFILES))
-OBJECTS_NOMAIN := $(patsubst client.o, ,$(OBJECTS))
-TEST_TARGETS := $(patsubst %.test.c, tests/%, $(wildcard *.test.c))
-IMPLIED_HEADERS := $(patsubst %.c, %.h, $(CODEFILES))
-NOPS =
+TARGETS := gateway client
+MAINS := $(addsuffix %.c,$(TARGETS))
+CODEFILES := $(filter-out %.test.c,$(wildcard *.c))
+OBJECTS := $(patsubst %.c,%.o,$(CODEFILES))
+OBJECTS_NOMAIN := $(filter-out $(addsuffix %.o,$(TARGETS)),$(OBJECTS))
+TEST_TARGETS := $(patsubst %.test.c,tests/%,$(wildcard *.test.c))
+NICETT := $(notdir $(TEST_TARGETS))
+IMPLIED_HEADERS := $(patsubst %.c,%.h,$(CODEFILES))
+NOPS :=
 #For external libraries
-EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
-SRC = client.c
+EXTERNALS := $(SF)/sfsource.o $(SF)/serialsource.o
 EXTRAPHONIES = 
 
 
@@ -31,11 +33,11 @@ TIME :=
 
 #### RULES ####
 
-all: autogen tuntest $(NOPS)
+all: autogen $(TARGETS) $(TEST_TARGETS) $(NOPS)
 
-tuntest: $(OBJECTS)
+$(TARGETS): %: %.o $(OBJECTS_NOMAIN) $(HEADERS)
 	@echo "Linking executable file <$@>."
-	@$(TIME) $(CC) $(FLAGS) $(OBJECTS) $(EXTERNALS) -o tuntest
+	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
 
 $(OBJECTS): %.o: %.c %.h $(HEADERS)
 	@echo    "Compiling object file <$@>."
@@ -44,6 +46,8 @@ $(OBJECTS): %.o: %.c %.h $(HEADERS)
 $(TEST_TARGETS): tests/%: %.test.c $(OBJECTS_NOMAIN)
 	@echo "Linking test executable file <$@>."
 	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
+
+$(NICETT): %: tests/%
 
 $(IMPLIED_HEADERS): %.h:
 	@[ -e $@ ] || touch $@
@@ -85,14 +89,14 @@ motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 #### PHONIES ####
 clean:
 	@echo "Cleaning."
-	@rm *.o hostname.h tuntest $(TEST_TARGETS) > /dev/null 2>&1; true
+	@rm *.o hostname.h $(TARGETS) $(TEST_TARGETS) > /dev/null 2>&1; true
 
 tests: $(TEST_TARGETS)
 	@$(patsubst %, LAST_TEST='%' && echo "Running test file <$$LAST_TEST>." && ./$$LAST_TEST &&, $(TEST_TARGETS)) true
 
 
 diag:
-	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE) OBJECTS: $(OBJECTS) OBJECTS_NOMAIN: $(OBJECTS_NOMAIN)
+	@echo -e " TOSROOT: $(TOSROOT)\n INCLUDE: $(INCLUDE)\n OBJECTS: $(OBJECTS)\n OBJECTS_NOMAIN: $(OBJECTS_NOMAIN)\n CODEFILES: $(CODEFILES)"
 
 run:
 	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
@@ -102,6 +106,6 @@ ping:
 
 autogen: hostname.h
 
-force: clean tuntest
+force: clean all
 
-.PHONY: clean diag force autogen run ping test tests $(EXTRAPHONIES)
+.PHONY: clean diag force autogen run ping test tests $(EXTRAPHONIES) $(NICETT)
