@@ -85,7 +85,7 @@ clean:
 	@rm *.o hostname.h tuntest > /dev/null 2>&1
 
 # we also need all the object EXCEPT client.o
-test: *.c
+test: $(OBJECTS_NOMAIN)
 	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) $(OBJECTS_NOMAIN) -DSTANDALONE
 
 diag:
