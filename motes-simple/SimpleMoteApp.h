@@ -17,4 +17,12 @@ enum{
     AM_SIMPLE_SERIAL = 10
 };
 
+/*
+ * Queue sizes
+ */
+enum{
+    RADIO_QUEUE_SIZE = 10,
+    SERIAL_QUEUE_SIZE = 10
+};
+
 #endif
