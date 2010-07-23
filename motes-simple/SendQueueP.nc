@@ -15,6 +15,11 @@ generic module SendQueueP(uint8_t message_length) {
         interface AMPacket;
         // The tinyOS queue implementations
         interface Queue<message_t*> as Queue;
+        // A pool for storing data structures
+        interface Pool<message_t> as Pool;
+
+        // For testing
+        interface Leds;
     }
     provides {
         // The sending interface that is provided
@@ -51,27 +56,37 @@ implementation{
      * otherwise.
      */
     command error_t AMSend.send(am_addr_t dest, message_t* msg, uint8_t len){
+        message_t* new_msg;
+        
         // Write the destination into the message header
         call AMPacket.setDestination(msg, dest);
         
-        if(call Queue.size() > 2)
-            dbg("Radio", "Queue size is %d!!!!!!!!\n", call Queue.size());
-
         // Queue the message up if possible
         if (call Queue.size() < call Queue.maxSize()) {
             if (call Queue.empty()) {
+                atomic{
+                    new_msg = call Pool.get();
+                    *new_msg = *msg;
+                    if (call Queue.enqueue(new_msg) != SUCCESS)
+                        return FAIL;
+                }
                 // If the queue was empty we need to post the sending task
-                if (call Queue.enqueue(msg) != SUCCESS)
-                    return FAIL;
                 post sendEnqueued();
-                return SUCCESS;
             } else {
-                return call Queue.enqueue(msg);
+                atomic{
+                    new_msg = call Pool.get();
+                    *new_msg = *msg;
+                    if (call Queue.enqueue(new_msg) != SUCCESS)
+                        return FAIL;
+                }
             }
         } else {
+            call Leds.led2Toggle();
             // Queue is full!
             return EBUSY;
         }
+
+        return SUCCESS;
     }
     
     /** 
@@ -122,9 +137,16 @@ implementation{
      * @param error A return value.
      */
     event void LowSend.sendDone(message_t* msg, error_t error){
+        message_t* q_msg;
+
+        //call Leds.led1Toggle();
+
         // Remove the message from the queue
-        call Queue.dequeue();
-        
+        atomic{
+            q_msg = call Queue.dequeue();
+            call Pool.put(q_msg);
+        }
+
         dbg("Radio", "Sended a message, remaining queue size is %d \n", call Queue.size());
         
         // Send the next message
@@ -143,9 +165,14 @@ implementation{
      * A task to sent the first element of the queue over the radio. 
      */
     task void sendEnqueued(void){
-        message_t* toSend = call Queue.head();
-        am_addr_t address = call AMPacket.destination(toSend);
-        
-        call LowSend.send(address, toSend, message_length);
+        //message_t* toSend = call Queue.head();
+        //am_addr_t address = call AMPacket.destination(toSend);
+        call Leds.led1Toggle();
+
+
+        //if(call LowSend.send(address, toSend, message_length) != SUCCESS){
+            call Leds.led0Toggle();
+            post sendEnqueued();
+            //}
     }
 }

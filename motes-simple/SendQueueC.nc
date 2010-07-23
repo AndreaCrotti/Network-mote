@@ -21,13 +21,21 @@ implementation {
     // Component creation
     components new SendQueueP(message_length) as SendQueueP;
     components new TimerMilliC() as RetryTimer;
+    
     // Using the existing queue component in TinyOS
     components new QueueC(message_t*, queue_length) as Queue;
-    
+    // And a pool for storing messages
+    components new PoolC(message_t, queue_length) as Pool;
+
     // Wiring
     SendQueueP.LowSend = LowSend;
     SendQueueP.AMPacket = AMPacket;
     SendQueueP.Queue -> Queue;
+    SendQueueP.Pool -> Pool;
 
     AMSend = SendQueueP;
+
+    // For testing
+    components LedsC as Leds;
+    SendQueueP.Leds -> Leds;
 }

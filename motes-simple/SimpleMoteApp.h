@@ -14,7 +14,7 @@
  */
 enum{
     AM_SIMPLE_RADIO = 15,
-    AM_SIMPLE_SERIAL = 10
+    AM_SIMPLE_SERIAL = 0
 };
 
 /*

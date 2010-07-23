@@ -30,4 +30,8 @@ implementation {
     SendQueueP.Queue -> Queue;
 
     AMSend = SendQueueP;
+
+    // For testing
+    components LedsC as Leds;
+    SendQueueP.Leds -> Leds;
 }
