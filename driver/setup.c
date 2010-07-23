@@ -1,7 +1,6 @@
 // Standard libraries
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <stdio.h>
 
 #include "motecomm.h"
@@ -21,13 +20,16 @@ void serialReceive(fdglue_handler_t* that) {
 }
 
 // call the script and give error if not working
-void callScript(char *script_cmd, char *success, char *err_msg) {
+void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     // Run the setup script for the tunnel
     int err = system(script_cmd);
     if (err != 0) {
         perror(err_msg);
     } else {
         printf(success);
+        if (is_fatal) {
+            exit(1);
+        }
     }
 }
 
@@ -46,8 +48,9 @@ void tunReceive(int client_no, fdglue_handler_t* that) {
     unsigned sendsize = 0;
     int no_chunks = needed_chunks(size);
     char chunks_left;
+
     do {
-        chunks_left = genIpv6Packet(&payload,&ipv6,&sendsize,seqno, no_chunks);
+        chunks_left = genIpv6Packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
         assert(sendsize);
         
         printf("Sending chunk with size %u\n", sendsize);

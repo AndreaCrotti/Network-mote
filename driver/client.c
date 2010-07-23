@@ -1,3 +1,5 @@
+// TODO: Refactor IN SMALLER AND NICER FUNCTIONS TO setup.c/h
+
 // Includes
 #include <unistd.h>
 #include <fcntl.h>
@@ -10,10 +12,10 @@
 // Standard libraries
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <stdio.h>
 
 
+#include "tunnel.h"
 // our own declarations
 #include "client.h"
 
@@ -22,16 +24,8 @@
 
 #define CLIENT_NO 0
 
-void usage() {
-    fprintf(stderr, "./tuntest <device>\n");
-    exit(EX_USAGE);
-}
-
-int main(int argc, char** argv) {
-    if (argc != 2) {
-        usage();
-    }
-
+int startClient(char const *dev) {
+    // on the server instead could create many
     char tun_name[IFNAMSIZ];
     tunSetup(TUNTAP_INTERFACE);
 
@@ -53,27 +47,26 @@ int main(int argc, char** argv) {
     char *script_cmd = (char *)malloc(strlen(script_cmd_p) + IFNAMSIZ); 
     script_cmd = strcat(script_cmd_p, tun_name);
 
-    callScript(script_cmd, "tunnel succesfully setup", "routing setting up");
-    
-    /* uint8_t buf[sizeof(struct split_ip_msg) + INET_MTU]; */
-    /* struct split_ip_msg *msg = (struct split_ip_msg *)buf; */
+    callScript(script_cmd, "tunnel succesfully setup", "routing setting up", 1);
 
     fdglue_t fdg;
     fdglue(&fdg);
     char mote[] = "telosb";
-    char const* dev = argv[1];
     serialif_t* sif = NULL;
-    mcp_t* mcp = openMcpConnection(dev,mote,&sif);
+
+    mcp_t* mcp = openMcpConnection(dev, mote, &sif);
     ifp_t _ifp;
-    ifp(&_ifp,mcp);
+    ifp(&_ifp, mcp);
     laep_t _laep;
-    laep(&_laep,mcp);
+    laep(&_laep, mcp);
     _laep.setHandler(&_laep,LAEP_REPLY,(laep_handler_t){.handle = laSet, .p = NULL});
+
     if (mcp) {
         printf("Connection to %s over device %s opened.\n",mote,dev);
     } else {
         printf("There was an error opening the connection to %s over device %s.\n",mote,dev);
     }
+
     fflush(stdout);
     struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp, .mcomm = mcp->getComm(mcp)};
     fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, (fdglue_handler_t) {
@@ -85,9 +78,10 @@ int main(int argc, char** argv) {
                 .handle = tunReceive},FDGHR_APPEND);
 
     unsigned lcount = 0;
+
     for (;;) {
         printf("listening %d ...\n",lcount++);
         fflush(stdout);
-        fdg.listen(&fdg,5*60);
+        fdg.listen(&fdg, 5 * 60);
     }
 }
