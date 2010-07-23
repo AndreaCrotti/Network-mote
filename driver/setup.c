@@ -8,7 +8,7 @@
 
 // Functions for using a tunnel device
 #include "tunnel.h"
-
+#include "reconstruct.h"
 #include "motecomm.h"
 #include "glue.h"
 #include "setup.h"
@@ -16,7 +16,14 @@
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void serialReceive(fdglue_handler_t* that) {
     mcp_t* this = (mcp_t*)(that->p);
-    this->getComm(this)->read(this->getComm(this));
+    // future use
+    /* this->getComm(this)->read(this->getComm(this)); */
+    
+}
+
+// function to overwrite the handler and process data from serial 
+void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
+    addChunk(payload);
 }
 
 // call the script and give error if not working

@@ -17,7 +17,6 @@ typedef struct {
     int completed_bitmask;
     // That is the max size of the theoretically completed packet
     stream_t chunks[MAX_FRAME_SIZE];
-    // it normally is the max size of all the chunks + the size of the last one
     int tot_size;
 } packet_t;
 
@@ -27,14 +26,14 @@ typedef struct {
  * 
  * @param callback takes a function which will send back packets when they're completed
  */
-void initReconstruction(void); //void (*callback)(ipv6Packet *completed));
+void initReconstruction(void (*callback)(payload_t completed));
 
 /** 
  * Adding a new chunk of data
  * 
  * @param data 
  */
-void addChunk(void *data);
+void addChunk(payload_t data);
 
 
 /** 

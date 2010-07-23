@@ -62,7 +62,7 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     packet->header.packetHeader = pkt;
     pkt.ord_no++;
     *sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
-    genIpv6Header(&(packet->header.ip6_hdr),sizeof(myPacketHeader) + *sendsize);
+    genIpv6Header(&(packet->header.ip6_hdr), sizeof(myPacketHeader) + *sendsize);
     memcpy(packet->payload, payload->stream, *sendsize);
     payload->len -= *sendsize;
     payload->stream += *sendsize;

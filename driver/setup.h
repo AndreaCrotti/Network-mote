@@ -21,7 +21,14 @@ void tunReceive(fdglue_handler_t* that);
  */
 void callScript(char *script_cmd, char *success, char *err, int is_fatal);
 
-
 void serialReceive(fdglue_handler_t* that);
 
 serialif_t * createSerialConnection(char const *dev, mcp_t **mcp);
+
+/** 
+ * Processing data from the serial interface
+ * 
+ * @param that 
+ * @param payload 
+ */
+void serialProcess(struct motecomm_handler_t *that, payload_t const payload);

@@ -15,15 +15,13 @@
 
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
+#define DEBUG 1
 
 void reset_packet(packet_t *pkt);
 int get_ord_no(ipv6Packet *ip6_pkt);
 int get_seq_no(ipv6Packet *ip6_pkt);
 int get_parts(ipv6Packet *ip6_pkt);
-int get_size(ipv6Packet *ip6_pkt);
+int get_size(ipv6Packet *ip6_pkt, int size);
 int is_last(ipv6Packet *ip6_pkt);
 int get_plen(ipv6Packet *ip6_pkt);
 int is_completed(packet_t *pkt);
@@ -37,15 +35,17 @@ myPacketHeader *get_header(ipv6Packet *ip6_pkt);
 //static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 
+static void (*send_back)(payload_t completed);
+
 /** 
  * Initializing the reconstruction module
  * 
  */
-void initReconstruction(void) { // (*callback)(ipv6Packet *completed)) {
+void initReconstruction(void (*callback)(payload_t completed)) {
     if (DEBUG)
         printf("initializing the reconstruction\n");
 
-    /* send_back = callback; */
+    send_back = callback;
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         // is it always a new packet_t right?
         packet_t t;
@@ -59,10 +59,12 @@ void initReconstruction(void) { // (*callback)(ipv6Packet *completed)) {
  * 
  * @param data 
  */
-void addChunk(void *data) {
-    // casting the structure to the original type
+void addChunk(payload_t data) {
+    // TODO: add another check of the length of the data given in
+    assert(data.len <= sizeof(ipv6Packet));
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
-    memcpy(original, data, sizeof(ipv6Packet));
+    memcpy(original, data.stream, sizeof(ipv6Packet));
+
     int seq_no = get_seq_no(original);
     int ord_no = get_ord_no(original);
     
@@ -78,13 +80,13 @@ void addChunk(void *data) {
         
         // resetting to the initial configuration
         pkt->completed_bitmask = (1 << get_parts(original)) - 1;
-        pkt->tot_size = 0;
         pkt->seq_no = seq_no;
+        pkt->tot_size = 0;
     }
 
     // this is to make sure that we don't decrement missing_chunks even when not adding
     // fetch the real data of the payload, check if it's the last one
-    int size = get_size(original);
+    int size = get_size(original, data.len);
     pkt->tot_size += size;
 
     if (DEBUG)
@@ -124,9 +126,13 @@ void send_if_completed(packet_t *pkt, int new_bm) {
     if (is_completed(pkt)) {
         if (DEBUG)
             printf("packet completed\n");
-        // TODO: implement the sending (writing on tap0 probably?)
-        /* tun_write(getFd(), (char *) pkt->chunks, pkt->tot_size); */
-        /* tun_write(getFd(), (char *) */
+        
+        payload_t payload = {
+            .len = pkt->tot_size,
+            .stream = pkt->chunks
+        };
+
+        send_back(payload);
     }
 }
 
@@ -180,13 +186,16 @@ int get_parts(ipv6Packet *packet) {
    return get_header(packet)->parts;
 }
 
-int get_size(ipv6Packet *packet) {
+int get_size(ipv6Packet *packet, int size) {
+    int computed_size;
     if (is_last(packet)) {
         // we need to invert from htons!!
-        return (ntohs(get_plen(packet)) - sizeof(myPacketHeader));
+        computed_size = ntohs(get_plen(packet)) - sizeof(myPacketHeader);
     } else {
-        return MAX_CARRIED;
+        computed_size = MAX_CARRIED;
     }
+    assert((computed_size + sizeof(struct ipv6PacketHeader)) == (unsigned) size);
+    return computed_size;
 }
 
 // only used for testing out something

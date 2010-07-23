@@ -131,7 +131,6 @@ int tun_write(int fd, char *buf, int length){
         perror("Writing data");
         exit(1);
     }
-
     return nwrite;
 }
 
