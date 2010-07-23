@@ -15,6 +15,7 @@ FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
 OBJECTS := $(patsubst %.c, %.o, $(wildcard *.c))
+OBJECTS_NOMAIN := $(patsubst client.o, ,$(OBJECTS))
 NOPS =
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
@@ -83,7 +84,7 @@ clean:
 	@rm *.o hostname.h tuntest > /dev/null 2>&1
 
 diag:
-	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE)
+	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE) OBJECTS: $(OBJECTS) OBJECTS_NOMAIN: $(OBJECTS_NOMAIN)
 
 run:
 	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
