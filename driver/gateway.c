@@ -29,4 +29,5 @@
 #include "../shared/structs.h"
 
 void startGateway(char const *dev) {
+    
 }

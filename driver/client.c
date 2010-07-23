@@ -68,7 +68,12 @@ int startClient(char const *dev) {
     }
 
     fflush(stdout);
-    struct TunHandlerInfo thi = {.fd = tun_fd, .ifp = &_ifp, .mcomm = mcp->getComm(mcp)};
+    struct TunHandlerInfo thi = {
+        .client_no = CLIENT_NO,
+        .ifp = &_ifp,
+        .mcomm = mcp->getComm(mcp)
+    };
+    
     fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, (fdglue_handler_t) {
             .p = mcp,
                 .handle = serialReceive},FDGHR_APPEND);

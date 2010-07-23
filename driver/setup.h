@@ -2,7 +2,7 @@
 #include "motecomm.h"
 
 struct TunHandlerInfo {
-    int fd;
+    int client_no;
     ifp_t* ifp;
     motecomm_t* mcomm;
 };
@@ -10,7 +10,7 @@ struct TunHandlerInfo {
 
 void laSet(laep_handler_t* this, la_t const address);
 
-void tunReceive(int client_no, fdglue_handler_t* that);
+void tunReceive(fdglue_handler_t* that);
 
 /** 
  * Call a shell script and check its result

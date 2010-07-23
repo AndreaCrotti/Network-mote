@@ -33,13 +33,13 @@ void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     }
 }
 
-void tunReceive(int client_no, fdglue_handler_t* that) {
+void tunReceive(fdglue_handler_t* that) {
     printf("tunReceive called\n");
     
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
     static stream_t buf[MAX_FRAME_SIZE];
-    memset(buf,0,MAX_FRAME_SIZE);
-    int size = tunRead(client_no, (char*)buf,MAX_FRAME_SIZE);
+    memset(buf, 0, MAX_FRAME_SIZE);
+    int size = tunRead(this->client_no, (char*)buf,MAX_FRAME_SIZE);
     assert(size);
     static int seqno = 0;
     ++seqno;
