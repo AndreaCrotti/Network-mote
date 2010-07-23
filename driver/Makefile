@@ -18,6 +18,7 @@ CODEFILES := $(patsubst %.test.c, , $(wildcard *.c))
 OBJECTS := $(patsubst %.c, %.o, $(CODEFILES))
 OBJECTS_NOMAIN := $(patsubst client.o, ,$(OBJECTS))
 TEST_TARGETS := $(patsubst %.test.c, tests/%, $(wildcard *.test.c))
+IMPLIED_HEADERS := $(patsubst %.c, %.h, $(CODEFILES))
 NOPS =
 #For external libraries
 EXTERNALS = $(SF)/sfsource.o $(SF)/serialsource.o
@@ -44,6 +45,8 @@ $(TEST_TARGETS): tests/%: %.test.c $(OBJECTS_NOMAIN)
 	@echo "Linking test executable file <$@>."
 	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
 
+$(IMPLIED_HEADERS): %.h:
+	@[ -e $@ ] || touch $@
 
 $(NOPS): %.o: %.c %.h
 	@echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
