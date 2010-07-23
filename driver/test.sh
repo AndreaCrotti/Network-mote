@@ -13,4 +13,4 @@ do
 done
 
 echo "running tests"
-$TESTS
+eval $TESTS

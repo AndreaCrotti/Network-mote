@@ -86,7 +86,7 @@ clean:
 
 # we also need all the object EXCEPT client.o
 test: *.c
-	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE
+	./test.sh $(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) $(OBJECTS_NOMAIN) -DSTANDALONE
 
 diag:
 	@echo TOSROOT: $(TOSROOT) INCLUDE: $(INCLUDE) OBJECTS: $(OBJECTS) OBJECTS_NOMAIN: $(OBJECTS_NOMAIN)
