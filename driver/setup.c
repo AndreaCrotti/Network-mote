@@ -22,7 +22,7 @@ void serialReceive(fdglue_handler_t* that) {
 
 // function to overwrite the handler and process data from serial 
 void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
-    (void)that;
+    (void) that;
     addChunk(payload);
 }
 
