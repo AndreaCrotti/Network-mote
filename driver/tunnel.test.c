@@ -36,6 +36,4 @@ int main(int argc, char *argv[]) {
     } else {
         printf("not possible to create the tunnel\n");
     }
-    // in the end I want to make sure it's empty
-    assert(queueEmpty(client));
 }

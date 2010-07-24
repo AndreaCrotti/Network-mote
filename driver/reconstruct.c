@@ -26,7 +26,6 @@ int is_last(ipv6Packet *ip6_pkt);
 int get_plen(ipv6Packet *ip6_pkt);
 int is_completed(packet_t *pkt);
 void send_if_completed(packet_t *pkt, int new_bm);
-void make_ipv6_packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 packet_t *get_packet(int seq_no);
 
 myPacketHeader *get_header(ipv6Packet *ip6_pkt);
@@ -200,7 +199,7 @@ int get_size(ipv6Packet *packet, int size) {
 }
 
 // only used for testing out something
-void make_ipv6_packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len) {
+void makeIpv6Packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len) {
     packet->header.packetHeader.seq_no = seq_no;
     packet->header.packetHeader.ord_no = ord_no;
     packet->header.packetHeader.parts = parts;

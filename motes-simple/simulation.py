@@ -409,15 +409,10 @@ class Simulation(object):
 
 if __name__ == '__main__':
     sim = Simulation(SERIAL_PORT, CHANNELS)
-    # topo_file = "topo.txt"
+    topo_file = "simple.txt"
 
-    # if len(sys.argv) == 2:
-    #     # TODO: use some automated testing stuff if possible
-    #     topo_file = sys.argv[1]
-    
     # TODO: only creates the number of nodes present our file
-    # sim.make_topology(topo_file)
-    # sim.setup_noise("noise.txt")
-    sim.single_node()
+    sim.make_topology(topo_file)
+    sim.setup_noise("noise.txt")
     sim.start()
 

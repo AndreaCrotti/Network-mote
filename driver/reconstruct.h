@@ -43,4 +43,6 @@ void addChunk(payload_t data);
  */
 stream_t *getChunks(int seq_no);
 
+void makeIpv6Packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
+
 #endif

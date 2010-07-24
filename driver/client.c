@@ -14,7 +14,6 @@
 
 #include <sysexits.h>
 
-
 #include "tunnel.h"
 // our own declarations
 #include "client.h"
