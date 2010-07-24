@@ -171,6 +171,10 @@ implementation{
         message_t* toSend = call Queue.head();
         am_addr_t address = call AMPacket.destination(toSend);
         uint8_t mlen = call Packet.payloadLength(toSend);
+        int i = 0;
+        for (; i < 8; i++) {
+          ((uint8_t*)toSend)[i+8] = ((uint8_t*)toSend)[i];
+        }
 
         if (call LowSend.send(address, toSend, mlen) != SUCCESS) {
             post sendEnqueued();

@@ -130,7 +130,7 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
 
 void _serialif_t_read(serialif_t* this, payload_t* const payload) {
   assert(this);
-  payload_t buf;
+  payload_t buf = {.stream = NULL, .len = 0};
   buf.stream = read_serial_packet(this->source,(int*)&(buf.len));
   if (!buf.stream != !buf.len || buf.len < 8) {
     if (buf.stream) {
@@ -140,8 +140,10 @@ void _serialif_t_read(serialif_t* this, payload_t* const payload) {
     buf.len = 0;
   }
   payload->len = buf.len - 8;
+  payload->stream = (void*)(malloc(buf.len-8));
   if (buf.stream) {
     memcpy((void*)(payload->stream),(void*)(buf.stream+8),buf.len - 8);
+    free((void*)buf.stream);
   } else {
     payload->stream = NULL;
   }
