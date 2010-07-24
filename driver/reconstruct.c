@@ -132,7 +132,10 @@ void send_if_completed(packet_t *pkt, int new_bm) {
             .stream = pkt->chunks
         };
 
-        send_back(payload);
+        if (send_back) 
+            send_back(payload);
+        else 
+            printf("WARNING: no callback function registered for completed chunks.\n");
     }
 }
 
