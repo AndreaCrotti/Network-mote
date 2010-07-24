@@ -71,9 +71,6 @@ void addChunk(payload_t data) {
     // just for readability
     packet_t *pkt = &temp_packets[POS(seq_no)];
     
-    if (DEBUG)
-        printf("adding chunk (%d, %d, %d, %d)\n", seq_no, ord_no, get_parts(original), pkt->completed_bitmask);
-
     if (pkt->seq_no != seq_no) {
         if (DEBUG)
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
@@ -83,6 +80,11 @@ void addChunk(payload_t data) {
         pkt->seq_no = seq_no;
         pkt->tot_size = 0;
     }
+
+    if (DEBUG)
+        printf("adding chunk (%d, %d, %d, %d)\n", seq_no, ord_no, get_parts(original), pkt->completed_bitmask);
+
+
 
     // this is to make sure that we don't decrement missing_chunks even when not adding
     // fetch the real data of the payload, check if it's the last one
