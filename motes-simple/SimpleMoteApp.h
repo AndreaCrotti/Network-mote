@@ -8,6 +8,12 @@
 #ifndef __SimpleMoteApp_h
 #define __SimpleMoteApp_h
 
+
+// FIXME: why this stupid value is not written there?
+enum {
+    AM_MESSAGE_T = 0x89
+};
+
 /* 
  * AM types for communications.
  * Values are quite arbitrary right now.
@@ -23,11 +29,6 @@ enum {
 enum {
     RADIO_QUEUE_SIZE = 10,
     SERIAL_QUEUE_SIZE = 10
-};
-
-// FIXME: why this stupid value is not written there?
-enum {
-    AM_SERIALMSG = 0x89
 };
 
 #endif

@@ -41,18 +41,18 @@ void startGateway(char const *dev) {
     // it will exit abruptly if it doesn't open it correctly
     tunOpen(CLIENT_NO, tun_name);
 
-    fflush(stdout);
-
     setup_routes(tun_name);
 
     // wrapper for select
     fdglue_t fdg;
     fdglue(&fdg);
     
+    // creating the serial interface connection
     mcp_t *mcp;
     serialif_t *sif = createSerialConnection(dev, &mcp);
 
-    fflush(stdout);
+    // structures for the handlers, it's an event driven program
+    // so we need to setup handlers
     struct TunHandlerInfo thi = {
         .client_no = CLIENT_NO,
         .mcomm = mcp->getComm(mcp)

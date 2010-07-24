@@ -253,7 +253,8 @@ class Simulation(object):
     def interactive(self):
         # Use a dictionary and function calls instead
         def send_interactive():
-            self.send_packet(make_packet())
+            self.send_packet(self.make_serial())
+            self.send_packet(self.make_non_serial())
 
         choices = (("topology management" , self.manipulate_topology),
                    ("packet creation" , send_interactive),
@@ -391,16 +392,23 @@ class Simulation(object):
 
         MenuMaker(choices).call_option()
 
-    def send_packet(self, msg):
-        "Takes a BlinkMsg already generated and sends it via serial"
-        serialpkt = self.sim.newSerialPacket();
-        serialpkt.setData(msg.get_data())
-        serialpkt.setType(msg.am_type)
-        serialpkt.setDestination(0)
-        serialpkt.deliver(0, self.sim.time() + 3)
-        self.run_some_events()
+    def make_serial(self):
+        return self.sim.newSerialPacket()
 
+    def make_non_serial(self):
+        return self.sim.newPacket();
+
+    def send_packet(self, pkt):
+        "Takes a BlinkMsg already generated and sends it via serial"
+        msg = make_packet()
+        pkt = self.sim.newSerialPacket();
+        pkt.setData(msg.get_data())
+        pkt.setType(msg.am_type)
+        pkt.setDestination(0)
+        pkt.deliver(0, self.sim.time() + 3)
+        self.run_some_events()
         print "sended packet:\n%s" % str(msg)
+
 
 if __name__ == '__main__':
     sim = Simulation(SERIAL_PORT, CHANNELS)

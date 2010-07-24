@@ -26,6 +26,10 @@ void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
     addChunk(payload);
 }
 
+void mainLoop() {
+    
+}
+
 // call the script and give error if not working
 void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     // Run the setup script for the tunnel
@@ -71,10 +75,10 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
 void setup_routes(char const* const tun_name) {
     char script_cmd[80] = "bash route_setup.sh ";
     strcat(script_cmd, tun_name);
-
-    callScript(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
+    callScript(script_cmd, "tunnel succesfully set up", "routing setting up", TRUE);
 }
 
+// receiving data from the tunnel device
 void tunReceive(fdglue_handler_t* that) {
     printf("tunReceive called\n");
     
@@ -91,6 +95,7 @@ void tunReceive(fdglue_handler_t* that) {
     int no_chunks = needed_chunks(size);
     char chunks_left;
 
+    // generate all the subchunks and send them out
     do {
         chunks_left = genIpv6Packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
         assert(sendsize);
@@ -103,9 +108,14 @@ void tunReceive(fdglue_handler_t* that) {
         }
         printf("\n");
         
-        this->mcomm->send(this->mcomm, (payload_t){.stream = (stream_t*)&ipv6, .len = sendsize});
-        
+        payload_t to_send = {
+            .stream = (stream_t*)&ipv6,
+            .len = sendsize
+        };
+
+        this->mcomm->send(this->mcomm, to_send);
         sendsize = 0;
+
     } while (chunks_left); 
 }
 
