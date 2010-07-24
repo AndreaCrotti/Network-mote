@@ -16,6 +16,7 @@ implementation{
     components new SendQueueC(RADIO_QUEUE_SIZE, sizeof(message_t)) as RadioQueue;
     RadioQueue.LowSend -> Radio.AMSend[AM_SIMPLE_RADIO];
     RadioQueue.AMPacket -> Radio;
+    RadioQueue.Packet -> Radio;
 
     SimpleMoteAppP.RadioControl -> Radio;
     SimpleMoteAppP.RadioReceive -> Radio.Receive[AM_SIMPLE_RADIO];

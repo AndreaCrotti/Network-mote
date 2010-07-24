@@ -16,6 +16,7 @@ generic configuration SendQueueC(uint8_t queue_length, uint8_t message_length) @
     // Use the AMSend interface to be compatible with different sending components
     uses interface AMSend as LowSend;
     uses interface AMPacket;
+    uses interface Packet;
 }
 implementation {
     // Component creation
@@ -30,6 +31,7 @@ implementation {
     // Wiring
     SendQueueP.LowSend = LowSend;
     SendQueueP.AMPacket = AMPacket;
+    SendQueueP.Packet = Packet;
     SendQueueP.Queue -> Queue;
     SendQueueP.Pool -> Pool;
 

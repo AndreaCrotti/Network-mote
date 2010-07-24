@@ -25,9 +25,58 @@
 
 #include "glue.h"
 #include "../shared/structs.h"
+#include "setup.h"
+
+#define CLIENT_NO 0
 
 void startGateway(char const *dev) {
-  (void)dev;//FIXME    
+    // on the server instead could create many
+    char tun_name[IFNAMSIZ];
+    tunSetup(TUNTAP_INTERFACE);
+
+    // a new device should be opened!
+    tun_name[0] = 0;    
+    // create the tap-device
+    
+    // it will exit abruptly if it doesn't open it correctly
+    tunOpen(CLIENT_NO, tun_name);
+
+    fflush(stdout);
+
+    setup_routes(tun_name);
+
+    // wrapper for select
+    fdglue_t fdg;
+    fdglue(&fdg);
+    
+    mcp_t *mcp;
+    serialif_t *sif = createSerialConnection(dev, &mcp);
+
+    fflush(stdout);
+    struct TunHandlerInfo thi = {
+        .client_no = CLIENT_NO,
+        .mcomm = mcp->getComm(mcp)
+    };
+
+    fdglue_handler_t hand_sif = {
+        .p = mcp,
+        .handle = serialReceive
+    };
+    fdglue_handler_t hand_thi = {
+        .p = &thi,
+        .handle = tunReceive
+    };
+
+    fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND);
+    fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
+
+    unsigned lcount = 0;
+
+    for (;;) {
+        printf("listening %d ...\n",lcount++);
+        fflush(stdout);
+        fdg.listen(&fdg, 5 * 60);
+    }
 }
 
 void usage(char* name) {

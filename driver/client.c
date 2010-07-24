@@ -1,5 +1,3 @@
-// TODO: Refactor IN SMALLER AND NICER FUNCTIONS TO setup.c/h
-
 // Includes
 #include <unistd.h>
 #include <fcntl.h>
@@ -25,8 +23,6 @@
 #include "setup.h"
 
 #define CLIENT_NO 0
-
-void setup_routes(char *tun_name);
 
 
 int startClient(char const *dev) {
@@ -77,19 +73,6 @@ int startClient(char const *dev) {
         fflush(stdout);
         fdg.listen(&fdg, 5 * 60);
     }
-}
-
-/** 
- * Setting up the routing table, which need iproute2 to work!!
- * 
- */
-void setup_routes(char *tun_name) {
-    char script_cmd_p[30] = "sh route_setup.sh ";
-    char *script_cmd = (char *)malloc(strlen(script_cmd_p) + IFNAMSIZ); 
-    script_cmd = strcat(script_cmd_p, tun_name);
-
-    callScript(script_cmd, "tunnel succesfully setup", "routing setting up", 1);
-    // FIXME: can I free the memory now??
 }
 
 void usage(char* name) {

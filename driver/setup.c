@@ -17,12 +17,12 @@
 void serialReceive(fdglue_handler_t* that) {
     mcp_t* this = (mcp_t*)(that->p);
     this->getComm(this)->read(this->getComm(this));
-    
 }
 
 // function to overwrite the handler and process data from serial 
 void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
     (void)that;
+    printf("hey I got something from the mote! p is %p\n",that->p);
     addChunk(payload);
 }
 
@@ -32,11 +32,11 @@ void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     int err = system(script_cmd);
     if (err != 0) {
         perror(err_msg);
-    } else {
-        printf("%s",success);
         if (is_fatal) {
             exit(1);
         }
+    } else {
+        printf("%s",success);
     }
 }
 
@@ -62,6 +62,17 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
         printf("There was an error opening the connection to %s over device %s.\n", mote, dev);
     }
     return sif;
+}
+
+/** 
+ * Setting up the routing table, which need iproute2 to work!!
+ * 
+ */
+void setup_routes(char const* const tun_name) {
+    char script_cmd[80] = "bash route_setup.sh ";
+    strcat(script_cmd, tun_name);
+
+    callScript(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
 }
 
 void tunReceive(fdglue_handler_t* that) {
