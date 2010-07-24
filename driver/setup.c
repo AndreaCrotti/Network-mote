@@ -44,6 +44,10 @@ void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     }
 }
 
+void reconstructDone(payload_t complete) {
+  printf("RECONSTRUCT DONE!\tsize: %u\n",complete.len);
+}
+
 serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
     char mote[] = "telosb";
     serialif_t *sif = NULL;
@@ -59,6 +63,8 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
       .p = 0,
       .receive = serialProcess
     });
+
+    initReconstruct(reconstructDone);
 
     if (*mcp) {
         printf("Connection to %s over device %s opened.\n", mote, dev);
