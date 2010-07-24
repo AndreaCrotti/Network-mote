@@ -170,7 +170,8 @@ implementation{
         message_t* toSend = call Queue.head();
         am_addr_t address = call AMPacket.destination(toSend);
         unsigned short mlen = call Packet.payloadLength(toSend);
-
+        call Leds.set(mlen);
+        return;
 
         if (call LowSend.send(address, toSend, mlen) != SUCCESS) {
             call Leds.led0Toggle();
