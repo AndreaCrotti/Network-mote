@@ -169,7 +169,7 @@ implementation{
     task void sendEnqueued(void){
         message_t* toSend = call Queue.head();
         am_addr_t address = call AMPacket.destination(toSend);
-        unsigned short mlen = call Packet.payloadLength(toSend);
+        uint8_t mlen = call Packet.payloadLength(toSend);
 
         if (call LowSend.send(address, toSend, TOSH_DATA_LENGTH) != SUCCESS) {
             post sendEnqueued();
