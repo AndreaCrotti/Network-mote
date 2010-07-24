@@ -20,7 +20,12 @@
 #error "Unsupported tun/tap interface."
 #endif
 
+/// how many clients can the gateway manage
 #define MAX_CLIENTS 10
+
+#define TRUE 1
+#define FALSE 0
+typedef char bool;
 
 #include <ip.h>
 

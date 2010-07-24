@@ -21,4 +21,3 @@ def make_packet():
     msg = MyPacket()
     msg.create_packet()
     return msg
-            
