@@ -13,8 +13,8 @@
 
 typedef struct {
     int seq_no;
-    // bitmaks of chunks already set
-    int completed_bitmask;
+    // bitmaks of chunks still missing
+    int missing_bitmask;
     // That is the max size of the theoretically completed packet
     stream_t chunks[MAX_FRAME_SIZE];
     int tot_size;

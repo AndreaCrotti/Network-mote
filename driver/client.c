@@ -23,8 +23,12 @@
 
 #define CLIENT_NO 0
 
+char notun = 0;
 
 int startClient(char const *dev) {
+
+  if (!notun) {
+
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
     tunSetup(TUNTAP_INTERFACE);
@@ -39,6 +43,7 @@ int startClient(char const *dev) {
     fflush(stdout);
 
     setup_routes(tun_name);
+  }
 
     // wrapper for select
     fdglue_t fdg;
@@ -63,12 +68,13 @@ int startClient(char const *dev) {
     };
 
     fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND);
-    fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
+    if (!notun)
+      fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
 
-    unsigned lcount = 0;
 
     for (;;) {
-        printf("listening %d ...\n",lcount++);
+        //static unsigned lcount = 0;
+        //printf("listening %d ...\n",lcount++);
         fflush(stdout);
         fdg.listen(&fdg, 5 * 60);
     }
@@ -80,9 +86,11 @@ void usage(char* name) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
+    /*if (argc != 2) {
         usage(argv[0]);
-    }
+    }*/
+    notun = (argc >= 3 && 0 == strcmp(argv[2],"notun"));
+
     char const* dev = argv[1];
 
     startClient(dev);

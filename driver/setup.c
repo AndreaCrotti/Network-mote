@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h> // usleep
 
 #include "motecomm.h"
 #include "chunker.h"
@@ -22,7 +23,7 @@ void serialReceive(fdglue_handler_t* that) {
 // function to overwrite the handler and process data from serial 
 void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
     (void)that;
-    printf("hey I got something from the mote! p is %p\n",that->p);
+    //printf("hey I got something from the mote! p is %p\n",that->p);
     addChunk(payload);
 }
 
@@ -45,7 +46,18 @@ void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
 }
 
 void reconstructDone(payload_t complete) {
-  printf("RECONSTRUCT DONE!\tsize: %u\n",complete.len);
+  /*printf("RECONSTRUCT DONE!\tsize: %u\n",complete.len);
+  for (unsigned i = 0; i < complete.len; i++) {
+    printf("%02X ",(unsigned)complete.stream[i]);
+  }
+  printf("\n");*/
+  /* debug start */ {
+    unsigned sum = 0;
+    for (stream_t* p = (stream_t*)complete.stream; p - (stream_t*)complete.stream < (signed)complete.len; p++) {
+      sum += *p;
+    }
+    printf(" <= Checksum of RECV packet is %08X\n",sum);
+  } /* debug end */
 }
 
 serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
@@ -86,7 +98,7 @@ void setup_routes(char const* const tun_name) {
 
 // receiving data from the tunnel device
 void tunReceive(fdglue_handler_t* that) {
-    printf("tunReceive called\n");
+    //printf("tunReceive called\n");
     
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
     static stream_t buf[MAX_FRAME_SIZE];
@@ -96,23 +108,38 @@ void tunReceive(fdglue_handler_t* that) {
     static int seqno = 0;
     ++seqno;
     payload_t payload = {.stream = buf, .len = size};
+
+    /* debug start */ {
+    unsigned sum = 0;
+    for (stream_t* p = buf; p - buf < size; p++) {
+      sum += *p;
+    }
+    printf(" => Checksum of SENT packet is %08X\n",sum);
+    } /* debug end */
+
     ipv6Packet ipv6;
     unsigned sendsize = 0;
     int no_chunks = needed_chunks(size);
     char chunks_left;
+    char first = 1;
 
     // generate all the subchunks and send them out
     do {
+        if (!first) {
+          usleep(SERIAL_INTERVAL_US);
+        }
+        first = 0;
         chunks_left = genIpv6Packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
         assert(sendsize);
+        //printf("Sending ord_no: %u (seq_no: %u)\n",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
         
-        printf("Sending chunk with size %u\n", sendsize);
+        /*printf("Sending chunk with size %u\n", sendsize);
         unsigned counter = sendsize;
         unsigned char *char_data = (unsigned char*)&ipv6;
         while(counter--){
             printf("%02X ", (unsigned)*char_data++);
         }
-        printf("\n");
+        printf("\n");*/
         
         payload_t to_send = {
             .stream = (stream_t*)&ipv6,

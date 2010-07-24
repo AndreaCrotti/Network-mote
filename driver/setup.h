@@ -1,6 +1,12 @@
 #include "glue.h"
 #include "motecomm.h"
 
+// interval between two transmissions in micro seconds
+// this value was roughly determined by testing smaller values may work
+// this value may depend on the topology.
+// => FIXME
+#define SERIAL_INTERVAL_US 50000
+
 struct TunHandlerInfo {
     int client_no;
     motecomm_t* mcomm;

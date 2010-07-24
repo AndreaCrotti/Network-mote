@@ -56,6 +56,7 @@ int read_from(int fd, char *buf, int len) {
 }
 
 int write_with_socket(int sock) {
+    (void)sock;
     return 0;
 }
 

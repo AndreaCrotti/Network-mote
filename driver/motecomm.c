@@ -114,13 +114,13 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
   mh->amid = 0;
   mh->msglen = payload.len;
   memcpy((void*)(buf.stream + sizeof(struct message_header_mine_t)),payload.stream,payload.len*sizeof(stream_t));
-  printf("Header:\n");
+  /*printf("Header:\n");
   unsigned int i = 0;
   for(; i<buf.len; i++){
       printf("%02X ", (unsigned)*(unsigned char*)(buf.stream+i));
   }
   printf("\n");
-  printf("Bytes sent: %d\n", buf.len);
+  printf("Bytes sent: %d\n", buf.len);*/
 
   int result = write_serial_packet(this->source,buf.stream,buf.len);
   free((void*)(buf.stream));

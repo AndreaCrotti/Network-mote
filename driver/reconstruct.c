@@ -15,7 +15,7 @@
 
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
-#define DEBUG 1
+#define DEBUG 0
 
 void reset_packet(packet_t *pkt);
 int get_ord_no(ipv6Packet *ip6_pkt);
@@ -36,21 +36,29 @@ static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 
 static void (*send_back)(payload_t completed);
 
+void init_temp_packet(packet_t* const pkt) {
+  *pkt = (packet_t){
+    .seq_no = -1,
+    .missing_bitmask = -1,
+    .tot_size = 0
+  };
+  memset((void*)(pkt->chunks),0,MAX_FRAME_SIZE*sizeof(stream_t));
+}
+
 /** 
  * Initializing the reconstruction module
  * 
  */
 void initReconstruction(void (*callback)(payload_t completed)) {
-    //TODO: install callback
     if (DEBUG)
         printf("initializing the reconstruction\n");
 
     send_back = callback;
+    if (!callback)
+        printf("WARNING: installing NULL callback for completed packets.\n");
+
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
-        // is it always a new packet_t right?
-        packet_t t;
-        t.seq_no = -1;
-        temp_packets[i] = t;
+        init_temp_packet(temp_packets+i);
     }
 }
 
@@ -76,13 +84,13 @@ void addChunk(payload_t data) {
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
         
         // resetting to the initial configuration
-        pkt->completed_bitmask = (1 << get_parts(original)) - 1;
+        pkt->missing_bitmask = (1 << get_parts(original)) - 1;
         pkt->seq_no = seq_no;
         pkt->tot_size = 0;
     }
 
     if (DEBUG)
-        printf("adding chunk (%d, %d, %d, %d)\n", seq_no, ord_no, get_parts(original), pkt->completed_bitmask);
+        printf("adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %d)\n", seq_no, ord_no, get_parts(original), pkt->missing_bitmask);
 
 
 
@@ -97,7 +105,7 @@ void addChunk(payload_t data) {
     // we can always do this since only the last one is not fullsize
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
 
-    int new_bm = (pkt->completed_bitmask) & ~(1 << ord_no);
+    int new_bm = (pkt->missing_bitmask) & ~(1 << ord_no);
     send_if_completed(pkt, new_bm);
 
     free(original);
@@ -113,15 +121,15 @@ stream_t *getChunks(int seq_no) {
 
 
 int is_completed(packet_t *pkt) {
-    return (pkt->completed_bitmask == 0);
+    return (pkt->missing_bitmask == 0);
 }
 
 // TODO: change name or change what is done inside here
 void send_if_completed(packet_t *pkt, int new_bm) {
-    if (new_bm == pkt->completed_bitmask)
+    if (new_bm == pkt->missing_bitmask)
         printf("adding twice the same chunk!!!!\n");
     else 
-        pkt->completed_bitmask = new_bm;
+        pkt->missing_bitmask = new_bm;
 
     // now we check if everything if the packet is completed and sends it back
 
@@ -192,6 +200,8 @@ int get_parts(ipv6Packet *packet) {
 }
 
 int get_size(ipv6Packet *packet, int size) {
+    // TODO check size
+    (void)size;
     int computed_size;
     if (is_last(packet)) {
         // we need to invert from htons!!
