@@ -164,23 +164,14 @@ implementation{
     /*********/
 
     /** 
-     * A task to sent the first element of the queue over the radio. 
+     * A task to send the first element of the queue over the radio. 
      */
     task void sendEnqueued(void){
         message_t* toSend = call Queue.head();
         am_addr_t address = call AMPacket.destination(toSend);
         unsigned short mlen = call Packet.payloadLength(toSend);
-        call Leds.set(mlen);
-        return;
 
-        if (call LowSend.send(address, toSend, mlen) != SUCCESS) {
-            call Leds.led0Toggle();
-            {
-              unsigned short x = 1;
-              while (x) {
-                x++;
-              }
-            }
+        if (call LowSend.send(address, toSend, TOSH_DATA_LENGTH) != SUCCESS) {
             post sendEnqueued();
         }
     }
