@@ -64,7 +64,7 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
       .receive = serialProcess
     });
 
-    initReconstruct(reconstructDone);
+    initReconstruction(reconstructDone);
 
     if (*mcp) {
         printf("Connection to %s over device %s opened.\n", mote, dev);
