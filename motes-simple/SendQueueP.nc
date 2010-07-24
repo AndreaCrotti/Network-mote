@@ -169,18 +169,9 @@ implementation{
     task void sendEnqueued(void){
         message_t* toSend = call Queue.head();
         am_addr_t address = call AMPacket.destination(toSend);
-        unsigned short mlen = call Packet.payloadLength(toSend);
-        call Leds.set(mlen);
-        return;
+        uint8_t mlen = call Packet.payloadLength(toSend);
 
-        if (call LowSend.send(address, toSend, mlen) != SUCCESS) {
-            call Leds.led0Toggle();
-            {
-              unsigned short x = 1;
-              while (x) {
-                x++;
-              }
-            }
+        if (call LowSend.send(address, toSend, TOSH_DATA_LENGTH) != SUCCESS) {
             post sendEnqueued();
         }
     }
