@@ -28,6 +28,7 @@ implementation{
     components new SendQueueC(SERIAL_QUEUE_SIZE, sizeof(message_t)) as SerialQueue;
     SerialQueue.LowSend -> Serial.AMSend[AM_SIMPLE_SERIAL];
     SerialQueue.AMPacket -> Serial;
+    SerialQueue.Packet -> Serial;
 
     SimpleMoteAppP.SerialControl -> Serial;
     SimpleMoteAppP.SerialReceive -> Serial.Receive[AM_SIMPLE_SERIAL];
