@@ -20,7 +20,7 @@ import rlcompleter
 from re import match
 
 from inter import MenuMaker
-from packet import *
+from packet import MyPacket, make_packet
 
 from TOSSIM import Tossim, SerialForwarder, Throttle
 from tinyos.tossim.TossimApp import NescApp
@@ -137,7 +137,6 @@ class Simulation(object):
             self.sf = SerialForwarder(port)
 
         self.throttle = Throttle(self.sim, 10)
-        self.seqno = 0
         # operations on the topology and the radio channel
         self.topology = RadioNetwork(self.sim.radio())
         self.channels = list(channels)
@@ -254,8 +253,7 @@ class Simulation(object):
     def interactive(self):
         # Use a dictionary and function calls instead
         def send_interactive():
-            packet = make_packet()
-            self.send_packet(packet)
+            self.send_packet(make_packet())
 
         choices = (("topology management" , self.manipulate_topology),
                    ("packet creation" , send_interactive),
@@ -398,14 +396,11 @@ class Simulation(object):
         serialpkt = self.sim.newSerialPacket();
         serialpkt.setData(msg.get_data())
         serialpkt.setType(msg.am_type)
-        # TODO: this 0 is ok to be 
         serialpkt.setDestination(0)
         serialpkt.deliver(0, self.sim.time() + 3)
         self.run_some_events()
 
         print "sended packet:\n%s" % str(msg)
-        # TODO: the seqno is not actually used here
-        self.seqno += 1
 
 if __name__ == '__main__':
     sim = Simulation(SERIAL_PORT, CHANNELS)

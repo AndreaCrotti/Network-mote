@@ -30,7 +30,6 @@
 #define CLIENT_NO 0
 
 void startGateway(char const *dev) {
-<<<<<<< HEAD
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
     tunSetup(TUNTAP_INTERFACE);
@@ -78,9 +77,6 @@ void startGateway(char const *dev) {
         fflush(stdout);
         fdg.listen(&fdg, 5 * 60);
     }
-=======
-    
->>>>>>> b4db01898a70cc4ebd0de407a3a333692b02d0ce
 }
 
 void usage(char* name) {
