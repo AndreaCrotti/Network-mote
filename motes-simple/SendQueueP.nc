@@ -13,6 +13,8 @@ generic module SendQueueP(uint8_t message_length) {
         interface AMSend as LowSend;
         // Access to the header data of the messages
         interface AMPacket;
+        // Access to the payload and such
+        interface Packet;
         // The tinyOS queue implementations
         interface Queue<message_t*> as Queue;
         // A pool for storing data structures
@@ -165,14 +167,20 @@ implementation{
      * A task to sent the first element of the queue over the radio. 
      */
     task void sendEnqueued(void){
-        //message_t* toSend = call Queue.head();
-        //am_addr_t address = call AMPacket.destination(toSend);
-        call Leds.led1Toggle();
+        message_t* toSend = call Queue.head();
+        am_addr_t address = call AMPacket.destination(toSend);
+        unsigned short mlen = call Packet.payloadLength(toSend);
 
 
-        //if(call LowSend.send(address, toSend, message_length) != SUCCESS){
+        if (call LowSend.send(address, toSend, mlen) != SUCCESS) {
             call Leds.led0Toggle();
+            {
+              unsigned short x = 1;
+              while (x) {
+                x++;
+              }
+            }
             post sendEnqueued();
-            //}
+        }
     }
 }

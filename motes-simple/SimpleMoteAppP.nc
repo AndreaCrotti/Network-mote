@@ -52,6 +52,12 @@ implementation{
     /* Events */
     /**********/
  
+    task void testtask() {
+      static unsigned char a = 0;
+      call Leds.set(a++);
+      post testtask();
+    }
+
     /** 
      * When the device is booted, the radio and the serial device are initialized.
      */
@@ -59,6 +65,7 @@ implementation{
         dbg("Boot", "starting the application\n");
         call RadioControl.start();
         call SerialControl.start();
+        //post testtask();
     }
 
     event void SerialControl.startDone(error_t err){}

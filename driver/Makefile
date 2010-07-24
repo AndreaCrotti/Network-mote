@@ -96,7 +96,7 @@ diag:
 	@echo -e " TOSROOT: $(TOSROOT)\n INCLUDE: $(INCLUDE)\n OBJECTS: $(OBJECTS)\n OBJECTS_NOMAIN: $(OBJECTS_NOMAIN)\n CODEFILES: $(CODEFILES)"
 
 run:
-	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
+	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/client \1/' | bash
 
 ping:
 	ping -fbi 0.1 10.0.0.2
