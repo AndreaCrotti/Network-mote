@@ -27,7 +27,7 @@
 #include "../shared/structs.h"
 
 void startGateway(char const *dev) {
-  (void)dev;//FIXME    
+    
 }
 
 void usage(char* name) {

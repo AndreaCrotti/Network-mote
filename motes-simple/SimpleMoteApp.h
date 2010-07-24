@@ -12,7 +12,7 @@
  * AM types for communications.
  * Values are quite arbitrary right now.
  */
-enum{
+enum {
     AM_SIMPLE_RADIO = 15,
     AM_SIMPLE_SERIAL = 0
 };
@@ -20,9 +20,14 @@ enum{
 /*
  * Queue sizes
  */
-enum{
+enum {
     RADIO_QUEUE_SIZE = 10,
     SERIAL_QUEUE_SIZE = 10
+};
+
+// FIXME: why this stupid value is not written there?
+enum {
+    AM_SERIALMSG = 0x89
 };
 
 #endif

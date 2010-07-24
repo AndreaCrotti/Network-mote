@@ -3,8 +3,10 @@ Some nice menu creation facilitites
 """
 import rlcompleter
 import readline
+from collections import namedtuple
 
 # FIXME: use an ordered structure instead
+# namedtuple or ordereddict for example are fine
 class MenuMaker(object):
     def __init__(self, options, style="num"):
         "Pass a list of couples in form ((string, method), ...)"
