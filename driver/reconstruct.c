@@ -125,7 +125,7 @@ void send_if_completed(packet_t *pkt, int new_bm) {
 
     if (is_completed(pkt)) {
         if (DEBUG)
-            printf("packet completed\n");
+            printf("packet seqno=%d completed, tot_size=%d\n", pkt->seq_no, pkt->tot_size);
         
         payload_t payload = {
             .len = pkt->tot_size,
