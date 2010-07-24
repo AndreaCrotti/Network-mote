@@ -62,6 +62,7 @@ implementation{
         
         // Write the destination into the message header
         call AMPacket.setDestination(msg, dest);
+        call Packet.setPayloadLength(msg, len);
         
         // Queue the message up if possible
         if (call Queue.size() < call Queue.maxSize()) {
@@ -171,7 +172,7 @@ implementation{
         am_addr_t address = call AMPacket.destination(toSend);
         uint8_t mlen = call Packet.payloadLength(toSend);
 
-        if (call LowSend.send(address, toSend, TOSH_DATA_LENGTH) != SUCCESS) {
+        if (call LowSend.send(address, toSend, mlen) != SUCCESS) {
             post sendEnqueued();
         }
     }
