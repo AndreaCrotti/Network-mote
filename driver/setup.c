@@ -21,12 +21,8 @@ void serialReceive(fdglue_handler_t* that) {
 
 // function to overwrite the handler and process data from serial 
 void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
-<<<<<<< HEAD
-    (void) that;
-=======
     (void)that;
     printf("hey I got something from the mote! p is %p\n",that->p);
->>>>>>> b9f8a0761a13bb7f7b2fa6f09974c3bd29fb89a7
     addChunk(payload);
 }
 
