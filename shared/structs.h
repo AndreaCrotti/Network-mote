@@ -23,6 +23,8 @@
 /// how many clients can the gateway manage
 #define MAX_CLIENTS 10
 
+#define COPY_STRUCT (DESTP, SOURCEP, TYPE) *(TYPE*)(DESTP) = *(TYPE*)(SOURCEP)
+
 //#define TRUE 1
 //#define FALSE 0
 //typedef unsigned char bool;
