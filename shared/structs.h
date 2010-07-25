@@ -23,9 +23,9 @@
 /// how many clients can the gateway manage
 #define MAX_CLIENTS 10
 
-#define TRUE 1
-#define FALSE 0
-typedef char bool;
+//#define TRUE 1
+//#define FALSE 0
+//typedef unsigned char bool;
 
 #include <ip.h>
 
@@ -48,6 +48,7 @@ typedef struct ip6_hdr ip6_hdr;
 typedef struct myPacketHeader {
     uint8_t seq_no;
     uint8_t ord_no;
+    // this tells us how many chunks there are in total for the packet this chunk belongs to
     uint8_t parts;
 } __attribute__((__packed__)) myPacketHeader;
 
