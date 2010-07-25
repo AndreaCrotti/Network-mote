@@ -1,5 +1,8 @@
 /**
- * 
+ * Module that reconstructs the splitted data given in input.
+ * We use a global circular array to store every possible "conversation".
+ * This array contains the chunks we're temporary building with
+ * some additional informations.
  *
  */
 
@@ -9,25 +12,27 @@
 #include "reconstruct.h"
 #include "chunker.h"
 #include "tunnel.h"
+#include "../shared/structs.h"
 
 // TODO: check that all the types are actually correct
 
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
-#define DEBUG 0
+typedef struct {
+    int seq_no;
+    // bitmaks of chunks still missing
+    int missing_bitmask;
+    // That is the max size of the theoretically completed packet
+    stream_t chunks[MAX_FRAME_SIZE];
+    int tot_size;
+} packet_t;
 
-void reset_packet(packet_t *pkt);
-int get_ord_no(ipv6Packet *ip6_pkt);
-int get_seq_no(ipv6Packet *ip6_pkt);
-int get_parts(ipv6Packet *ip6_pkt);
-int get_size(ipv6Packet *ip6_pkt, int size);
-int is_last(ipv6Packet *ip6_pkt);
-int get_plen(ipv6Packet *ip6_pkt);
+/*********************/
+/* private functions */
+/*********************/
 int is_completed(packet_t *pkt);
 void send_if_completed(packet_t *pkt, int new_bm);
 packet_t *get_packet(int seq_no);
-
-myPacketHeader *get_header(ipv6Packet *ip6_pkt);
 
 // just using a send function would be fine
 //static void (*send_back)(ipv6Packet *completed);
@@ -76,13 +81,13 @@ void initReconstruction(void (*callback)(payload_t completed)) {
 void addChunk(payload_t data) {
     // TODO: add another check of the length of the data given in
     data.len = ntohs(data.len);
-    printf("data len = %d, and sizeof %d\n", data.len, sizeof(ipv6Packet));
+    printf("data len = %u, and sizeof %lu\n", data.len, sizeof(ipv6Packet));
     assert(data.len <= sizeof(ipv6Packet));
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
     memcpy(original, data.stream, sizeof(ipv6Packet));
 
-    int seq_no = get_seq_no(original);
-    int ord_no = get_ord_no(original);
+    int seq_no = getSeqNo(original);
+    int ord_no = getOrdNo(original);
     
     // just for readability
     packet_t *pkt = &temp_packets[POS(seq_no)];
@@ -92,22 +97,18 @@ void addChunk(payload_t data) {
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
         
         // resetting to the initial configuration
-        pkt->missing_bitmask = (1 << get_parts(original)) - 1;
+        pkt->missing_bitmask = (1 << getParts(original)) - 1;
         pkt->seq_no = seq_no;
         pkt->tot_size = 0;
     }
 
     if (DEBUG)
-        printf("adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %d)\n", seq_no, ord_no, get_parts(original), pkt->missing_bitmask);
+        printf("adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %d)\n", seq_no, ord_no, getParts(original), pkt->missing_bitmask);
 
     // getting the real data of the packets
-    int size = get_size(original, data.len);
+    int size = getSize(original, data.len);
     pkt->tot_size += size;
 
-    if (DEBUG)
-        printf("size = %d\n", size);
-
-    // we can always do this since only the last one is not fullsize
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
 
     int new_bm = (pkt->missing_bitmask) & ~(1 << ord_no);
@@ -123,7 +124,6 @@ stream_t *getChunks(int seq_no) {
 
     return NULL;
 }
-
 
 int is_completed(packet_t *pkt) {
     return (pkt->missing_bitmask == 0);
@@ -167,65 +167,3 @@ packet_t *get_packet(int seq_no) {
     }
     return NULL;
 }
-
-/****************************************/
-/* Functions to access to the structure */
-/****************************************/
-
-myPacketHeader *get_header(ipv6Packet *packet) {
-    return &(packet->header.packetHeader);
-}
-
-/** 
- * Check if this is the last chunk 
- * 
- * @param packet 
- * 
- * @return 1 if it's last, 0 otherwise
- */
-int is_last(ipv6Packet *packet) {
-    return (get_ord_no(packet) == (get_parts(packet) - 1));
-}
-
-int get_seq_no(ipv6Packet *packet) {
-    return get_header(packet)->seq_no;
-}
-
-int get_ord_no(ipv6Packet *packet) {
-    return get_header(packet)->ord_no;
-}
-
-int get_plen(ipv6Packet *packet) {
-    int plen = packet->header.ip6_hdr.plen;
-    return plen;
-}
-
-int get_parts(ipv6Packet *packet) {
-   return get_header(packet)->parts;
-}
-
-int get_size(ipv6Packet *packet, int size) {
-    // TODO check size
-    (void)size;
-    int computed_size;
-    if (is_last(packet)) {
-        // we need to invert from htons!!
-        computed_size = ntohs(get_plen(packet)) - sizeof(myPacketHeader);
-    } else {
-        computed_size = MAX_CARRIED;
-    }
-    // TODO: Currently commmented out since mote transmit the maximum all the time
-    //assert((computed_size + sizeof(struct ipv6PacketHeader)) == (unsigned) size);
-    return computed_size;
-}
-
-// only used for testing out something
-void makeIpv6Packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len) {
-    packet->header.packetHeader.seq_no = seq_no;
-    packet->header.packetHeader.ord_no = ord_no;
-    packet->header.packetHeader.parts = parts;
-    // now also set the payload and it's length
-    packet->header.ip6_hdr.plen = len + sizeof(packet->header);
-    memcpy(payload, packet->payload, len);
-}
-
