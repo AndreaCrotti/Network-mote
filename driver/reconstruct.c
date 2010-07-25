@@ -34,6 +34,11 @@ myPacketHeader *get_header(ipv6Packet *ip6_pkt);
 //static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 
+void fake_reconstruct_done(payload_t complete) {
+    (void) complete;
+    printf("packet completed, not doing anything\n");
+}
+
 static void (*send_back)(payload_t completed);
 
 void init_temp_packet(packet_t* const pkt) {
@@ -54,8 +59,10 @@ void initReconstruction(void (*callback)(payload_t completed)) {
         printf("initializing the reconstruction\n");
 
     send_back = callback;
-    if (!callback)
-        printf("WARNING: installing NULL callback for completed packets.\n");
+    if (!callback) {
+        send_back = fake_reconstruct_done;
+        printf("WARNING: installing useless callback for completed packets.\n");
+    }
 
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         init_temp_packet(temp_packets+i);

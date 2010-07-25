@@ -20,29 +20,31 @@ int main() {
     int nread = read(fd, buff, MSG_SIZE);
     
     // now we split the data and try to reconstruct it
-    payload_t payload;
-    payload.stream = (stream_t *) buff;
-    payload.len = MSG_SIZE;
+    payload_t fixed_payload;
+    fixed_payload.stream = (stream_t *) buff;
+    fixed_payload.len = MSG_SIZE;
     
-    ipv6Packet p[100];
-    // now send the message
-    unsigned send_size;
+    // we need 100 elements of payloads which 
+    payload_t payloads[100];
 
     char chunks_left;
     int count = 0;
     int seq_no = 0;
     int chunks_no = needed_chunks(nread);
     do {
-        chunks_left = genIpv6Packet(&payload, &(p[count]), &send_size, seq_no, chunks_no);
+        payload_t *added = &(payloads[count]);
+        added->stream = malloc(sizeof(ipv6Packet));
+        chunks_left = genIpv6Packet(&fixed_payload, (ipv6Packet *) added->stream, &(added->len), seq_no, count);
         count++;
+        
     } while (chunks_left);
     
     //TODO: use callback
-    initReconstruction(0);
+    initReconstruction(NULL);
     printf("sizeof %d\n", sizeof(myPacketHeader) + MAX_CARRIED);
 
     for (int i = 0; i < count; i++) {
-        // FIXME: addChunk((void *) &(p[i]));
+        addChunk(payloads[count]);
         /* printf("%d, %d\n", get_seq_no(&p[i]), get_ord_no(&p[i])); */
     }
     
