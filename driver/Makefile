@@ -2,11 +2,11 @@ BLIP = $(TOSROOT)/support/sdk/c/blip
 SF = $(TOSROOT)/support/sdk/c/sf
 SHARED = ../shared
 
+# using c99 C standard, mainly for "for (int i = 0)..."
 CC = gcc
 STD = -std=c99
 
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED)
-# this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
 LOW6PAN_CARRIED=102
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT
 WARN = -Wall -Wextra
@@ -23,6 +23,7 @@ TEST_TARGETS := $(patsubst %.test.c,tests/%,$(wildcard *.test.c))
 NICETT := $(notdir $(TEST_TARGETS))
 IMPLIED_HEADERS := $(patsubst %.c,%.h,$(CODEFILES))
 NOPS :=
+
 #For external libraries
 EXTERNALS := $(SF)/sfsource.o $(SF)/serialsource.o
 EXTRAPHONIES = 
@@ -43,7 +44,7 @@ $(OBJECTS): %.o: %.c %.h $(HEADERS)
 	@echo    "Compiling object file <$@>."
 	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
 
-$(TEST_TARGETS): tests/%: %.test.c $(OBJECTS_NOMAIN)
+$(TEST_TARGETS): tests/%: tests/%.test.c $(OBJECTS_NOMAIN)
 	@echo "Linking test executable file <$@>."
 	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
 

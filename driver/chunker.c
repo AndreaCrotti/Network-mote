@@ -16,7 +16,6 @@
 
 #include "motecomm.h"
 
-#define MAX_IPVS_SIZE (MAX_CARRIED - sizeof(struct ipv6PacketHeader))
 
 // FIXME: maybe we have to use htons whenever we add data to the network
 void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
@@ -88,12 +87,13 @@ unsigned short csum(unsigned short *buf, int nwords) {
 int main(int argc, char **argv) {
     ipv6Packet v6;
     printf("v6 = %ld\n", sizeof(v6));
+    int size = 1000;
     // now we try to send the packet and see if it's sniffable
-    int *arr = calloc(sizeof(int), 1000);
-    for (int i = 0; i < 1000; i++) {
+    int *arr = calloc(sizeof(int), size);
+    for (int i = 0; i < size; i++) {
         arr[i] = i;
     }
-    int num_chunks = (int)(1000 / MAX_IPVS_SIZE) + 1;
+    int num_chunks = needed_chunks(size);
     // testWithMemset(); 
     return 0;
 }

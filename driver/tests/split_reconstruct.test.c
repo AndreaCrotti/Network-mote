@@ -1,3 +1,5 @@
+// FIXME: check if this is really working as expected
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -22,7 +24,7 @@ int main() {
     payload.stream = (stream_t *) buff;
     payload.len = MSG_SIZE;
     
-    ipv6Packet p[20];
+    ipv6Packet p[100];
     // now send the message
     unsigned send_size;
 

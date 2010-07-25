@@ -85,7 +85,6 @@ void addChunk(payload_t data) {
         printf("adding chunk (%d, %d, %d, %d)\n", seq_no, ord_no, get_parts(original), pkt->completed_bitmask);
 
 
-
     // this is to make sure that we don't decrement missing_chunks even when not adding
     // fetch the real data of the payload, check if it's the last one
     int size = get_size(original, data.len);
