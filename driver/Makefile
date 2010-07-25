@@ -6,7 +6,7 @@ SHARED = ../shared
 CC = gcc
 STD = -std=c99
 
-INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED)
+INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED) -I.
 LOW6PAN_CARRIED=102
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT
 WARN = -Wall -Wextra
