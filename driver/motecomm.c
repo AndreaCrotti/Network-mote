@@ -4,6 +4,8 @@
 #include <stdio.h>
 
 /****** copied from serialsource.c ******/
+
+typedef int bool;
 #define BUFSIZE 256
 #define MTU 256
 struct serial_source_t {

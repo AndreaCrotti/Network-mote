@@ -27,23 +27,22 @@ char notun = 0;
 
 int startClient(char const *dev) {
 
-  if (!notun) {
+    if (!notun) {
+        // on the server instead could create many
+        char tun_name[IFNAMSIZ];
+        tunSetup(TUNTAP_INTERFACE);
 
-    // on the server instead could create many
-    char tun_name[IFNAMSIZ];
-    tunSetup(TUNTAP_INTERFACE);
+        // a new device should be opened!
+        tun_name[0] = 0;    
+        // create the tap-device
 
-    // a new device should be opened!
-    tun_name[0] = 0;    
-    // create the tap-device
-    
-    // it will exit abruptly if it doesn't open it correctly
-    tunOpen(CLIENT_NO, tun_name);
+        // it will exit abruptly if it doesn't open it correctly
+        tunOpen(CLIENT_NO, tun_name);
 
-    fflush(stdout);
+        fflush(stdout);
 
-    setup_routes(tun_name);
-  }
+        setup_routes(tun_name);
+    }
 
     // wrapper for select
     fdglue_t fdg;

@@ -93,7 +93,7 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
 void setup_routes(char const* const tun_name) {
     char script_cmd[80] = "bash route_setup.sh ";
     strcat(script_cmd, tun_name);
-    callScript(script_cmd, "tunnel succesfully set up", "routing setting up", TRUE);
+    callScript(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
 }
 
 // receiving data from the tunnel device
