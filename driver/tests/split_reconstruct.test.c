@@ -42,7 +42,7 @@ int main() {
     
     //TODO: use callback
     initReconstruction(NULL);
-    printf("sizeof %d\n", sizeof(myPacketHeader) + MAX_CARRIED);
+    /* printf("sizeof %ul\n", sizeof(myPacketHeader) + MAX_CARRIED); */
 
     for (int i = 0; i < count; i++) {
         addChunk(payloads[count]);

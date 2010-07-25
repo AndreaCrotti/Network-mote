@@ -5,10 +5,8 @@
 #define SIZE_IPV6_HEADER 40
 // For the usage of additional headers MAX_CARRIED has to be smaller
 #define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(struct ipv6PacketHeader))
-//#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(ipv6PacketHeader) - MCP_HEADER_BYTES - 5)
 #define TOT_PACKET_SIZE(payload_len) (sizeof(struct ipv6PacketHeader) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
-
 
 #define TUNTAP_INTERFACE IFF_TUN
 
@@ -64,11 +62,29 @@ typedef struct ipv6Packet {
 } __attribute__((__packed__)) ipv6Packet;
 
 
-// some useful functions to print structures
+/*********************************************/
+/* some useful functions to print structures */
+/*********************************************/
 void printPayload(payload_t t);
 void printPacketHeader(myPacketHeader *pkt);
 void printIpv6Header(ip6_hdr header);
 void printIpv6Packet(ipv6Packet *pkt);
+
+/** 
+ * Create a ipv6packet with those values, mainly for testing and debugging
+ * 
+ */
+void makeIpv6Packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
+
+/****************************************************************/
+/* accessing to the internal data of the structures more easily */
+/****************************************************************/
+
+myPacketHeader *getHeader(ipv6Packet *packet);
+int getSize(ipv6Packet *packet, int size);
+int getParts(ipv6Packet *packet);
+int getOrdNo(ipv6Packet *packet);
+int getSeqNo(ipv6Packet *packet);
 
 #endif
 
