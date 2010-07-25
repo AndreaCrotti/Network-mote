@@ -1,4 +1,12 @@
-// TODO: add a free function to reset everything
+/**
+ * Here we encapsulate all the possible functions managing our tunnel
+ *
+ * There can be many tun devices open at the same time (on the gateway mostly)
+ * and we keep them in an array of structures representing each tunnel device.
+ *
+ * Optionally we can queue the writing on the device with a FIFO queue
+ * 
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +30,21 @@
 #define TUN_DEV "/dev/net/tun"
 #define NEXT(x) ((x + 1) % MAX_QUEUED)
 
+// implementation of a FIFO queue as a circular array
+typedef struct write_queue {
+    payload_t data[MAX_QUEUED];
+    int first;
+    int last;
+} write_queue;
+
+// structure of a tun device
+typedef struct tundev {
+    char *ifname;
+    int fd;
+    int client; // client we're serving
+    write_queue queue;
+} tundev;
+
 
 // The name of the interface 
 char ifname[IFNAMSIZ];
@@ -30,8 +53,8 @@ char ifname[IFNAMSIZ];
 static tundev tun_devices[MAX_CLIENTS];
 static int flags;
 
-char *fetch_from_queue(write_queue *queue);
-void add_to_queue(write_queue *queue, char *element);
+payload_t fetch_from_queue(write_queue *queue);
+void add_to_queue(write_queue *queue, payload_t data);
 int queue_empty(write_queue *queue);
 int queue_full(write_queue *queue);
 int is_writable(int fd);
@@ -147,31 +170,32 @@ void tunWriteNoQueue(int client_no, payload_t data) {
     assert(sent == data.len);
 }
 
-// FIXME: add the payload_t instead to the queue
-/* void addToWriteQueue(int client_no, payload_t data) { */
-/*     assert(0); */
-/*     int fd = getFd(client_no); */
-/*     // add the message to the queue */
-/*     write_queue *queue = &(tun_devices[client_no].queue); */
-/*     add_to_queue(queue, data.stream); */
-/*     /\* printf("now queue %d <-> %d\n", queue->first, queue->last); *\/ */
-/*     // now use a select to try to send out everything */
+void addToWriteQueue(int client_no, payload_t data) {
+    assert(0);
+    int fd = getFd(client_no);
+    // add the message to the queue
+    write_queue *queue = &(tun_devices[client_no].queue);
+    add_to_queue(queue, data);
+    /* printf("now queue %d <-> %d\n", queue->first, queue->last); */
+    // now use a select to try to send out everything
 
-/*     // try to send out as many messages as possible */
-/*     char *message; */
-/*     // quit immediately the loop if we sent everything or is not writable */
-/*     while ((message = fetch_from_queue(queue)) && is_writable(fd)) { */
-/*         // FIXME: of course it's wrong */
-/*         int nwrite = tun_write(fd, data); */
-/*         /\* printf("wrote %d bytes\n", nwrite); *\/ */
-/*         if (nwrite) { */
-/*             // otherwise means partially written data */
-/*             assert(nwrite == data.len); */
-/*             // only now we can remove it from the queue */
-/*             delete_last(queue); */
-/*         } */
-/*     } */
-/* } */
+    // try to send out as many messages as possible
+    payload_t message;
+    // quit immediately the loop if we sent everything or is not writable
+    while (!queue_empty(queue)) {
+        message = fetch_from_queue(queue);
+        if (!is_writable(fd)) {
+            unsigned nwrite = tun_write(fd, data);
+            /* printf("wrote %d bytes\n", nwrite); */
+            if (nwrite) {
+                // otherwise means partially written data
+                assert(nwrite == data.len);
+                // only now we can remove it from the queue
+                delete_last(queue);
+            }
+        }
+    }
+}
 
 /** 
  * Check if the device is ready for writing
@@ -190,17 +214,30 @@ int is_writable(int fd) {
     return FD_ISSET(fd,&fds) ? 1 : 0;
 }
 
+int checkFd(int fd) {
+    fd_set fds;
+    struct timeval timeout = {.tv_sec = 3, .tv_usec = 0};
+    int rc;
+    FD_ZERO(&fds);
+    FD_SET(fd, &fds);
+    
+    // is this fd+1 exactly what we need here?
+    rc = select(fd + 1, &fds, &fds, &fds, &timeout);
+    /* int modes[] = {1, 2, 4}; */
+    return FD_ISSET(fd,&fds) ? 1 : 0;
+}
+
 
 /**
  * Adding element, managing a full queue with assertion (because it should not happen)
  * 
  * @param queue queue to add to
- * @param element element to add to the queue
+ * @param data payload to add to the queue
  */
-void add_to_queue(write_queue *queue, char *element) {
+void add_to_queue(write_queue *queue, payload_t data) {
     assert(!queue_full(queue));
     /* printf("adding %s to the queue\n", element); */
-    queue->messages[queue->last] = element;
+    queue->data[queue->last] = data;
     // going forward of one position
     queue->last = NEXT(queue->last);
 }
@@ -218,11 +255,8 @@ int queue_empty(write_queue *queue) {
  * 
  * @return the first element inserted into the queue or NULL if not found
  */
-char *fetch_from_queue(write_queue *queue) {
-    if (!queue_empty(queue))
-         return queue->messages[queue->first];
-
-    return NULL;
+payload_t fetch_from_queue(write_queue *queue) {
+    return queue->data[queue->first];
 }
 
 void delete_last(write_queue *queue) {

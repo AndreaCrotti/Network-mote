@@ -18,7 +18,8 @@ int create_tun(char *dev) {
     int err;
     char *clonedev = TUN_DEV;
 
-    int fd = open(clonedev , O_RDWR);
+    // open the tun device rw mode
+    int fd = open(clonedev , O_RDONLY);
     if (fd < 0) {
         perror("Opening /dev/net/tun");
         exit(1);
@@ -66,8 +67,8 @@ int main() {
     name[0] = 0;    
     int fd = create_tun(name);
 
-    int wrote = write_tun_write(fd);
-    printf("wrote %d bytes on the tun device, now check iptables log\n", wrote);
+    /* int wrote = write_tun_write(fd); */
+    /* printf("wrote %d bytes on the tun device, now check iptables log\n", wrote); */
     
     char buf[strlen(msg) + 1];
     // read is blocking here 

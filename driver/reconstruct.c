@@ -45,13 +45,20 @@ void fake_reconstruct_done(payload_t complete) {
 
 static void (*send_back)(payload_t completed);
 
+/** 
+ * initializing a temporary reconstruction packet
+ * resetting also the memory
+ * 
+ * @param pkt 
+ */
 void init_temp_packet(packet_t* const pkt) {
   *pkt = (packet_t){
     .seq_no = -1,
     .missing_bitmask = -1,
     .tot_size = 0
   };
-  memset((void*)(pkt->chunks),0,MAX_FRAME_SIZE*sizeof(stream_t));
+
+  memset((void*)(pkt->chunks), 0, MAX_FRAME_SIZE * sizeof(stream_t));
 }
 
 /** 

@@ -7,21 +7,6 @@
 
 #define MAX_QUEUED 10
 
-// implementation of a FIFO queue as a circular array
-typedef struct write_queue {
-    char *messages[MAX_QUEUED];
-    int first;
-    int last;
-} write_queue;
-
-// structure of a tun device
-typedef struct tundev {
-    char *ifname;
-    int fd;
-    int client; // client we're serving
-    write_queue queue;
-} tundev;
-
 
 /*************************/
 /* Function declarations */
