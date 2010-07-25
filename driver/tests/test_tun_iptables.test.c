@@ -9,9 +9,9 @@
 #include <linux/if.h>
 #include <linux/if_tun.h>
 
-char msg[100] = "hallo hallo\n";
+char msg[] = "hallo hallo\n";
 #define TUN_DEV "/dev/net/tun"
-
+char ipaddr[] = "10.0.0.1";
 
 int create_tun(char *dev) {
     struct ifreq ifr;
@@ -55,18 +55,17 @@ int read_from(int fd, char *buf, int len) {
     return read(fd, buf, len);
 }
 
-int write_with_socket(int sock) {
-    (void)sock;
-    return 0;
-}
+/* int write_with_socket(int sock) { */
+/*     int sd = socket(PF_INET, SOCK_RAW, IPPROTO_UDP); */
+    
+/*     return 0; */
+/* } */
 
 int main() {
     char name[IFNAMSIZ];
     name[0] = 0;    
     int fd = create_tun(name);
 
-    // sleep until the rest is setup correctly
-    sleep(3);
     int wrote = write_tun_write(fd);
     printf("wrote %d bytes on the tun device, now check iptables log\n", wrote);
     
@@ -74,6 +73,5 @@ int main() {
     // read is blocking here 
     read_from(fd, buf, strlen(msg));
     printf("reading from the device string\n");
-    while (1) {}
     return 0;
 }
