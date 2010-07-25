@@ -37,6 +37,8 @@ unsigned needed_chunks(int data_size){
     return ((data_size + MAX_CARRIED-1)/MAX_CARRIED);
 }
 
+
+// FIXME: obsolete comment below
 /** 
  * Splits data into chunks and stores them in the packet.
  * 
@@ -50,8 +52,14 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     assert(packet);
     assert(payload);
     assert(payload->len > 0);
-    static struct myPacketHeader pkt = {.seq_no = 0xFF, .ord_no = 0xFF};
+    
+    // static because we want to keep its value through different calls
+    static struct myPacketHeader pkt = {
+        .seq_no = 0xFF,
+        .ord_no = 0xFF
+    };
 
+    // initialized if it's a new one
     if (pkt.seq_no != seq_no) {
         pkt.seq_no = seq_no;
         pkt.ord_no = 0;
@@ -61,6 +69,7 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     packet->header.packetHeader = pkt;
     pkt.ord_no++;
     *sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
+    // setup the ipv6 we need
     genIpv6Header(&(packet->header.ip6_hdr), sizeof(myPacketHeader) + *sendsize);
     memcpy(packet->payload, payload->stream, *sendsize);
     payload->len -= *sendsize;

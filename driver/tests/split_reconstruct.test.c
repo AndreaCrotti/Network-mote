@@ -18,6 +18,7 @@ int main() {
     int fd = open("/dev/urandom", O_RDONLY);
     stream_t buff[MSG_SIZE];
     int nread = read(fd, buff, MSG_SIZE);
+    assert(nread == MSG_SIZE);
     
     // now we split the data and try to reconstruct it
     payload_t fixed_payload;
@@ -30,10 +31,10 @@ int main() {
     char chunks_left;
     int count = 0;
     int seq_no = 0;
-    int chunks_no = needed_chunks(nread);
     do {
         payload_t *added = &(payloads[count]);
         added->stream = malloc(sizeof(ipv6Packet));
+        printf("len of fixed_payload we're adding %d fixed_payload.len\n", fixed_payload.len);
         chunks_left = genIpv6Packet(&fixed_payload, (ipv6Packet *) added->stream, &(added->len), seq_no, count);
         count++;
         

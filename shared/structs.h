@@ -63,5 +63,12 @@ typedef struct ipv6Packet {
     stream_t payload[MAX_CARRIED];
 } __attribute__((__packed__)) ipv6Packet;
 
+
+// some useful functions to print structures
+void printPayload(payload_t t);
+void printPacketHeader(myPacketHeader *pkt);
+void printIpv6Header(ip6_hdr header);
+void printIpv6Packet(ipv6Packet *pkt);
+
 #endif
 

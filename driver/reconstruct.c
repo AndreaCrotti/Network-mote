@@ -1,3 +1,8 @@
+/**
+ * 
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,12 +11,6 @@
 #include "tunnel.h"
 
 // TODO: check that all the types are actually correct
-// TODO: check with valgrind
-
-// a simple function is not enough, we need an "object" which keeps the state
-// of all the temporary packets and take from the outside the new packets we want to add.
-// When one packet is ready it should go in another structure and maybe we can use a callback
-// function to send it away automatically
 
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
@@ -76,6 +75,8 @@ void initReconstruction(void (*callback)(payload_t completed)) {
  */
 void addChunk(payload_t data) {
     // TODO: add another check of the length of the data given in
+    data.len = ntohs(data.len);
+    printf("data len = %d, and sizeof %d\n", data.len, sizeof(ipv6Packet));
     assert(data.len <= sizeof(ipv6Packet));
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
     memcpy(original, data.stream, sizeof(ipv6Packet));
@@ -99,9 +100,7 @@ void addChunk(payload_t data) {
     if (DEBUG)
         printf("adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %d)\n", seq_no, ord_no, get_parts(original), pkt->missing_bitmask);
 
-
-    // this is to make sure that we don't decrement missing_chunks even when not adding
-    // fetch the real data of the payload, check if it's the last one
+    // getting the real data of the packets
     int size = get_size(original, data.len);
     pkt->tot_size += size;
 
