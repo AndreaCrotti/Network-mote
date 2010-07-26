@@ -55,7 +55,7 @@ void startGateway(char const *dev, char const *eth) {
     // it will exit abruptly if it doesn't open it correctly
     tunOpen(CLIENT_NO, tun_name);
 
-    setup_iptables(dev, eth);
+    setup_iptables(tun_name, eth);
 
     // wrapper for select
     fdglue_t fdg;
@@ -102,6 +102,7 @@ int main(int argc, char *argv[]) {
     if (argc != 3) {
         usage(argv[0]);
     }
+
     char const *dev = argv[1];
     char const *eth = argv[2];
     
