@@ -93,11 +93,10 @@ void simple_test(payload_t fixed) {
     initReconstruction(NULL);
 
     for (int i = 0; i < chunks_no; i++) {
-        payload_t tmp;
         addChunk(result[i]);
     }
     
-    stream_t *chunks = getChunks(0);
+    /* stream_t *chunks = getChunks(0); */
 
     for (int i = 0; i < MSG_SIZE; i++) {
         /* printf("i = %d, %d %d\n", i, chunks[i], fixed.stream[i]); */
