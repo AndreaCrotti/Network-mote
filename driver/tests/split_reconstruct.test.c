@@ -31,7 +31,6 @@ void add_random_order(payload_t *msgs, int count) {
     int pos;
     while (count) {
         pos = random() % count;
-        /* pos = (int) (count * (random() / (RAND_MAX + 1.0))); */
         addChunk(msgs[pos]);
         swap_msgs(pos, count-1, msgs);
         count--;
@@ -41,46 +40,49 @@ void add_random_order(payload_t *msgs, int count) {
 
 void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
     // only one big array for all of them
-    printf("parts, seq = %d, %d\n", parts, count);
     for (int seq = 0; seq < count; seq++) {
         for (int i = 0; i < parts; i++) {
-            payload_t *added = &(result[seq * i]);
-            printf("adding on %d\n", seq * i);
+            int pos = (seq * parts) + i;
+            printf("position = %d\n", pos);
+            payload_t *added = &(result[pos]);
+            /* printf("adding on %d\n", seq * i); */
             (added->stream) = malloc(sizeof(ipv6Packet));
+            // FIXME: there must a problem here since we are not setting the stream
             genIpv6Packet(&fixed, (ipv6Packet *) added->stream, &(added->len), seq, parts);
             printf("added %d\n", added->len);
             // add the chunks in random order now
         }
-        add_random_order(result + (seq * parts), parts);
     }
+    // now we have created the big array containing everything
+    add_random_order(result, count);
     printf("calling on seq %d\n", (parts * count) -1);
 }
 
 int main() {
     // now we split the data and try to reconstruct it
+    int num_msgs = 2;
+
     payload_t fixed_payload;
     stream_t buff[MSG_SIZE];
     fixed_payload.stream = buff;
     fixed_payload.len = MSG_SIZE;
-    
     get_random_msg(fixed_payload, MSG_SIZE);
-    
     initReconstruction(NULL);
 
-    int num_msgs = 1;
-
     int parts = neededChunks(MSG_SIZE);
-    payload_t result[parts * (num_msgs + 1)];
+    payload_t result[parts * num_msgs];
 
     add_random_seqs(fixed_payload, result, parts, num_msgs);
 
-    
     // check if we got back the right data
     stream_t *chunks;
     for (int seq = 0; seq < num_msgs; seq++) {
+        printf("seq = %d\n", seq);
         chunks = getChunks(seq);
+        assert(chunks != NULL);
+        // checking that the original data is the same as the data we compute
         for (int i = 0; i < MSG_SIZE; i++) {
-            assert(chunks[i] == *(result[i * seq].stream));
+            assert(chunks[i] == buff[i]);
         }
     }
     return 0;
