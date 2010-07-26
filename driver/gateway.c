@@ -41,7 +41,10 @@ void startGateway(char const *dev) {
     // it will exit abruptly if it doesn't open it correctly
     tunOpen(CLIENT_NO, tun_name);
 
-    setup_routes(tun_name);
+    char script_cmd[100];
+    sprintf(script_cmd, "sh gateway.sh %s eth0", tun_name);
+
+    callScript(script_cmd, "setup iptables rules", "routing setting up", 1);
 
     // wrapper for select
     fdglue_t fdg;
