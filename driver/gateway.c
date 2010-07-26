@@ -28,8 +28,22 @@
 #include "setup.h"
 
 #define CLIENT_NO 0
+#define TRUE 1
 
-void startGateway(char const *dev) {
+
+/** 
+ * Call an external script to setup the iptables rules
+ * 
+ * @param dev usb device
+ * @param eth network interface connected to the internet
+ */
+void setup_iptables(char const *dev, char const *eth) {
+    char script_cmd[100];
+    sprintf(script_cmd, "sh gateway.sh %s %s", dev, eth);
+    callScript(script_cmd, "setup iptables rules", "routing setting up", 1);
+}
+
+void startGateway(char const *dev, char const *eth) {
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
     tunSetup(TUNTAP_INTERFACE);
@@ -41,10 +55,7 @@ void startGateway(char const *dev) {
     // it will exit abruptly if it doesn't open it correctly
     tunOpen(CLIENT_NO, tun_name);
 
-    char script_cmd[100];
-    sprintf(script_cmd, "sh gateway.sh %s eth0", tun_name);
-
-    callScript(script_cmd, "setup iptables rules", "routing setting up", 1);
+    setup_iptables(dev, eth);
 
     // wrapper for select
     fdglue_t fdg;
@@ -83,16 +94,17 @@ void startGateway(char const *dev) {
 }
 
 void usage(char* name) {
-    fprintf(stderr, "%s <device>\n",name);
+    fprintf(stderr, "./%s <usb device> <external interface>\n", name);
     exit(EX_USAGE);
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
+    if (argc != 3) {
         usage(argv[0]);
     }
-    char const* dev = argv[1];
+    char const *dev = argv[1];
+    char const *eth = argv[2];
     
-    startGateway(dev);
+    startGateway(dev, eth);
     return 0;
 }

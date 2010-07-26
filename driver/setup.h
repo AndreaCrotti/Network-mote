@@ -12,8 +12,6 @@ struct TunHandlerInfo {
     motecomm_t* mcomm;
 };
 
-void setup_routes(char const* const tun_name);
-
 void laSet(laep_handler_t* this, la_t const address);
 
 void tunReceive(fdglue_handler_t* that);
