@@ -32,5 +32,3 @@ $IPT -t nat -A POSTROUTING -o $ETH -j MASQUERADE
 $IPT -A FORWARD -i $ETH -o $TUN -m state --state RELATED,ESTABLISHED -j ACCEPT
 # accept everything from tap to external network
 $IPT -A FORWARD -i $TUN -o $ETH -j ACCEPT
-
-# Set up the routing table
