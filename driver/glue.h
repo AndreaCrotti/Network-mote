@@ -1,5 +1,5 @@
-#ifndef __GLUE_H
-#define __GLUE_H
+#ifndef GLUE_H
+#define GLUE_H
 
 #include "util.h"
 

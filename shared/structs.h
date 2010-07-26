@@ -1,5 +1,5 @@
-#ifndef __STRUCTS_H
-#define __STRUCTS_H
+#ifndef STRUCTS_H
+#define STRUCTS_H
 
 // measures in bytes
 #define SIZE_IPV6_HEADER 40

@@ -1,5 +1,5 @@
-#ifndef _RECONSTRUCT_H
-#define _RECONSTRUCT_H
+#ifndef RECONSTRUCT_H
+#define RECONSTRUCT_H
 
 #include "structs.h"
 

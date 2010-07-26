@@ -1,5 +1,5 @@
-#ifndef __CHUNKER_H
-#define __CHUNKER_H
+#ifndef CHUNKER_H
+#define CHUNKER_H
 #include <stdint.h>
 #include "util.h"
 

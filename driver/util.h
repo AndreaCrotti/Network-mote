@@ -1,5 +1,5 @@
-#ifndef __UTIL_H
-#define __UTIL_H
+#ifndef UTIL_H
+#define UTIL_H
 
 #ifndef INCLUDE_SERIAL_IMPLEMENTATION
 #define INCLUDE_SERIAL_IMPLEMENTATION 1

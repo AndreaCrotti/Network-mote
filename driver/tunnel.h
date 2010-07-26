@@ -1,7 +1,6 @@
-#ifndef __TUNNEL_H
-#define __TUNNEL_H
+#ifndef TUNNEL_H
+#define TUNNEL_H
 
-#include <arpa/inet.h>
 #include "util.h"
 
 #define MAX_QUEUED 10
@@ -23,11 +22,9 @@
 int tunOpen(int client_no, char *dev);
 
 /** 
- * Get the fd for one client number
- * 
  * @param client_no 
  * 
- * @return 
+ * @return the file descriptor of the client
  */
 int getFd(int client_no);
 
