@@ -14,7 +14,7 @@ fi
 
 TUN=$1
 ETH=$2
-ETH_IP=134.61.32.222
+ETH_IP=192.168.226.131
 
 ip link set $TUN up
 ip addr add 10.0.0.254 dev $TUN

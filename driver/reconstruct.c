@@ -18,6 +18,7 @@
 
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
+// FIXME: some types are not big enough handling big numbers
 typedef struct {
     int seq_no;
     // bitmaks of chunks still missing

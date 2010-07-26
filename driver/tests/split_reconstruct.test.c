@@ -10,7 +10,8 @@
 #include "util.h"
 #include "structs.h"
 
-#define MSG_SIZE (1 << 10)
+int msg_size;
+int num_msgs;
 
 void get_random_msg(payload_t data, int size) {
     int fd = open("/dev/urandom", O_RDONLY);
@@ -53,13 +54,11 @@ void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
 
         for (int i = 0; i < parts; i++) {
             int pos = (seq * parts) + i;
-            printf("position = %d\n", pos);
             payload_t *added = &(result[pos]);
             /* printf("adding on %d\n", seq * i); */
             (added->stream) = malloc(sizeof(ipv6Packet));
             // FIXME: there must a problem here since we are not setting the stream
             genIpv6Packet(&copied, (ipv6Packet *) added->stream, &(added->len), seq, parts);
-            printf("added %d\n", added->len);
             // add the chunks in random order now
         }
     }
@@ -68,6 +67,7 @@ void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
 }
 
 // return an array of ipv6Packet put in nice payload_t structures
+// careful here
 payload_t *gen_ipv6_payloads(int count) {
     payload_t *payloads = calloc(count, sizeof(payload_t));
     for (int i = 0; i < count; i++) {
@@ -86,6 +86,7 @@ void free_payloads(payload_t *payloads, int count) {
 void simple_test(payload_t fixed) {
     int len = fixed.len;
     int chunks_no = neededChunks(len);
+    printf("having %d\n", chunks_no);
     payload_t *result = gen_ipv6_payloads(chunks_no);
     
     genIpv6Packets2(&fixed, result, 0, chunks_no);
@@ -96,28 +97,34 @@ void simple_test(payload_t fixed) {
         addChunk(result[i]);
     }
     
-    /* stream_t *chunks = getChunks(0); */
+    stream_t *chunks = getChunks(0);
 
-    for (int i = 0; i < MSG_SIZE; i++) {
-        /* printf("i = %d, %d %d\n", i, chunks[i], fixed.stream[i]); */
+    for (int i = 0; i < msg_size; i++) {
+        printf("i = %d, %d %d\n", i, chunks[i], fixed.stream[i]);
         /* assert(chunks[i] == fixed.stream[i]); */
     }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc < 3) {
+        printf("usage: split_reconstruct <exp> <num msgs>\n");
+        exit(1);
+    }
+    
     // now we split the data and try to reconstruct it
-    int num_msgs = 3;
-
+    msg_size = (1 << atoi(argv[1]));
+    num_msgs = atoi(argv[2]);
+    
     payload_t fixed_payload;
-    stream_t buff[MSG_SIZE];
+    stream_t buff[msg_size];
     fixed_payload.stream = buff;
-    fixed_payload.len = MSG_SIZE;
+    fixed_payload.len = msg_size;
 
-    get_random_msg(fixed_payload, MSG_SIZE);
-    simple_test(fixed_payload);
+    get_random_msg(fixed_payload, msg_size);
+    /* simple_test(fixed_payload); */
     initReconstruction(NULL);
 
-    int parts = neededChunks(MSG_SIZE);
+    int parts = neededChunks(msg_size);
     payload_t result[parts * num_msgs];
 
     add_random_seqs(fixed_payload, result, parts, num_msgs);
@@ -128,7 +135,7 @@ int main() {
         chunks = getChunks(seq);
         assert(chunks != NULL);
         // checking that the original data is the same as the data we compute
-        for (int i = 0; i < MSG_SIZE; i++) {
+        for (int i = 0; i < msg_size; i++) {
             assert(chunks[i] == buff[i]);
         }
     }

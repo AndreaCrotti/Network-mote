@@ -35,7 +35,7 @@ void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
  * 
  * @return The number of needed chunks.
  */
-unsigned neededChunks(int data_size){
+unsigned neededChunks(int data_size) {
     return ((data_size + MAX_CARRIED-1)/MAX_CARRIED);
 }
 
@@ -86,15 +86,19 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
 // returns the size of the packet generated
 void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const int parts) {
     assert(result);
-    // why not just payload->len??
-    unsigned sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
+    int rem_len = payload->len;
+    // FIXME: wrong, this must be set every time and go down!
 
+    unsigned sendsize;
     for (int i = 0; i < parts; i++) {
+        sendsize = (rem_len < MAX_CARRIED) ? rem_len : MAX_CARRIED;
+
         myPacketHeader pkt = {
             .seq_no = seq_no,
             .ord_no = i,
             .parts = parts
         };
+
         // memory is already allocate outside
         ipv6Packet *ipv6 = (ipv6Packet *) result[i].stream;
         ipv6->header.packetHeader = pkt;

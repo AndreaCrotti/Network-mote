@@ -86,7 +86,7 @@ int main() {
         usleep(500000);
     }
 
-    char buf[strlen(msg) + 1];
+    /* char buf[strlen(msg) + 1]; */
     
     // read is blocking here 
     // read_from(fd, buf, strlen(msg));
