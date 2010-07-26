@@ -25,6 +25,16 @@
 
 char notun = 0;
 
+/** 
+ * Setting up the routing table, which need iproute2 to work!!
+ * 
+ */
+void setup_routes(char const* const tun_name) {
+    char script_cmd[80] = "bash route_setup.sh ";
+    strcat(script_cmd, tun_name);
+    callScript(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
+}
+
 int startClient(char const *dev) {
 
     if (!notun) {

@@ -27,6 +27,7 @@ void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
     addChunk(payload);
 }
 
+// TODO: here there should be all the logic of the gateway/client
 void mainLoop() {
     
 }
@@ -86,16 +87,6 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
         printf("There was an error opening the connection to %s over device %s.\n", mote, dev);
     }
     return sif;
-}
-
-/** 
- * Setting up the routing table, which need iproute2 to work!!
- * 
- */
-void setup_routes(char const* const tun_name) {
-    char script_cmd[80] = "bash route_setup.sh ";
-    strcat(script_cmd, tun_name);
-    callScript(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
 }
 
 // receiving data from the tunnel device
