@@ -14,11 +14,18 @@ fi
 
 TUN=$1
 ETH=$2
+ETH_IP=134.61.32.222
 
-ifconfig $TUN up
+ip link set $TUN up
+ip addr add 10.0.0.254 dev $TUN
 
-$IPT -F
+$IPT -t nat -F
 $IPT -Z
+
+$IPT -t nat -A POSTROUTING -o $ETH -j LOG --log-prefix "Packet coming in on tun: " --log-level 7
+#$IPT -A OUTPUT -o $TUN -j LOG --log-prefix "Packet going out to tun" --log-level 7
+
+$IPT -t nat -A PREROUTING -i $TUN -j DNAT --to-destination $ETH_IP
 
 $IPT -t nat -A POSTROUTING -o $ETH -j MASQUERADE
 # accept stuff from the network which is connected
