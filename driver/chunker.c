@@ -1,9 +1,7 @@
-// -*- compile-command: "gcc -Wall -DSTANDALONE chunker.c -o chunker" -*-
-// TODO: add one End Of Packet packet which means end of transmission for packet with seq_no
-// TODO: check integer division
-// TODO: send the raw packets generated via the tun device
-// TODO: use perror to print out errors when possible
-// TODO: set first the packet to all 0 and only set the needed fields
+/**
+ * Split the incoming data in chunks maximizing the dimension used
+ * 
+ */
 
 #include "chunker.h"
 #include "structs.h"
@@ -16,8 +14,12 @@
 
 #include "motecomm.h"
 
-
-// FIXME: maybe we have to use htons whenever we add data to the network
+/** 
+ * Generate a correct ipv6 header, this is the BLIP ipv6 structure!
+ * 
+ * @param header header to overwrite
+ * @param payload_len length of the payload
+ */
 void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
     // FIXME: src and dest are surely not loopback address
     header->ip6_src = in6addr_loopback;
@@ -40,7 +42,7 @@ unsigned neededChunks(int data_size){
 
 // FIXME: obsolete comment below
 /** 
- * Splits data into chunks and stores them in the packet.
+ * Splits data into chnks and stores them in the packet.
  * 
  * @param payload Contains datastream and total length
  * @param packet Pointer to the packet to write the result to
@@ -81,31 +83,42 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     return (payload->len+MAX_CARRIED-1)/MAX_CARRIED;
 }
 
-/* void genIpv6Packets2(payload_t *const payload, ipv6Packet *const result, int const seq_no, const int parts) { */
-/*     assert(result); */
-/*     // why not just payload->len?? */
-/*     unsigned sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED; */
+// returns the size of the packet generated
+void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const int parts) {
+    assert(result);
+    // why not just payload->len??
+    unsigned sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
 
-/*     for (int i = 0; i < parts; i++) { */
-/*         myPacketHeader pkt = { */
-/*             .seq_no = seq_no, */
-/*             .ord_no = i, */
-/*             .parts = parts */
-/*         }; */
-        
-/*         result[i].header.packetHeader = pkt; */
-/*         genIpv6Header(&(result[i].header.ip6_hdr), sizeof(myPacketHeader) + sendsize); */
-/*         memcpy(result[i].payload, payload.stream, *sendsize); */
-/*     } */
-/* } */
+    for (int i = 0; i < parts; i++) {
+        myPacketHeader pkt = {
+            .seq_no = seq_no,
+            .ord_no = i,
+            .parts = parts
+        };
+        ipv6Packet *ipv6 = malloc(sizeof(ipv6Packet));
+        ipv6->header.packetHeader = pkt;
+        result[i].stream = (stream_t *) ipv6;
+        result[i].len = sendsize;
+
+        genIpv6Header(&(ipv6->header.ip6_hdr), sizeof(myPacketHeader) + sendsize);
+        /* memcpy(ipv6.payload, payload->stream, sendsize); */
+    }
+}
 
 
-// Function for checksum calculation. From the RFC,
-// the checksum algorithm is:
-//  "The checksum field is the 16 bit one's complement of the one's
-//  complement sum of all 16 bit words in the header.  For purposes of
-//  computing the checksum, the value of the checksum field is zero."
-unsigned short csum(unsigned short *buf, int nwords) {
+/** 
+ * Function for checksum calculation. From the RFC,
+ * the checksum algorithm is:
+ * "The checksum field is the 16 bit one's complement of the one's
+ * complement sum of all 16 bit words in the header.  For purposes of
+ * computing the checksum, the value of the checksum field is zero."
+ * 
+ * @param buf buffer
+ * @param nwords number of words
+ * 
+ * @return computed checksum
+ */
+ unsigned short csum(unsigned short *buf, int nwords) {
     unsigned long sum;
     for(sum=0; nwords>0; nwords--)
         sum += *buf++;
@@ -113,20 +126,3 @@ unsigned short csum(unsigned short *buf, int nwords) {
     sum += (sum >> 16);
     return (unsigned short)(~sum);
 }
-
-#if STANDALONE
-int main(int argc, char **argv) {
-    ipv6Packet v6;
-    printf("v6 = %ld\n", sizeof(v6));
-    int size = 1000;
-    // now we try to send the packet and see if it's sniffable
-    int *arr = calloc(sizeof(int), size);
-    for (int i = 0; i < size; i++) {
-        arr[i] = i;
-    }
-    int num_chunks = neededChunks(size);
-    // testWithMemset(); 
-    return 0;
-}
-
-#endif
