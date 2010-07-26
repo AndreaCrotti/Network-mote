@@ -61,6 +61,7 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
 
     // initialized if it's a new one
     if (pkt.seq_no != seq_no) {
+        printf("creating a new packet %d\n", seq_no);
         pkt.seq_no = seq_no;
         pkt.ord_no = 0;
         pkt.parts = chunk_number;
@@ -79,6 +80,25 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
 
     return (payload->len+MAX_CARRIED-1)/MAX_CARRIED;
 }
+
+/* void genIpv6Packets2(payload_t *const payload, ipv6Packet *const result, int const seq_no, const int parts) { */
+/*     assert(result); */
+/*     // why not just payload->len?? */
+/*     unsigned sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED; */
+
+/*     for (int i = 0; i < parts; i++) { */
+/*         myPacketHeader pkt = { */
+/*             .seq_no = seq_no, */
+/*             .ord_no = i, */
+/*             .parts = parts */
+/*         }; */
+        
+/*         result[i].header.packetHeader = pkt; */
+/*         genIpv6Header(&(result[i].header.ip6_hdr), sizeof(myPacketHeader) + sendsize); */
+/*         memcpy(result[i].payload, payload.stream, *sendsize); */
+/*     } */
+/* } */
+
 
 // Function for checksum calculation. From the RFC,
 // the checksum algorithm is:
