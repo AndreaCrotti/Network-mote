@@ -98,7 +98,7 @@ void tunReceive(fdglue_handler_t* that) {
     memset(buf, 0, MAX_FRAME_SIZE);
     int size = tunRead(this->client_no, (char*)buf,MAX_FRAME_SIZE);
     assert(size);
-    static int seqno = 0;
+    static seq_no_t seqno = 0;
     ++seqno;
     payload_t payload = {.stream = buf, .len = size};
 

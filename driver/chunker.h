@@ -7,7 +7,7 @@
 #include "../shared/structs.h"
 
 
-int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, int const seq_no, int const chunk_number);
+int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, seq_no_t const seq_no, int const chunk_number);
 
 /* void genIpv6Packets2(payload_t *const payload, ipv6Packet *const result, int const seq_no, const int parts); */
 

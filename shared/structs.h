@@ -44,9 +44,11 @@ typedef struct in6_addr in6_dst;
 typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct ip6_hdr ip6_hdr;
 
+typedef uint8_t seq_no_t;
+
 // also the internal struct should be packed
 typedef struct myPacketHeader {
-    uint8_t seq_no;
+    seq_no_t seq_no;
     uint8_t ord_no;
     // this tells us how many chunks there are in total for the packet this chunk belongs to
     uint8_t parts;
