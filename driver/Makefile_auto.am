@@ -1,0 +1,3 @@
+bin_PROGRAMS = gateway client
+gateway_SOURCES = *.c
+client_SOURCES = *.c
