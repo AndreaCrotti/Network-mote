@@ -60,7 +60,7 @@ void reconstructDone(payload_t complete) {
     static unsigned recv_count = 0;
     printf(" => Checksum of RECV %u packet is %08X\n",recv_count++,sum);
   } /* debug end */
-  tun_write(/*FIXME*/ 0 /*FIXME*/,complete);
+  tunWriteNoQueue(/*FIXME*/ 0 /*FIXME*/,complete);
 }
 
 serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
