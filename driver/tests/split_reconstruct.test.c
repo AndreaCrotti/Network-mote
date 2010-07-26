@@ -39,6 +39,22 @@ void add_random_order(payload_t *msgs, int count) {
     assert(count == 0);
 }
 
+void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
+    // only one big array for all of them
+    printf("parts, seq = %d, %d\n", parts, count);
+    for (int seq = 0; seq < count; seq++) {
+        for (int i = 0; i < parts; i++) {
+            payload_t *added = &(result[seq * i]);
+            printf("adding on %d\n", seq * i);
+            (added->stream) = malloc(sizeof(ipv6Packet));
+            genIpv6Packet(&fixed, (ipv6Packet *) added->stream, &(added->len), seq, parts);
+            printf("added %d\n", added->len);
+            // add the chunks in random order now
+        }
+        add_random_order(result + (seq * parts), parts);
+    }
+    printf("calling on seq %d\n", (parts * count) -1);
+}
 
 int main() {
     // now we split the data and try to reconstruct it
@@ -49,33 +65,23 @@ int main() {
     
     get_random_msg(fixed_payload, MSG_SIZE);
     
-    // we need 100 elements of payloads which 
-    payload_t payloads[100];
-
-    char chunks_left;
-    int count = 0;
-    int seq_no = 0;
-    int parts = neededChunks(MSG_SIZE);
-    do {
-        payload_t *added = &(payloads[count]);
-        added->stream = malloc(sizeof(ipv6Packet));
-        chunks_left = genIpv6Packet(&fixed_payload, (ipv6Packet *) added->stream, &(added->len), seq_no, parts);
-        count++;
-        
-    } while (chunks_left);
-    
-    //TODO: use callback
     initReconstruction(NULL);
 
-    add_random_order(payloads, parts);
+    int num_msgs = 1;
+
+    int parts = neededChunks(MSG_SIZE);
+    payload_t result[parts * (num_msgs + 1)];
+
+    add_random_seqs(fixed_payload, result, parts, num_msgs);
 
     
     // check if we got back the right data
-    stream_t *chunks = getChunks(seq_no);
-    for (int i = 0; i < MSG_SIZE; i++) {
-        assert(chunks[i] == buff[i]);
+    stream_t *chunks;
+    for (int seq = 0; seq < num_msgs; seq++) {
+        chunks = getChunks(seq);
+        for (int i = 0; i < MSG_SIZE; i++) {
+            assert(chunks[i] == *(result[i * seq].stream));
+        }
     }
-    
-    // supposing now we have the right array of packets there
     return 0;
 }
