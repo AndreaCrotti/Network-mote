@@ -56,7 +56,8 @@ void reconstructDone(payload_t complete) {
     for (stream_t* p = (stream_t*)complete.stream; p - (stream_t*)complete.stream < (signed)complete.len; p++) {
       sum += *p;
     }
-    printf(" <= Checksum of RECV packet is %08X\n",sum);
+    static unsigned recv_count = 0;
+    printf(" => Checksum of RECV %u packet is %08X\n",recv_count++,sum);
   } /* debug end */
 }
 
@@ -114,7 +115,8 @@ void tunReceive(fdglue_handler_t* that) {
     for (stream_t* p = buf; p - buf < size; p++) {
       sum += *p;
     }
-    printf(" => Checksum of SENT packet is %08X\n",sum);
+    static unsigned sent_count = 0;
+    printf(" <= Checksum of SENT packet %u is %08X\n",sent_count++,sum);
     } /* debug end */
 
     ipv6Packet ipv6;

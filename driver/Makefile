@@ -100,7 +100,7 @@ run:
 	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/echo Using mote at \1 \&\& .\/client \1/' | head -n 1 | bash
 
 ping:
-	ping -fbi 0.1 10.0.0.2
+	@if [ $$(id -u) = 0 ]; then ping -fbi 0.1 10.0.0.2; else echo "You are not root, so I will ping slowly with 1."; ping -fbi 1 10.0.0.2; fi
 
 autogen: hostname.h
 
