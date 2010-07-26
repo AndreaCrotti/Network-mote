@@ -67,27 +67,43 @@ void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
     add_random_order(result, count * parts);
 }
 
-/* void simple_test(payload_t fixed) { */
-/*     int len = fixed.len; */
-/*     int chunks_no = neededChunks(len); */
-/*     payload_t result[chunks_no]; */
+// return an array of ipv6Packet put in nice payload_t structures
+payload_t *gen_ipv6_payloads(int count) {
+    payload_t *payloads = calloc(count, sizeof(payload_t));
+    for (int i = 0; i < count; i++) {
+        payloads[i].stream = malloc(sizeof(ipv6Packet));
+        payloads[i].len = 0;
+    }
+    return payloads;
+}
+
+void free_payloads(payload_t *payloads, int count) {
+    for (int i = 0; i < count; i++) {
+        free((void *) payloads[i].stream);
+    }
+}
+
+void simple_test(payload_t fixed) {
+    int len = fixed.len;
+    int chunks_no = neededChunks(len);
+    payload_t *result = gen_ipv6_payloads(chunks_no);
     
-/*     genIpv6Packets2(&fixed, result, 0, chunks_no); */
+    genIpv6Packets2(&fixed, result, 0, chunks_no);
 
-/*     initReconstruction(NULL); */
+    initReconstruction(NULL);
 
-/*     for (int i = 0; i < chunks_no; i++) { */
-/*         payload_t tmp; */
-/*         addChunk(result[i]); */
-/*     } */
+    for (int i = 0; i < chunks_no; i++) {
+        payload_t tmp;
+        addChunk(result[i]);
+    }
     
-/*     stream_t *chunks = getChunks(0); */
+    stream_t *chunks = getChunks(0);
 
-/*     for (int i = 0; i < MSG_SIZE; i++) { */
-/*         printf("i = %d, %d %d\n", i, chunks[i], buff[i]); */
-/*         assert(chunks[i] == buff[i]); */
-/*     } */
-/* } */
+    for (int i = 0; i < MSG_SIZE; i++) {
+        /* printf("i = %d, %d %d\n", i, chunks[i], fixed.stream[i]); */
+        /* assert(chunks[i] == fixed.stream[i]); */
+    }
+}
 
 int main() {
     // now we split the data and try to reconstruct it
@@ -99,7 +115,7 @@ int main() {
     fixed_payload.len = MSG_SIZE;
 
     get_random_msg(fixed_payload, MSG_SIZE);
-    /* simple_test(fixed_payload); */
+    simple_test(fixed_payload);
     initReconstruction(NULL);
 
     int parts = neededChunks(MSG_SIZE);
