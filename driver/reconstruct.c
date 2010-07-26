@@ -62,8 +62,10 @@ void init_temp_packet(packet_t* const pkt) {
 }
 
 /** 
- * Initializing the reconstruction module
+ * Initializing the reconstruction module, setting to a default value
+ * the values of the packet
  * 
+ * @param callback callback function which will be called when the packet is completed
  */
 void initReconstruction(void (*callback)(payload_t completed)) {
     if (DEBUG)
@@ -76,7 +78,8 @@ void initReconstruction(void (*callback)(payload_t completed)) {
     }
 
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
-        init_temp_packet(temp_packets+i);
+        // using a [] would be better?
+        init_temp_packet(temp_packets + i);
     }
 }
 
@@ -87,8 +90,6 @@ void initReconstruction(void (*callback)(payload_t completed)) {
  */
 void addChunk(payload_t data) {
     // TODO: add another check of the length of the data given in
-    data.len = ntohs(data.len);
-    printf("data len = %u, and sizeof %lu\n", data.len, sizeof(ipv6Packet));
     assert(data.len <= sizeof(ipv6Packet));
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
     memcpy(original, data.stream, sizeof(ipv6Packet));
@@ -118,6 +119,7 @@ void addChunk(payload_t data) {
 
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
 
+    // remove the arrived packet from the bitmask
     int new_bm = (pkt->missing_bitmask) & ~(1 << ord_no);
     send_if_completed(pkt, new_bm);
 

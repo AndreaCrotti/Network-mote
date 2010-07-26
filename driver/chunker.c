@@ -33,7 +33,7 @@ void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
  * 
  * @return The number of needed chunks.
  */
-unsigned needed_chunks(int data_size){
+unsigned neededChunks(int data_size){
     return ((data_size + MAX_CARRIED-1)/MAX_CARRIED);
 }
 
@@ -74,7 +74,9 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     memcpy(packet->payload, payload->stream, *sendsize);
     payload->len -= *sendsize;
     payload->stream += *sendsize;
+    // no cleaner way to set this??
     *sendsize += sizeof(struct ipv6PacketHeader);
+
     return (payload->len+MAX_CARRIED-1)/MAX_CARRIED;
 }
 
@@ -102,7 +104,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < size; i++) {
         arr[i] = i;
     }
-    int num_chunks = needed_chunks(size);
+    int num_chunks = neededChunks(size);
     // testWithMemset(); 
     return 0;
 }
