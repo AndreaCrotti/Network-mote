@@ -36,10 +36,13 @@ int payload_compress(payload_t data, payload_t result) {
     strm.next_in = in;
     strm.next_out = out;
     ret = deflate(&strm, Z_NO_FLUSH);    /* no bad return value */
+
+    assert(strm.next_in == 0);
     printf("now ret in and out = %d, %d, %d\n", ret, strm.avail_in, strm.avail_out);
     // the initialization was successful
     assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
 
+    deflateEnd(&strm);
     return Z_OK;
 }
 
@@ -49,7 +52,7 @@ int payload_decompress(payload_t data, payload_t result) {
     // maybe out should be bigger
     unsigned char *in = (unsigned char *) data.stream;
     unsigned char *out = (unsigned char *) result.stream;
-    
+
     strm.zalloc = Z_NULL;
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
