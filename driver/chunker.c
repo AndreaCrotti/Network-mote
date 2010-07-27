@@ -3,15 +3,14 @@
  * 
  */
 
-#include "chunker.h"
-#include "structs.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <assert.h>
 
+#include "chunker.h"
+#include "structs.h"
 #include "motecomm.h"
 
 /** 
@@ -39,17 +38,7 @@ unsigned neededChunks(int data_size) {
     return ((data_size + MAX_CARRIED-1)/MAX_CARRIED);
 }
 
-
-// FIXME: obsolete comment below
-/** 
- * Splits data into chnks and stores them in the packet.
- * 
- * @param payload Contains datastream and total length
- * @param packet Pointer to the packet to write the result to
- * @param seq_no Sequential number to use
- *
- * @returns how may packets remain - You should loop until its 0.
- */
+// TODO: comment in chunker.h
 int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, seq_no_t const seq_no, int const chunk_number) {
     assert(packet);
     assert(payload);
@@ -85,7 +74,9 @@ int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* send
     return (payload->len+MAX_CARRIED-1)/MAX_CARRIED;
 }
 
-// returns the size of the packet generated
+// NOT USED!
+// Another implementation of genIpv6Packet which instead takes an array of payloads already allocated
+// This could be useful to keep an history if we need to send back some chunks
 void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const unsigned parts) {
     assert(result);
     unsigned rem_len = payload->len;
@@ -111,26 +102,4 @@ void genIpv6Packets2(payload_t *const payload, payload_t *const result, int cons
 #endif
         memcpy(ipv6->payload, payload->stream, sendsize);
     }
-}
-
-
-/** 
- * Function for checksum calculation. From the RFC,
- * the checksum algorithm is:
- * "The checksum field is the 16 bit one's complement of the one's
- * complement sum of all 16 bit words in the header.  For purposes of
- * computing the checksum, the value of the checksum field is zero."
- * 
- * @param buf buffer
- * @param nwords number of words
- * 
- * @return computed checksum
- */
- unsigned short csum(unsigned short *buf, int nwords) {
-    unsigned long sum;
-    for(sum=0; nwords>0; nwords--)
-        sum += *buf++;
-    sum = (sum >> 16) + (sum &0xffff);
-    sum += (sum >> 16);
-    return (unsigned short)(~sum);
 }

@@ -59,12 +59,6 @@ int read_from(int fd, char *buf, int len) {
     return read(fd, buf, len);
 }
 
-/* int write_with_socket(int sock) { */
-/*     int sd = socket(PF_INET,sdfsdfw SOCK_RAW, IPPROTO_UDP); */
-    
-/*     return 0; */
-/* } */ 
-
 int main() {
     char name[IFNAMSIZ];
     name[0] = 0;    

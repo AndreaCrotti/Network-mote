@@ -7,6 +7,7 @@
 #include "reconstruct.h"
 #include "util.h"
 #include "structs.h"
+#include "various.h"
 
 // this is the exponent of the size
 #define MSG_SIZE 10
@@ -14,13 +15,6 @@
 
 int msg_size;
 int num_msgs;
-
-void get_random_msg(payload_t data, int size) {
-    int fd = open("/dev/urandom", O_RDONLY);
-    int nread = read(fd, (void *) data.stream, size);
-    data.len = size;
-    assert(nread == size);
-}
 
 void swap_msgs(int p1, int p2, payload_t *msgs) {
     payload_t tmp;
@@ -126,7 +120,7 @@ int main(int argc, char *argv[]) {
     fixed_payload.stream = buff;
     fixed_payload.len = msg_size;
 
-    get_random_msg(fixed_payload, msg_size);
+    getRandomMsg(&fixed_payload, msg_size);
     /* simple_test(fixed_payload); */
     initReconstruction(NULL);
 

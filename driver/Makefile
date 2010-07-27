@@ -6,10 +6,10 @@ SHARED = ../shared
 CC = gcc
 STD = -std=c99
 
-PACKET_TYPE = -DNO_IPV6=1
+PACKET_TYPE = -DNO_IPV6=1 -DCOMPRESSION_ENABLED=1
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED) -I.
 LOW6PAN_CARRIED=102
-#LOW6PAN_CARRIED=128
+#LOW6PAN_CARRIED=128	
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT -DDEBUG $(PACKET_TYPE)
 WARN = -Wall -Wextra
 DEBUG = -ggdb -O0 -pg
@@ -27,7 +27,7 @@ IMPLIED_HEADERS := $(patsubst %.c,%.h,$(CODEFILES))
 NOPS :=
 
 #For external libraries
-EXTERNALS := $(SF)/sfsource.o $(SF)/serialsource.o
+EXTERNALS := $(SF)/sfsource.o $(SF)/serialsource.o /usr/lib/libz.so
 EXTRAPHONIES = 
 
 

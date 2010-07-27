@@ -13,6 +13,7 @@
 #include "motecomm.h"
 #include "glue.h"
 #include "setup.h"
+#include "compress.h"
 
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void serialReceive(fdglue_handler_t* that) {
@@ -94,6 +95,7 @@ void tunReceive(fdglue_handler_t* that) {
     //printf("tunReceive called\n");
     
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
+    // allocated only once and always reused!!
     static stream_t buf[MAX_FRAME_SIZE];
     memset(buf, 0, MAX_FRAME_SIZE);
     int size = tunRead(this->client_no, (char*)buf,MAX_FRAME_SIZE);
@@ -101,6 +103,21 @@ void tunReceive(fdglue_handler_t* that) {
     static seq_no_t seqno = 0;
     ++seqno;
     payload_t payload = {.stream = buf, .len = size};
+
+#if COMPRESSION_ENABLED
+    // replace the payload with another payload
+    stream_t compr_data[MAX_FRAME_SIZE];
+    payload_t compressed = {
+        .len = MAX_FRAME_SIZE,
+        .stream = compr_data
+    };
+    
+    // we'll overwrite it when done
+    payloadCompress(payload, &compressed);
+    // TODO: is the rest of the memory lost maybe?
+    // should we alloc - memcpy - free instead?
+    copyPayload(&compressed, &payload);
+#endif
 
     /* debug start */ {
     unsigned sum = 0;
