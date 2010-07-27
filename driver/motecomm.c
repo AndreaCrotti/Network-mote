@@ -35,7 +35,10 @@ struct serial_source_t {
 };
 /****** END (serialsource.c) ******/
 
-
+/**
+ * Sets up a default mcp connection with all rudimentary objects needed for it (including motecomm_t)
+ * If you pass a NULL sif, and your achitecture allows it, the serialif_t will be created automatically
+ */
 mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t** sif) {
   serialif_t* _sif;
 #if !DYNAMIC_MEMORY
@@ -68,15 +71,23 @@ void _serialif_t_ditch(serialif_t* this, payload_t* const payload);
 int _serialif_t_fd(serialif_t* this);
 void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
 
+// the following implementation is only suited for the pc side, but must be different on the mote side
 #if INCLUDE_SERIAL_IMPLEMENTATION
 
 void _serialif_t_openMessage(serial_source_msg problem);
 
+/**
+ * \returns The used file descriptor
+ */
 int _serialif_t_fd(serialif_t* this) {
   assert(this);
   return this->source->fd;
 }
 
+/**
+ * \param payload Contains both the pointer and length of the data provided
+ *                by the ::read method. Call it instead of free!
+ */
 void _serialif_t_ditch(serialif_t* this, payload_t* const payload) {
   assert(this);
   assert(payload);
@@ -87,14 +98,23 @@ void _serialif_t_ditch(serialif_t* this, payload_t* const payload) {
   payload->len = 0;
 }
 
+// allow asynchronous checking of the result of the serial_source library
 serial_source_msg* _serialif_t_openMessage_target = NULL;
 
+/**
+ * This handler is required by the serial_source library.
+ *
+ * \param problem Will be set to the status of the serial open instruction
+ */
 void _serialif_t_openMessage(serial_source_msg problem) {
   if (_serialif_t_openMessage_target) {
     *_serialif_t_openMessage_target = problem;
   }
 }
 
+// local recreation of the message_t header
+// XXX this is some sort of hack, and we should probably just include message.h
+// but that struct is hardware dependant in tinyos, which makes it hard to include it.
 struct message_header_mine_t {
     uint8_t amid;
     uint16_t destaddr;
@@ -104,6 +124,11 @@ struct message_header_mine_t {
     uint8_t handlerid;
 }  __attribute__((packed));
 
+/**
+ * Implementation of serialif_t::send - do not call explicitly.
+ *
+ * \param payload What we are supposed to send. We promise not to change it.
+ */
 int _serialif_t_send(serialif_t* this, payload_t const payload) {
   assert(this);
   payload_t buf;
@@ -117,19 +142,19 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
   mh->amid = 0;
   mh->msglen = payload.len;
   memcpy((void*)(buf.stream + sizeof(struct message_header_mine_t)),payload.stream,payload.len*sizeof(stream_t));
-  /*printf("Header:\n");
-  unsigned int i = 0;
-  for(; i<buf.len; i++){
-      printf("%02X ", (unsigned)*(unsigned char*)(buf.stream+i));
-  }
-  printf("\n");
-  printf("Bytes sent: %d\n", buf.len);*/
-
+  // call the serial_source library for the dirty work
   int result = write_serial_packet(this->source,buf.stream,buf.len);
   free((void*)(buf.stream));
   return result;
 }
 
+/**
+ * Implementation of serialif_t::read - to not call explicitly.
+ *
+ * \param payload A pointer to the variable WE ARE SUPPOSED TO PUT THE PAYLOAD.
+ *                When you are done with it, please call serialif_t::ditch.
+ *                Note: the pointer wont be changed, but its content.
+ */
 void _serialif_t_read(serialif_t* this, payload_t* const payload) {
   assert(this);
   payload_t buf = {.stream = NULL, .len = 0};
@@ -151,6 +176,11 @@ void _serialif_t_read(serialif_t* this, payload_t* const payload) {
   }
 }
 
+/**
+ * Custom destructor for serialif_t.
+ * Will close the serial connection.
+ * Do not call it explicitly. Call mysif->class->dtor(mysif) instead.
+ */
 void _serialif_t_dtor(serialif_t* this) {
   assert(this);
   if (this->source) {
@@ -158,6 +188,13 @@ void _serialif_t_dtor(serialif_t* this) {
   }
 }
 
+/**
+ * Implementation of serialif_t::open - do not call it explicitly.
+ *
+ * \param dev Used hardware device (e.g. /dev/ttyUSB0)
+ * \param platform Used mote hardware (e.g. telosb)
+ * \param ssm Optional pointer to a variable to hold errors thay may be produced. Set to NULL if you don't care.
+ */
 void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
   serial_source_msg _ssm = 128;
   _serialif_t_openMessage_target = &_ssm;
@@ -171,6 +208,7 @@ void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, s
 
 #endif 
 
+// serialif_t constructor
 serialif_t* serialif(serialif_t* this, char const* const dev, char* const platform, serial_source_msg* ssm) {
   assert(dev);
   assert(platform);
