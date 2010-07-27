@@ -89,7 +89,7 @@ motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 #### PHONIES ####
 clean:
 	@echo "Cleaning."
-	@rm *.o hostname.h $(TARGETS) $(TEST_TARGETS) > /dev/null 2>&1; true
+	@rm -f *.o hostname.h $(TARGETS) $(TEST_TARGETS) > /dev/null 2>&1; true
 
 tests: $(TEST_TARGETS)
 	@$(patsubst %, LAST_TEST='%' && echo "Running test file <$$LAST_TEST>." && ./$$LAST_TEST &&, $(TEST_TARGETS)) true
