@@ -114,6 +114,7 @@ void tunReceive(fdglue_handler_t* that) {
     
     // we'll overwrite it when done
     payloadCompress(payload, &compressed);
+    printGained(payload.len, compressed.len);
     // TODO: is the rest of the memory lost maybe?
     // should we alloc - memcpy - free instead?
     copyPayload(&compressed, &payload);
