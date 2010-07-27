@@ -57,8 +57,10 @@ typedef struct myPacketHeader {
 // only the final ipv6 packet must be "__packed__".
 typedef struct ipv6Packet {
     // sent data ...
-    struct ipv6PacketHeader{ 
+    struct ipv6PacketHeader{
+#if !NO_IPV6 
         struct ip6_hdr ip6_hdr;
+#endif
         myPacketHeader packetHeader;
     } __attribute__((__packed__)) header;
 
