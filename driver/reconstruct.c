@@ -14,8 +14,6 @@
 #include "tunnel.h"
 #include "../shared/structs.h"
 
-// TODO: check that all the types are actually correct
-
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
 // FIXME: some types are not big enough handling big numbers

@@ -1,5 +1,3 @@
-// FIXME: check if this is really working as expected
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -9,6 +7,10 @@
 #include "reconstruct.h"
 #include "util.h"
 #include "structs.h"
+
+// this is the exponent of the size
+#define MSG_SIZE 10
+#define NUM_MSGS 5
 
 int msg_size;
 int num_msgs;
@@ -106,14 +108,18 @@ void simple_test(payload_t fixed) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 3) {
-        printf("usage: split_reconstruct <exp> <num msgs>\n");
-        exit(1);
+    if ((argc != 3) && (argc != 1)) {
+        printf("usage: split_reconstruct [exp] [num msgs]\n");
     }
     
-    // now we split the data and try to reconstruct it
-    msg_size = (1 << atoi(argv[1]));
-    num_msgs = atoi(argv[2]);
+    if (argc == 3) {
+        // now we split the data and try to reconstruct it
+        msg_size = (1 << atoi(argv[1]));
+        num_msgs = atoi(argv[2]);
+    } else if (argc != 1) {
+        msg_size = MSG_SIZE;
+        num_msgs = NUM_MSGS;
+    }
     
     payload_t fixed_payload;
     stream_t buff[msg_size];

@@ -21,6 +21,7 @@ ETH_IP=$(ifconfig $ETH | grep "inet addr:" | awk -F: '{ print $2 }' | awk '{ pri
 
 ip link set $TUN up
 ip addr add $GATEWAY_IP dev $TUN
+ip route add 10.0.0.0/24 via $GATEWAY_IP
 
 $IPT -t nat -F
 $IPT -Z
