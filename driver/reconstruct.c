@@ -28,6 +28,10 @@ typedef struct {
     int tot_size;
 } packet_t;
 
+// Statistic variables
+unsigned long started_pkts = 0;
+unsigned long finished_pkts = 0;
+
 // just using a send function would be fine
 //static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
@@ -68,6 +72,8 @@ void send_if_completed(packet_t *pkt, bitmask_t new_bm) {
     if (is_completed(pkt)) {
         if (DEBUG)
             printf("packet seqno=%d completed, tot_size=%d\n", pkt->seq_no, pkt->tot_size);
+        if(DEBUG)
+            finished_pkts++;
         
         payload_t payload = {
             .len = pkt->tot_size,
@@ -141,6 +147,9 @@ void addChunk(payload_t data) {
         if (DEBUG)
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
         
+        if (DEBUG)
+            started_pkts++;
+
         // resetting to the initial configuration
         pkt->missing_bitmask = (1ul << getParts(original)) - 1;
         pkt->seq_no = seq_no;
@@ -171,3 +180,11 @@ stream_t *getChunks(int seq_no) {
     return NULL;
 }
 
+/** 
+ * Prints some statistical information about how many packets were completed.
+ * 
+ */
+void printStatistics(void){
+    printf("%lu packets were recognized and %lu were really sent (%f%%).\n", 
+           started_pkts, finished_pkts, ((finished_pkts*100.0)/started_pkts));
+}

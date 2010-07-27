@@ -5,7 +5,7 @@ MESSAGE_H = $(TOSROOT)/tos/types/message.h
 CLEAN_EXTRA = SerialMsg.py
 
 #CFLAGS += -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SHARED) -I/usr/include/python2.6 -DTOSH_DATA_LENGTH=102
-CFLAGS += -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SHARED) -I/usr/include/python2.6 -DTOSH_DATA_LENGTH=200
+CFLAGS += -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SHARED) -I/usr/include/python2.6 -DTOSH_DATA_LENGTH=102
 
 COMPONENT=SimpleMoteAppC
 # This is the group of communication
