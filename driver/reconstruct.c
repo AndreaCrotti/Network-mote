@@ -28,23 +28,59 @@ typedef struct {
     int tot_size;
 } packet_t;
 
-/*********************/
-/* private functions */
-/*********************/
-int is_completed(packet_t *pkt);
-void send_if_completed(packet_t *pkt, bitmask_t new_bm);
-packet_t *get_packet(int seq_no);
-
 // just using a send function would be fine
 //static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
+static void (*send_back)(payload_t completed);
+
+/** 
+ * @param seq_no sequential number to look for
+ * 
+ * @return NULL if not found, the pointer if found
+ *         It can only returns null if that seq_no has been already overwritten
+ */
+packet_t *get_packet(int seq_no) {
+    packet_t *found = &temp_packets[POS(seq_no)];
+    if (found->seq_no == seq_no) {
+        return found;
+    }
+    return NULL;
+}
 
 void fake_reconstruct_done(payload_t complete) {
     (void) complete;
     printf("packet completed, not doing anything\n");
 }
 
-static void (*send_back)(payload_t completed);
+int is_completed(packet_t *pkt) {
+    return (pkt->missing_bitmask == 0);
+}
+
+// TODO: change name or change what is done inside here
+void send_if_completed(packet_t *pkt, bitmask_t new_bm) {
+    if (new_bm == pkt->missing_bitmask)
+        printf("adding twice the same chunk!!!!\n");
+    else 
+        pkt->missing_bitmask = new_bm;
+
+    // now we check if everything if the packet is completed and sends it back
+
+    if (is_completed(pkt)) {
+        if (DEBUG)
+            printf("packet seqno=%d completed, tot_size=%d\n", pkt->seq_no, pkt->tot_size);
+        
+        payload_t payload = {
+            .len = pkt->tot_size,
+            .stream = pkt->chunks
+        };
+
+        if (send_back) 
+            send_back(payload);
+        else 
+            printf("WARNING: no callback function registered for completed chunks.\n");
+    }
+}
+
 
 /** 
  * initializing a temporary reconstruction packet
@@ -135,45 +171,3 @@ stream_t *getChunks(int seq_no) {
     return NULL;
 }
 
-int is_completed(packet_t *pkt) {
-    return (pkt->missing_bitmask == 0);
-}
-
-// TODO: change name or change what is done inside here
-void send_if_completed(packet_t *pkt, bitmask_t new_bm) {
-    if (new_bm == pkt->missing_bitmask)
-        printf("adding twice the same chunk!!!!\n");
-    else 
-        pkt->missing_bitmask = new_bm;
-
-    // now we check if everything if the packet is completed and sends it back
-
-    if (is_completed(pkt)) {
-        if (DEBUG)
-            printf("packet seqno=%d completed, tot_size=%d\n", pkt->seq_no, pkt->tot_size);
-        
-        payload_t payload = {
-            .len = pkt->tot_size,
-            .stream = pkt->chunks
-        };
-
-        if (send_back) 
-            send_back(payload);
-        else 
-            printf("WARNING: no callback function registered for completed chunks.\n");
-    }
-}
-
-/** 
- * @param seq_no sequential number to look for
- * 
- * @return NULL if not found, the pointer if found
- *         It can only returns null if that seq_no has been already overwritten
- */
-packet_t *get_packet(int seq_no) {
-    packet_t *found = &temp_packets[POS(seq_no)];
-    if (found->seq_no == seq_no) {
-        return found;
-    }
-    return NULL;
-}
