@@ -23,7 +23,9 @@ void printIpv6Header(ip6_hdr header) {
 
 void printIpv6Packet(ipv6Packet *pkt) {
     printPacketHeader(&((pkt->header).packetHeader));
+#if !NO_IPV6
     printIpv6Header((pkt->header).ip6_hdr);
+#endif
 }
 
 // only used for testing out something
@@ -32,7 +34,9 @@ void makeIpv6Packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, strea
     packet->header.packetHeader.ord_no = ord_no;
     packet->header.packetHeader.parts = parts;
     // now also set the payload and it's length
+#if !NO_IPV6
     packet->header.ip6_hdr.plen = len + sizeof(packet->header);
+#endif
     memcpy(payload, packet->payload, len);
 }
 
@@ -65,7 +69,14 @@ int getOrdNo(ipv6Packet *packet) {
 }
 
 int getPlen(ipv6Packet *packet) {
-    int plen = packet->header.ip6_hdr.plen;
+    int plen;
+#if !NO_IPV6
+    plen = packet->header.ip6_hdr.plen;
+#else
+    plen = 0;
+    (void)packet;
+    assert(0);
+#endif
     return plen;
 }
 
@@ -79,7 +90,11 @@ int getSize(ipv6Packet *packet, int size) {
     int computed_size;
     if (isLast(packet)) {
         // we need to invert from htons!!
+#if !NO_IPV6
         computed_size = ntohs(getPlen(packet)) - sizeof(myPacketHeader);
+#else
+        computed_size = size - sizeof(struct ipv6PacketHeader);
+#endif
     } else {
         computed_size = MAX_CARRIED;
     }

@@ -6,7 +6,7 @@ SHARED = ../shared
 CC = gcc
 STD = -std=c99
 
-PACKET_TYPE = -DNO_IPV6=0
+PACKET_TYPE = -DNO_IPV6=1
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED) -I.
 LOW6PAN_CARRIED=102
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT -DDEBUG $(PACKET_TYPE)
@@ -99,6 +99,9 @@ diag:
 
 run:
 	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/echo Using mote at \1 \&\& .\/client \1/' | head -n 1 | bash
+
+run-w:
+	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/echo Using mote at \1 \&\& .\/gateway \1 eth0/' | head -n 1 | bash
 
 ping:
 	@if [ $$(id -u) = 0 ]; then ping -fbi 0.1 10.0.0.2; else echo "You are not root, so I will ping slowly with 1."; ping -fbi 1 10.0.0.2; fi
