@@ -84,6 +84,7 @@ int getParts(ipv6Packet *packet) {
    return getHeader(packet)->parts;
 }
 
+// not really needed now since we already get the right size
 int getSize(ipv6Packet *packet, int size) {
     // TODO check size
     (void)size;

@@ -26,7 +26,7 @@ IMPLIED_HEADERS := $(patsubst %.c,%.h,$(CODEFILES))
 NOPS :=
 
 #For external libraries
-EXTERNALS := $(SF)/sfsource.o $(SF)/serialsource.o
+EXTERNALS := $(SF)/sfsource.o $(SF)/serialsource.o /usr/lib/libz.so
 EXTRAPHONIES = 
 
 

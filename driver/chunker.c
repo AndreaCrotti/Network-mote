@@ -85,7 +85,9 @@ int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* send
     return (payload->len+MAX_CARRIED-1)/MAX_CARRIED;
 }
 
-// returns the size of the packet generated
+// NOT USED!
+// Another implementation of genIpv6Packet which instead takes an array of payloads already allocated
+// This could be useful to keep an history if we need to send back some chunks
 void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const unsigned parts) {
     assert(result);
     unsigned rem_len = payload->len;

@@ -15,10 +15,10 @@
 int msg_size;
 int num_msgs;
 
-void get_random_msg(payload_t data, int size) {
+void get_random_msg(payload_t *data, int size) {
     int fd = open("/dev/urandom", O_RDONLY);
-    int nread = read(fd, (void *) data.stream, size);
-    data.len = size;
+    int nread = read(fd, (void *) data->stream, size);
+    data->len = size;
     assert(nread == size);
 }
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
     fixed_payload.stream = buff;
     fixed_payload.len = msg_size;
 
-    get_random_msg(fixed_payload, msg_size);
+    get_random_msg(&fixed_payload, msg_size);
     /* simple_test(fixed_payload); */
     initReconstruction(NULL);
 
