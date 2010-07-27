@@ -104,7 +104,7 @@ void genIpv6Packets2(payload_t *const payload, payload_t *const result, int cons
         ipv6->header.packetHeader = pkt;
         result[i].stream = (stream_t *) ipv6;
         result[i].len = sendsize;
-
+        
         genIpv6Header(&(ipv6->header.ip6_hdr), sizeof(myPacketHeader) + sendsize);
         memcpy(ipv6->payload, payload->stream, sendsize);
     }
