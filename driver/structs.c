@@ -44,18 +44,21 @@ void makeIpv6Packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, strea
 /****************************************/
 /* Functions to access to the structure */
 /****************************************/
+int payloadEquals(payload_t x, payload_t y) {
+    if (x.len != y.len)
+        return 0;
+       
+    for (unsigned i = 0; i < x.len; i++) {
+        if (x.stream[i] != y.stream[i])
+            return 0;
+    }
+    return 1;
+}
 
 myPacketHeader *getHeader(ipv6Packet *packet) {
     return &(packet->header.packetHeader);
 }
 
-/** 
- * Check if this is the last chunk 
- * 
- * @param packet 
- * 
- * @return 1 if it's last, 0 otherwise
- */
 int isLast(ipv6Packet *packet) {
     return (getOrdNo(packet) == (getParts(packet) - 1));
 }

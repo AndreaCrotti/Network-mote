@@ -71,6 +71,11 @@ typedef struct ipv6Packet {
 /*********************************************/
 /* some useful functions to print structures */
 /*********************************************/
+
+/** 
+ * Check if the two payloads are equal, of course the length must be correct
+ * 
+ */
 void printPayload(payload_t t);
 void printPacketHeader(myPacketHeader *pkt);
 void printIpv6Header(ip6_hdr header);
@@ -86,6 +91,15 @@ void makeIpv6Packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stre
 /* accessing to the internal data of the structures more easily */
 /****************************************************************/
 
+/** 
+ * Check if the two payloads are equal, of course the length must be correct
+ * 
+ */
+int payloadEquals(payload_t x, payload_t y);
+
+/** 
+ * Returns a pointer to our own header
+ */
 myPacketHeader *getHeader(ipv6Packet *packet);
 int getSize(ipv6Packet *packet, int size);
 int getParts(ipv6Packet *packet);
