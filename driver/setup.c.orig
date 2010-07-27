@@ -121,11 +121,17 @@ void tunReceive(fdglue_handler_t* that) {
     do {
         //if (!first) {  // FIXME!
           usleep(SERIAL_INTERVAL_US);
+<<<<<<< HEAD
+        //}
+        //first = 0;
+        chunks_left = genIpv6Packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
+=======
         /* } */
         /* first = 0; */
         chunks_left = genPacket(&payload, &ipv6, &sendsize, seqno, no_chunks);
+>>>>>>> 8a4f3888a720dd73cba15b9a813f6eb90556fe1f
         assert(sendsize);
-        printf("Sending ord_no: %u (seq_no: %u)\n",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
+        //printf("Sending ord_no: %u (seq_no: %u)\n",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
         
         /*printf("Sending chunk with size %u\n", sendsize);
         unsigned counter = sendsize;

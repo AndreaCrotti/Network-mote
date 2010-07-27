@@ -2,15 +2,13 @@ BLIP = $(TOSROOT)/support/sdk/c/blip
 SF = $(TOSROOT)/support/sdk/c/sf
 SHARED = ../shared
 
-# using c99 C standard, mainly for "for (int i = 0)..."
 CC = gcc
 STD = -std=c99
 
-PACKET_TYPE = -DNO_IPV6=1
-INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED) -I.
+INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED)
+# this changes the size of the message (found http://www.tinyos.net/tinyos-2.x/doc/html/tep111.html)
 LOW6PAN_CARRIED=102
-#LOW6PAN_CARRIED=128
-CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT -DDEBUG $(PACKET_TYPE)
+CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT
 WARN = -Wall -Wextra
 DEBUG = -ggdb -O0 -pg
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
@@ -21,11 +19,12 @@ MAINS := $(addsuffix %.c,$(TARGETS))
 CODEFILES := $(filter-out %.test.c,$(wildcard *.c))
 OBJECTS := $(patsubst %.c,%.o,$(CODEFILES))
 OBJECTS_NOMAIN := $(filter-out $(addsuffix %.o,$(TARGETS)),$(OBJECTS))
-TEST_TARGETS := $(patsubst tests/%.test.c,tests/%,$(wildcard tests/*.test.c))
+DEPENDENCIES := $(patsubst %.o,%.d,$(OBJECTS_NOMAIN))
+
+TEST_TARGETS := $(patsubst %.test.c,tests/%,$(wildcard *.test.c))
 NICETT := $(notdir $(TEST_TARGETS))
 IMPLIED_HEADERS := $(patsubst %.c,%.h,$(CODEFILES))
 NOPS :=
-
 #For external libraries
 EXTERNALS := $(SF)/sfsource.o $(SF)/serialsource.o
 EXTRAPHONIES = 
@@ -36,17 +35,25 @@ TIME :=
 
 #### RULES ####
 
-all: autogen $(TARGETS) $(TEST_TARGETS) $(NOPS)
+all: $(DEPENDENCIES) autogen $(TARGETS) $(TEST_TARGETS) $(NOPS)
 
 $(TARGETS): %: %.o $(OBJECTS_NOMAIN) $(HEADERS)
 	@echo "Linking executable file <$@>."
-	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
+	$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
 
-$(OBJECTS): %.o: %.c %.h $(HEADERS)
-	@echo    "Compiling object file <$@>."
-	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
+#$(OBJECTS): %.o: %.c %.h $(HEADERS)
+#	@echo "Compiling object file <$@>."
+#	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
 
-$(TEST_TARGETS): tests/%: tests/%.test.c $(OBJECTS_NOMAIN)
+$(DEPENDENCIES): %.d: %.c autogen
+	@echo "Computing Makefile <$@>."
+	@$(TIME) $(CC) $(FLAGS) -c $< -MM > $@.tmp
+	@echo '\t@echo "Compiling object file <$$@>."\n\t@$(TIME) $(CC) $(FLAGS) -c $$< -o $$@\n' >> $@.tmp
+	@mv $@.tmp $@
+
+include *.d
+
+$(TEST_TARGETS): tests/%: %.test.c $(OBJECTS_NOMAIN)
 	@echo "Linking test executable file <$@>."
 	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
 
@@ -89,7 +96,7 @@ motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
 #### PHONIES ####
 clean:
 	@echo "Cleaning."
-	@rm *.o hostname.h $(TARGETS) $(TEST_TARGETS) > /dev/null 2>&1; true
+	@rm *.o hostname.h $(TARGETS) $(TEST_TARGETS) $(DEPENDENCIES) > /dev/null 2>&1; true
 
 tests: $(TEST_TARGETS)
 	@$(patsubst %, LAST_TEST='%' && echo "Running test file <$$LAST_TEST>." && ./$$LAST_TEST &&, $(TEST_TARGETS)) true
@@ -98,14 +105,11 @@ tests: $(TEST_TARGETS)
 diag:
 	@echo -e " TOSROOT: $(TOSROOT)\n INCLUDE: $(INCLUDE)\n OBJECTS: $(OBJECTS)\n OBJECTS_NOMAIN: $(OBJECTS_NOMAIN)\n CODEFILES: $(CODEFILES)"
 
-run: client
-	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/echo Using mote at \1 \&\& .\/client \1/' | head -n 1 | bash
-
-run-w: gateway
-	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/echo Using mote at \1 \&\& .\/gateway \1 eth0/' | head -n 1 | bash
+run:
+	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/.\/tuntest \1/' | bash
 
 ping:
-	@if [ $$(id -u) = 0 ]; then ping -fbi 0.1 10.0.0.2; else echo "You are not root, so I will ping slowly with 1."; ping -fbi 1 10.0.0.2; fi
+	ping -fbi 0.1 10.0.0.2
 
 autogen: hostname.h
 
