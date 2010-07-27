@@ -83,6 +83,6 @@ int getSize(ipv6Packet *packet, int size) {
         computed_size = MAX_CARRIED;
     }
     // TODO: Currently commmented out since mote transmit the maximum all the time
-    //assert((computed_size + sizeof(struct ipv6PacketHeader)) == (unsigned) size);
+    assert((computed_size + sizeof(struct ipv6PacketHeader)) == (unsigned) size);
     return computed_size;
 }

@@ -123,7 +123,7 @@ void tunReceive(fdglue_handler_t* that) {
           usleep(SERIAL_INTERVAL_US);
         /* } */
         /* first = 0; */
-        chunks_left = genIpv6Packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
+        chunks_left = genPacket(&payload, &ipv6, &sendsize, seqno, no_chunks);
         assert(sendsize);
         //printf("Sending ord_no: %u (seq_no: %u)\n",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
         
