@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "../shared/structs.h"
-#include "../compress.h"
-#include "../various.h"
+#include "compress.h"
+#include "various.h"
 
 // a typical dimension we might try
 #define SIZE 10
@@ -23,19 +23,24 @@ int main() {
     stream_t compr_msg[size * 2];
     
     payload_t msg;
-    payload_t result;
-    payload_t decompressed;
+    payload_t result = {
+        .stream = result_msg,
+        .len = size * 2
+    };
+    payload_t decompressed = {
+        .stream = compr_msg,
+        .len = size * 2
+    };
 
     msg.stream = data_msg;
-    result.stream = result_msg;
-    decompressed.stream = compr_msg;
-    
     /* data_msg = mylongstring; */
-    getRandomMsg(&msg, size);
+    /* getRandomMsg(&msg, size); */
+    genCompressablePayload(&msg, size);
     
     // now try to compress the data and see what happens
-    payload_compress(msg, &result);
-    payload_decompress(result, &decompressed);
+    payloadCompress(msg, &result);
+    payloadDecompress(result, &decompressed);
+    printGained(msg.len, result.len);
     
     printf("now checking if decompressed is the original data\n");
     assert(payloadEquals(msg, decompressed));
