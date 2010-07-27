@@ -45,12 +45,16 @@ void makeIpv6Packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, strea
 /* Functions to access to the structure */
 /****************************************/
 int payloadEquals(payload_t x, payload_t y) {
-    if (x.len != y.len)
+    if (x.len != y.len) {
+        printf("%d != %d\n", x.len, y.len);
         return 0;
+    }
        
     for (unsigned i = 0; i < x.len; i++) {
-        if (x.stream[i] != y.stream[i])
+        if (x.stream[i] != y.stream[i]) {
+            printf("%d != %d\n", x.stream[i], y.stream[i]);
             return 0;
+        }
     }
     return 1;
 }

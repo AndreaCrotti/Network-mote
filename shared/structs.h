@@ -33,8 +33,8 @@ typedef unsigned char stream_t;
 typedef unsigned int streamlen_t;
 
 typedef struct {
-  stream_t const* stream;
-  streamlen_t len;
+    stream_t const* stream;
+    streamlen_t len;
 } payload_t;
 
 typedef struct in6_addr in6_src;

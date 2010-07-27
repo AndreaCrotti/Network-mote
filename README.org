@@ -8,7 +8,7 @@ MotNet
 
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
 
-  
+
 * Architecture
 
 
@@ -20,7 +20,7 @@ MotNet
       this module in charge of reconstructing the chunks we get from from the network
 
     + chunker.c
-      
+
     + client.c
 
     + gateway.c
