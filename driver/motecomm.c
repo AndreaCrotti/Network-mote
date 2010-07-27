@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 /****** copied from serialsource.c ******/
-
+/****** DO NOT MODIFY! ******/
 typedef int bool;
 #define BUFSIZE 256
 #define MTU 256
@@ -33,6 +33,7 @@ struct serial_source_t {
     uint16_t crc;
   } send;
 };
+/****** END (serialsource.c) ******/
 
 
 mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t** sif) {
