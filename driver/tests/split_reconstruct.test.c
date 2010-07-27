@@ -60,7 +60,7 @@ void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
             /* printf("adding on %d\n", seq * i); */
             (added->stream) = malloc(sizeof(ipv6Packet));
             // FIXME: there must a problem here since we are not setting the stream
-            genIpv6Packet(&copied, (ipv6Packet *) added->stream, &(added->len), seq, parts);
+            genPacket(&copied, (ipv6Packet *) added->stream, &(added->len), seq, parts);
             // add the chunks in random order now
         }
     }

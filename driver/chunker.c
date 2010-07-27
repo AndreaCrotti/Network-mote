@@ -50,7 +50,7 @@ unsigned neededChunks(int data_size) {
  *
  * @returns how may packets remain - You should loop until its 0.
  */
-int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, seq_no_t const seq_no, int const chunk_number) {
+int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, seq_no_t const seq_no, int const chunk_number) {
     assert(packet);
     assert(payload);
     assert(payload->len > 0);
@@ -73,7 +73,9 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
     pkt.ord_no++;
     *sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
     // setup the ipv6 we need
+#if !NO_IPV6
     genIpv6Header(&(packet->header.ip6_hdr), sizeof(myPacketHeader) + *sendsize);
+#endif
     memcpy(packet->payload, payload->stream, *sendsize);
     payload->len -= *sendsize;
     payload->stream += *sendsize;
@@ -84,13 +86,13 @@ int genIpv6Packet(payload_t* const payload, ipv6Packet* const packet, unsigned* 
 }
 
 // returns the size of the packet generated
-void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const int parts) {
+void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const unsigned parts) {
     assert(result);
-    int rem_len = payload->len;
+    unsigned rem_len = payload->len;
     // FIXME: wrong, this must be set every time and go down!
 
     unsigned sendsize;
-    for (int i = 0; i < parts; i++) {
+    for (unsigned int i = 0; i < parts; i++) {
         sendsize = (rem_len < MAX_CARRIED) ? rem_len : MAX_CARRIED;
 
         myPacketHeader pkt = {

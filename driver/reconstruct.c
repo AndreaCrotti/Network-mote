@@ -16,11 +16,13 @@
 
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
+typedef long unsigned bitmask_t;
+
 // FIXME: some types are not big enough handling big numbers
 typedef struct {
     int seq_no;
     // bitmaks of chunks still missing
-    int missing_bitmask;
+    bitmask_t missing_bitmask;
     // That is the max size of the theoretically completed packet
     stream_t chunks[MAX_FRAME_SIZE];
     int tot_size;
@@ -30,7 +32,7 @@ typedef struct {
 /* private functions */
 /*********************/
 int is_completed(packet_t *pkt);
-void send_if_completed(packet_t *pkt, int new_bm);
+void send_if_completed(packet_t *pkt, bitmask_t new_bm);
 packet_t *get_packet(int seq_no);
 
 // just using a send function would be fine
@@ -53,7 +55,7 @@ static void (*send_back)(payload_t completed);
 void init_temp_packet(packet_t* const pkt) {
   *pkt = (packet_t){
     .seq_no = -1,
-    .missing_bitmask = -1,
+    .missing_bitmask = -1ul,
     .tot_size = 0
   };
 
@@ -104,13 +106,13 @@ void addChunk(payload_t data) {
             printf("overwriting or creating new packet at position %d\n", POS(seq_no));
         
         // resetting to the initial configuration
-        pkt->missing_bitmask = (1 << getParts(original)) - 1;
+        pkt->missing_bitmask = (1ul << getParts(original)) - 1;
         pkt->seq_no = seq_no;
         pkt->tot_size = 0;
     }
 
     if (DEBUG)
-        printf("adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %d)\n", seq_no, ord_no, getParts(original), pkt->missing_bitmask);
+        printf("adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %lu)\n", seq_no, ord_no, getParts(original), pkt->missing_bitmask);
 
     // getting the real data of the packets
     int size = getSize(original, data.len);
@@ -119,7 +121,7 @@ void addChunk(payload_t data) {
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
 
     // remove the arrived packet from the bitmask
-    int new_bm = (pkt->missing_bitmask) & ~(1 << ord_no);
+    int new_bm = (pkt->missing_bitmask) & ~(1ul << ord_no);
     send_if_completed(pkt, new_bm);
 
     free(original);
@@ -138,7 +140,7 @@ int is_completed(packet_t *pkt) {
 }
 
 // TODO: change name or change what is done inside here
-void send_if_completed(packet_t *pkt, int new_bm) {
+void send_if_completed(packet_t *pkt, bitmask_t new_bm) {
     if (new_bm == pkt->missing_bitmask)
         printf("adding twice the same chunk!!!!\n");
     else 
