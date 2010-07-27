@@ -86,13 +86,13 @@ int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* send
 }
 
 // returns the size of the packet generated
-void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const int parts) {
+void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const unsigned parts) {
     assert(result);
-    int rem_len = payload->len;
+    unsigned rem_len = payload->len;
     // FIXME: wrong, this must be set every time and go down!
 
     unsigned sendsize;
-    for (int i = 0; i < parts; i++) {
+    for (unsigned int i = 0; i < parts; i++) {
         sendsize = (rem_len < MAX_CARRIED) ? rem_len : MAX_CARRIED;
 
         myPacketHeader pkt = {
