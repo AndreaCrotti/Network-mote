@@ -16,12 +16,11 @@ void init_zstream(z_stream *strm) {
 }
 
 void printGained(streamlen_t before, streamlen_t after) {
-    printf("gained %.5f\n", ((float) after / before) * 100);
+    printf("compressed data is %.5f percent of original size\n", ((float) after / before) * 100);
 }
 
-// TODO: see how much data has the last one
 // compress original data in the given result
-int payloadCompress(payload_t data, payload_t *result) {
+int payloadCompress(const payload_t data, payload_t *result) {
     int ret;
     z_stream strm;
     // maybe out should be bigger
@@ -48,7 +47,7 @@ int payloadCompress(payload_t data, payload_t *result) {
     return Z_OK;
 }
 
-int payloadDecompress(payload_t data, payload_t *result) {
+int payloadDecompress(const payload_t data, payload_t *result) {
     z_stream strm;
     int ret;
     streamlen_t tot_size = 0;
@@ -66,8 +65,6 @@ int payloadDecompress(payload_t data, payload_t *result) {
     ret = inflate(&strm, Z_FINISH);    /* no bad return value */
     tot_size += (result->len - strm.avail_out);
     result->len = tot_size;
-
-    printf("now ret in and out = %d, %d, %d\n", ret, strm.avail_in, strm.avail_out);
     // the initialization was successful
     assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
     

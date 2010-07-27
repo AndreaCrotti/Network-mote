@@ -13,6 +13,7 @@
 #include "motecomm.h"
 #include "glue.h"
 #include "setup.h"
+#include "compress.h"
 
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void serialReceive(fdglue_handler_t* that) {
@@ -111,6 +112,11 @@ void tunReceive(fdglue_handler_t* that) {
         .stream = compr_data
     };
     
+    // we'll overwrite it when done
+    payloadCompress(payload, &compressed);
+    // TODO: is the rest of the memory lost maybe?
+    // should we alloc - memcpy - free instead?
+    copyPayload(&compressed, &payload);
 #endif
 
     /* debug start */ {

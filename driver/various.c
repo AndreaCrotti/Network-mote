@@ -16,14 +16,6 @@ void getRandomMsg(payload_t *data, int size) {
 }
 
 void genCompressablePayload(payload_t *data, int size) {
-    char string[] = "ciao ciao\0";
-    unsigned slen = strlen(string);
+    memset((void *)data->stream, 0xA, size);
     data->len = size;
-    unsigned tocopy;
-    while (size > 0) {
-        tocopy = (slen < size) ? strlen(string) : size;
-        memcpy((void *) data->stream, string, tocopy);
-        (data->stream) += tocopy;
-        size -= tocopy;
-    }
 }

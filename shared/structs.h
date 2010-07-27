@@ -91,6 +91,11 @@ void makeIpv6Packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stre
 /* accessing to the internal data of the structures more easily */
 /****************************************************************/
 
+/**
+ * Copy a payload structure, size of destiantion must be greater or equal
+ */
+void copyPayload(payload_t *src, payload_t *dst);
+
 /** 
  * Check if the two payloads are equal, of course the length must be correct
  * 

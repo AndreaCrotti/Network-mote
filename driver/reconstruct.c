@@ -12,6 +12,7 @@
 #include "reconstruct.h"
 #include "chunker.h"
 #include "tunnel.h"
+#include "compress.h"
 #include "../shared/structs.h"
 
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
@@ -79,6 +80,20 @@ void send_if_completed(packet_t *pkt, bitmask_t new_bm) {
             .len = pkt->tot_size,
             .stream = pkt->chunks
         };
+
+#if COMPRESSION_ENABLED
+        stream_t compr_data[MAX_FRAME_SIZE];
+        payload_t compressed = {
+            .len = MAX_FRAME_SIZE,
+            .stream = compr_data
+        };
+    
+        // we'll overwrite it when done
+        payloadDecompress(payload, &compressed);
+        // TODO: is the rest of the memory lost maybe?
+        // should we alloc - memcpy - free instead?
+        copyPayload(&compressed, &payload);
+#endif
 
         if (send_back) 
             send_back(payload);
