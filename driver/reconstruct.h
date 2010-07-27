@@ -33,4 +33,9 @@ void addChunk(payload_t data);
  */
 stream_t *getChunks(int seq_no);
 
+/** 
+ * Prints some statistical information about how many packets were completed. 
+ */
+void printStatistics(void);
+
 #endif

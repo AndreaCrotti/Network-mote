@@ -17,6 +17,7 @@
 #include "tunnel.h"
 // our own declarations
 #include "client.h"
+#include "reconstruct.h"
 
 #include "../shared/structs.h"
 #include "setup.h"
@@ -84,6 +85,7 @@ int startClient(char const *dev) {
     for (;;) {
         //static unsigned lcount = 0;
         //printf("listening %d ...\n",lcount++);
+        printStatistics();
         fflush(stdout);
         fdg.listen(&fdg, 5 * 60);
     }
