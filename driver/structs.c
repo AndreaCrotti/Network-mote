@@ -106,7 +106,7 @@ int getSize(ipv6Packet *packet, int size) {
     int computed_size;
     if (isLast(packet)) {
         // we need to invert from htons!!
-#if !NO_IPV6
+#if !NO_IPV6 // This means IPv6 IS ENABLED!!!
         computed_size = ntohs(getPlen(packet)) - sizeof(myPacketHeader);
 #else
         computed_size = size - sizeof(struct ipv6PacketHeader);
@@ -114,6 +114,11 @@ int getSize(ipv6Packet *packet, int size) {
     } else {
         computed_size = MAX_CARRIED;
     }
+
+    printf("computed_size is %d\n", computed_size);
+    printf("MAX_CARRIED is %d\n", MAX_CARRIED);
+    printf("size is %d\n", size);
+
     // TODO: Currently commmented out since mote transmit the maximum all the time
     assert((computed_size + sizeof(struct ipv6PacketHeader)) == (unsigned) size);
     return computed_size;
