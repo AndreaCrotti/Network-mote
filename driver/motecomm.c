@@ -13,6 +13,7 @@ mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t
 #if !DYNAMIC_MEMORY
   { assert(sif); }
   _sif = *sif;
+  { assert(_sif); }
 #else
   _sif = sif?*sif:NULL;
 #endif
@@ -59,6 +60,33 @@ serialif_t* serialif(serialif_t* this, char const* const dev, char* const platfo
   }
   return this;
 }
+
+#ifndef _TOS_MOTECOMM
+int _serialforwardif_t_send(serialif_t* this, payload_t const payload);
+void _serialforwardif_t_read(serialif_t* this, payload_t* const payload);
+void _serialforwardif_t_dtor(serialif_t* this);
+void _serialforwardif_t_ditch(serialif_t* this, payload_t* const payload);
+int _serialforwardif_t_fd(serialif_t* this);
+void _serialforwardif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
+
+// serialforwardif_t constructor
+serialif_t* serialforwardif(serialif_t* this, char const* const host, char* const port) {
+  assert(host);
+  assert(port);
+  SETDTOR(CTOR(this)) _serialforwardif_t_dtor;
+  this->send = _serialforwardif_t_send;
+  this->read = _serialforwardif_t_read;
+  this->ditch = _serialforwardif_t_ditch;
+  this->fd = _serialforwardif_t_fd;
+  this->source = 0;
+  _serialforwardif_t_open(this,host,port,0);
+  if (!this->source) { // there was a problem
+    DTOR(this);
+    this = NULL; // tell user there was something wrong. He can then check the ssm he gave us (if he did so).
+  }
+  return this;
+}
+#endif
 
 /**** motecomm_t ****/
 

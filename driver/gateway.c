@@ -14,6 +14,20 @@
 #include <sysexits.h>
 #include <stdio.h>
 
+// 0: normal usb
+// 1: serial forwarding
+#ifndef SERIAL_STYLE
+#define SERIAL_STYLE 0
+#endif
+
+#if SERIAL_STYLE == 0
+#define USAGE "./%s <usbdevice> <externalInterface>\n"
+#elif SERIAL_STYLE == 1
+#define USAGE "./%s <host:port> <externalInterface>\n"
+#else
+#define USAGE ""
+#endif
+
 // Functions for using a tunnel device
 #include "tunnel.h"
 
@@ -43,7 +57,7 @@ void setup_iptables(char const *dev, char const *eth) {
     callScript(script_cmd, "setup iptables rules", "routing setting up", 1);
 }
 
-void startGateway(char const *dev, char const *eth) {
+void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
     tunSetup(TUNTAP_INTERFACE);
@@ -60,10 +74,6 @@ void startGateway(char const *dev, char const *eth) {
     // wrapper for select
     fdglue_t fdg;
     fdglue(&fdg);
-    
-    // creating the serial interface connection
-    mcp_t *mcp;
-    serialif_t *sif = createSerialConnection(dev, &mcp);
 
     // structures for the handlers, it's an event driven program
     // so we need to setup handlers
@@ -94,7 +104,7 @@ void startGateway(char const *dev, char const *eth) {
 }
 
 void usage(char* name) {
-    fprintf(stderr, "./%s <usb device> <external interface>\n", name);
+    fprintf(stderr, USAGE, name);
     exit(EX_USAGE);
 }
 
@@ -103,9 +113,32 @@ int main(int argc, char *argv[]) {
         usage(argv[0]);
     }
 
-    char const *dev = argv[1];
+    char *dev = argv[1];
     char const *eth = argv[2];
     
-    startGateway(dev, eth);
+    // creating the serial interface connection
+    mcp_t *mcp;
+    serialif_t *sif;
+#if SERIAL_STYLE == 0
+    sif = createSerialConnection(dev, &mcp);
+#elif SERIAL_STYLE == 1
+    // split host:port into the variables host and port
+    char host[strlen(dev)+1];
+    char* port = dev;
+    char* h = (char*)host;
+    while (*port && *port != ':') {
+      *h++ = *port++;
+    }
+    if (*port != ':') {
+      printf("You did not supply a port!");
+      exit(1);
+    }
+    *port++ = 0;
+    sif = createSfConnection(host, port, &mcp);
+#else
+#error "unsupported serial style"
+#endif
+
+    startGateway(sif,mcp, eth);
     return 0;
 }

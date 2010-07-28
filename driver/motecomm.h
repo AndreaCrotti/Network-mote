@@ -101,6 +101,9 @@ class (serialif_t,
  *  \param platform Name of the architecture we want to talk to: e.g. "telosb"
  */
 serialif_t* serialif(serialif_t* this, char const* const dev, char* const platform, serial_source_msg* ssm);
+#ifndef _TOS_MOTECOMM
+serialif_t* serialforwardif(serialif_t* this, char const* const host, char* const port);
+#endif
 
 /****************************************************************
  *  motecomm_t                                                  *

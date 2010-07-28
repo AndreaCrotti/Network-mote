@@ -16,7 +16,7 @@ DEBUG = -ggdb -O0 -pg
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h
-TARGETS := gateway client
+TARGETS := gateway gateway-sf client
 MAINS := $(addsuffix %.c,$(TARGETS))
 CODEFILES := $(filter-out %.test.c,$(wildcard *.c))
 OBJECTS := $(patsubst %.c,%.o,$(CODEFILES))
@@ -101,7 +101,7 @@ diag:
 run: client
 	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/echo Using mote at \1 \&\& .\/client \1/' | head -n 1 | bash
 
-run-w: gateway
+run-gw: gateway
 	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/echo Using mote at \1 \&\& .\/gateway \1 eth0/' | head -n 1 | bash
 
 ping:

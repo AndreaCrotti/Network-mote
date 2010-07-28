@@ -107,7 +107,7 @@ void _serialforwardif_t_dtor(serialif_t* this) {
  */
 void _serialforwardif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
   int port = atoi(platform);
-  assert(this->source && "source already created or uninitialised!");
+  assert((!this->source) && "source already created or uninitialised!");
   char const* const host = dev;
   int fd = open_sf_source(host,port);
   if (ssm) {

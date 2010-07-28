@@ -29,6 +29,7 @@ void callScript(char *script_cmd, char *success, char *err, int is_fatal);
 void serialReceive(fdglue_handler_t* that);
 
 serialif_t * createSerialConnection(char const *dev, mcp_t **mcp);
+serialif_t *createSfConnection(char const* host, char const* port, mcp_t **mcp);
 
 /** 
  * Processing data from the serial interface

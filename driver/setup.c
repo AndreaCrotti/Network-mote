@@ -90,6 +90,33 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
     return sif;
 }
 
+serialif_t *createSfConnection(char const* host, char const* port, mcp_t **mcp) {
+    char _port[strlen(port)+1];
+    strcpy(_port,port);
+    serialif_t* sif = serialforwardif(NULL,host,_port);
+
+    *mcp = openMcpConnection(host, _port, &sif);
+    // at the moment we're not using these things
+    /* ifp(0, mcp); */
+    /* laep(0, mcp); */
+    /* _laep.setHandler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = laSet, .p = NULL}); */
+    // XXX HACK:
+    motecomm_t* mc = (*mcp)->getComm(*mcp);
+    mc->setHandler(mc,(motecomm_handler_t) {
+      .p = 0,
+      .receive = serialProcess
+    });
+
+    initReconstruction(reconstructDone);
+
+    if (*mcp) {
+        printf("Connection to %s over port %s opened.\n", host, _port);
+    } else {
+        printf("There was an error opening the connection to %s over device %s.\n", host, _port);
+    }
+    return sif;
+}
+
 // receiving data from the tunnel device
 void tunReceive(fdglue_handler_t* that) {
     //printf("tunReceive called\n");
