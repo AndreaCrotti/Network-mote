@@ -13,7 +13,6 @@
 #include "motecomm.h"
 #include "glue.h"
 #include "setup.h"
-#include "compress.h"
 
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void serialReceive(fdglue_handler_t* that) {
@@ -90,39 +89,11 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
     return sif;
 }
 
-serialif_t *createSfConnection(char const* host, char const* port, mcp_t **mcp) {
-    char _port[strlen(port)+1];
-    strcpy(_port,port);
-    serialif_t* sif = serialforwardif(NULL,host,_port);
-
-    *mcp = openMcpConnection(host, _port, &sif);
-    // at the moment we're not using these things
-    /* ifp(0, mcp); */
-    /* laep(0, mcp); */
-    /* _laep.setHandler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = laSet, .p = NULL}); */
-    // XXX HACK:
-    motecomm_t* mc = (*mcp)->getComm(*mcp);
-    mc->setHandler(mc,(motecomm_handler_t) {
-      .p = 0,
-      .receive = serialProcess
-    });
-
-    initReconstruction(reconstructDone);
-
-    if (*mcp) {
-        printf("Connection to %s over port %s opened.\n", host, _port);
-    } else {
-        printf("There was an error opening the connection to %s over device %s.\n", host, _port);
-    }
-    return sif;
-}
-
 // receiving data from the tunnel device
 void tunReceive(fdglue_handler_t* that) {
     //printf("tunReceive called\n");
     
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
-    // allocated only once and always reused!!
     static stream_t buf[MAX_FRAME_SIZE];
     memset(buf, 0, MAX_FRAME_SIZE);
     int size = tunRead(this->client_no, (char*)buf,MAX_FRAME_SIZE);
@@ -130,22 +101,6 @@ void tunReceive(fdglue_handler_t* that) {
     static seq_no_t seqno = 0;
     ++seqno;
     payload_t payload = {.stream = buf, .len = size};
-
-#if COMPRESSION_ENABLED
-    // replace the payload with another payload
-    stream_t compr_data[MAX_FRAME_SIZE];
-    payload_t compressed = {
-        .len = MAX_FRAME_SIZE,
-        .stream = compr_data
-    };
-    
-    // we'll overwrite it when done
-    payloadCompress(payload, &compressed);
-    printGained(payload.len, compressed.len);
-    // TODO: is the rest of the memory lost maybe?
-    // should we alloc - memcpy - free instead?
-    copyPayload(&compressed, &payload);
-#endif
 
     /* debug start */ {
     unsigned sum = 0;
@@ -160,16 +115,23 @@ void tunReceive(fdglue_handler_t* that) {
     unsigned sendsize = 0;
     int no_chunks = neededChunks(size);
     char chunks_left;
+    //char first = 1;
 
     // generate all the subchunks and send them out
     do {
         //if (!first) {  // FIXME!
           usleep(SERIAL_INTERVAL_US);
+<<<<<<< HEAD
+        //}
+        //first = 0;
+        chunks_left = genIpv6Packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
+=======
         /* } */
         /* first = 0; */
         chunks_left = genPacket(&payload, &ipv6, &sendsize, seqno, no_chunks);
+>>>>>>> 8a4f3888a720dd73cba15b9a813f6eb90556fe1f
         assert(sendsize);
-        printf("Sending ord_no: %u (seq_no: %u)\n",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
+        //printf("Sending ord_no: %u (seq_no: %u)\n",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
         
         /*printf("Sending chunk with size %u\n", sendsize);
         unsigned counter = sendsize;

@@ -165,7 +165,7 @@ implementation{
         
         ip_out.headers = NULL;
         ip_out.data_len = real_payload_len + sizeof(myPacketHeader); 
-        ip_out.data = (uint8_t*)&ip_out_data;
+        ip_out.data = (uint8_t*)ip_out_data;
         ip_out.hdr = packetBuf.header.ip6_hdr;
 
         // Set this mote as the sender
@@ -196,7 +196,7 @@ implementation{
         // Define Handlers
         if_motecomm.setHandler(&if_motecomm, (motecomm_handler_t){.p = 0, .receive=payload_rec_handler});
         
-        call IPAddress.setShortAddr(1);
+        //call IPAddress.setShortAddr(1);
 
         //Testing
         if(call IPAddress.haveAddress()){
@@ -214,12 +214,33 @@ implementation{
         call IPAddress.getIPAddr(&ip_address);
     }
     
+    struct ip6_hdr test_header;
+    message_t ip_info_message;
     event void Timer.fired(){
-        if(call IPAddress.haveAddress()){
-            radioBlink();
-        }else{
-            failBlink();
-        }
+        void *ipim_p;
+        ipim_p = call SerialPacket.getPayload(&ip_info_message,0);
+
+        radioBlink();
+
+        call IPAddress.getIPAddr(ipim_p);
+
+        //call SerialSend.send(AM_BROADCAST_ADDR, &ip_info_message, sizeof(struct in6_addr));
+
+        ip_out.headers = NULL;
+        //FIXME: Is this correct?
+        ip_out.data_len = 8; 
+        ip_out.data = (uint8_t*)ip_out_data;
+        
+        memcpy(ip_out_data, "Blubber!", 8);
+
+        test_header.plen = 8;
+        test_header.ip6_src = *((struct in6_addr*)ipim_p);
+        memset(ipim_p + sizeof(struct in6_addr) - 1, 3, 1);
+        test_header.ip6_dst = *((struct in6_addr*)ipim_p);
+
+        ip_out.hdr = test_header;
+
+        call IP.send(&ip_out);
     }
 
     event void RadioControl.startDone(error_t err){

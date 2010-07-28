@@ -3,43 +3,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/****** copied from serialsource.c ******/
 
-typedef int bool;
-#define BUFSIZE 256
-#define MTU 256
-struct serial_source_t {
-#ifndef LOSE32
-  int fd;
-#else
-  HANDLE hComm;
-#endif
-  bool non_blocking;
-  void (*message)(serial_source_msg problem);
-
-  /* Receive state */
-  struct {
-    uint8_t buffer[BUFSIZE];
-    int bufpos, bufused;
-    uint8_t packet[MTU];
-    bool in_sync, escaped;
-    int count;
-    struct packet_list *queue[256]; // indexed by protocol
-  } recv;
-  struct {
-    uint8_t seqno;
-    uint8_t *escaped;
-    int escapeptr;
-    uint16_t crc;
-  } send;
-};
-
-
+/**
+ * Sets up a default mcp connection with all rudimentary objects needed for it (including motecomm_t)
+ * If you pass a NULL sif, and your achitecture allows it, the serialif_t will be created automatically
+ */
 mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t** sif) {
   serialif_t* _sif;
 #if !DYNAMIC_MEMORY
   { assert(sif); }
   _sif = *sif;
+  { assert(_sif); }
 #else
   _sif = sif?*sif:NULL;
 #endif
@@ -67,109 +41,9 @@ void _serialif_t_ditch(serialif_t* this, payload_t* const payload);
 int _serialif_t_fd(serialif_t* this);
 void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
 
-#if INCLUDE_SERIAL_IMPLEMENTATION
+// rest of these is in serialif.c or serialforwardif.c
 
-void _serialif_t_openMessage(serial_source_msg problem);
-
-int _serialif_t_fd(serialif_t* this) {
-  assert(this);
-  return this->source->fd;
-}
-
-void _serialif_t_ditch(serialif_t* this, payload_t* const payload) {
-  assert(this);
-  assert(payload);
-  if (payload->stream) {
-    free((void*)(payload->stream));
-    payload->stream = NULL;
-  }
-  payload->len = 0;
-}
-
-serial_source_msg* _serialif_t_openMessage_target = NULL;
-
-void _serialif_t_openMessage(serial_source_msg problem) {
-  if (_serialif_t_openMessage_target) {
-    *_serialif_t_openMessage_target = problem;
-  }
-}
-
-struct message_header_mine_t {
-    uint8_t amid;
-    uint16_t destaddr;
-    uint16_t sourceaddr;
-    uint8_t msglen;
-    uint8_t groupid;
-    uint8_t handlerid;
-}  __attribute__((packed));
-
-int _serialif_t_send(serialif_t* this, payload_t const payload) {
-  assert(this);
-  payload_t buf;
-  buf.len = sizeof(struct message_header_mine_t)+payload.len*sizeof(stream_t);
-  buf.stream = malloc(buf.len);
-  memset((void*)buf.stream,0,sizeof(struct message_header_mine_t));
-  struct message_header_mine_t* mh = (struct message_header_mine_t*)(buf.stream);
-  mh->destaddr = 0xFFFF;
-  mh->handlerid = 0;
-  mh->groupid = 0;
-  mh->amid = 0;
-  mh->msglen = payload.len;
-  memcpy((void*)(buf.stream + sizeof(struct message_header_mine_t)),payload.stream,payload.len*sizeof(stream_t));
-  /*printf("Header:\n");
-  unsigned int i = 0;
-  for(; i<buf.len; i++){
-      printf("%02X ", (unsigned)*(unsigned char*)(buf.stream+i));
-  }
-  printf("\n");
-  printf("Bytes sent: %d\n", buf.len);*/
-
-  int result = write_serial_packet(this->source,buf.stream,buf.len);
-  free((void*)(buf.stream));
-  return result;
-}
-
-void _serialif_t_read(serialif_t* this, payload_t* const payload) {
-  assert(this);
-  payload_t buf = {.stream = NULL, .len = 0};
-  buf.stream = read_serial_packet(this->source,(int*)&(buf.len));
-  if (!buf.stream != !buf.len || buf.len < 8) {
-    if (buf.stream) {
-      free((void*)(buf.stream));
-    }
-    buf.stream = NULL;
-    buf.len = 0;
-  }
-  payload->len = buf.len - 8;
-  payload->stream = (void*)(malloc(buf.len-8));
-  if (buf.stream) {
-    memcpy((void*)(payload->stream),(void*)(buf.stream+8),buf.len - 8);
-    free((void*)buf.stream);
-  } else {
-    payload->stream = NULL;
-  }
-}
-
-void _serialif_t_dtor(serialif_t* this) {
-  assert(this);
-  if (this->source) {
-    close_serial_source(this->source);
-  }
-}
-
-void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
-  serial_source_msg _ssm = 128;
-  _serialif_t_openMessage_target = &_ssm;
-  this->source = open_serial_source(dev,platform_baud_rate(platform),READ_NON_BLOCKING,_serialif_t_openMessage);
-  _serialif_t_openMessage_target = NULL;
-  this->msg = _ssm;
-  if (ssm) {
-    *ssm = _ssm;
-  }
-}
-
-#endif 
-
+// serialif_t constructor
 serialif_t* serialif(serialif_t* this, char const* const dev, char* const platform, serial_source_msg* ssm) {
   assert(dev);
   assert(platform);
@@ -178,7 +52,7 @@ serialif_t* serialif(serialif_t* this, char const* const dev, char* const platfo
   this->read = _serialif_t_read;
   this->ditch = _serialif_t_ditch;
   this->fd = _serialif_t_fd;
-  assert(this && this->send);
+  this->source = 0;
   _serialif_t_open(this,dev,platform,ssm);
   if (!this->source) { // there was a problem
     DTOR(this);
@@ -186,6 +60,33 @@ serialif_t* serialif(serialif_t* this, char const* const dev, char* const platfo
   }
   return this;
 }
+
+#ifndef _TOS_MOTECOMM
+int _serialforwardif_t_send(serialif_t* this, payload_t const payload);
+void _serialforwardif_t_read(serialif_t* this, payload_t* const payload);
+void _serialforwardif_t_dtor(serialif_t* this);
+void _serialforwardif_t_ditch(serialif_t* this, payload_t* const payload);
+int _serialforwardif_t_fd(serialif_t* this);
+void _serialforwardif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
+
+// serialforwardif_t constructor
+serialif_t* serialforwardif(serialif_t* this, char const* const host, char* const port) {
+  assert(host);
+  assert(port);
+  SETDTOR(CTOR(this)) _serialforwardif_t_dtor;
+  this->send = _serialforwardif_t_send;
+  this->read = _serialforwardif_t_read;
+  this->ditch = _serialforwardif_t_ditch;
+  this->fd = _serialforwardif_t_fd;
+  this->source = 0;
+  _serialforwardif_t_open(this,host,port,0);
+  if (!this->source) { // there was a problem
+    DTOR(this);
+    this = NULL; // tell user there was something wrong. He can then check the ssm he gave us (if he did so).
+  }
+  return this;
+}
+#endif
 
 /**** motecomm_t ****/
 

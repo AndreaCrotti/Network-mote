@@ -9,7 +9,7 @@
 #define MAX_PAYLOAD_SIZE(PROT) (1<<PROT##_HD_PAYLOAD)
 
 /** MCP **/
-
+// size of the header fields of mcp in bits!
 #define MCP_HD_VERSION 4
 #define MCP_HD_HEADER  4
 #define MCP_HD_IDENT   8
@@ -17,10 +17,11 @@
 #define MCP_HD_PORT    8
 #define MCP_HD_PAYLOAD 8
 
-
+// total mcp header size in bits/bytes
 #define MCP_HEADER_BITS (MCP_HD_VERSION+MCP_HD_HEADER+MCP_HD_IDENT+MCP_HD_TYPE+MCP_HD_PORT+MCP_HD_PAYLOAD)
 #define MCP_HEADER_BYTES HD_BYTES_FROM_BITS(MCP_HEADER_BITS)
 
+// positioning of the mcp header fields (offset in bits)
 #define MCP_HD_VERSION_OFFSET 0
 #define MCP_HD_HEADER_OFFSET  MCP_HD_VERSION_OFFSET+MCP_HD_VERSION
 #define MCP_HD_IDENT_OFFSET   MCP_HD_HEADER_OFFSET+MCP_HD_HEADER
@@ -28,8 +29,10 @@
 #define MCP_HD_PORT_OFFSET    MCP_HD_TYPE_OFFSET+MCP_HD_TYPE
 #define MCP_HD_PAYLOAD_OFFSET MCP_HD_PORT_OFFSET+MCP_HD_PORT
 
+// header type for mcp
 typedef union {
   stream_t const* stream;
+  // actual header struct
   struct {
 #if NX_SWAP_NIBBLES
     unsigned header  :MCP_HD_HEADER;
@@ -46,6 +49,7 @@ typedef union {
 } mcp_header_t;
 
 /** MCCMP **/
+//everythin in here is analogous to the mcp section. see there.
 
 #define MCCMP_HD_VERSION 4
 #define MCCMP_HD_HEADER  4
@@ -77,6 +81,7 @@ typedef union {
 
 
 /** LAEP **/
+//everythin in here is analogous to the mcp section. see there.
 
 #define LAEP_HD_VERSION 4
 #define LAEP_HD_HEADER  4
@@ -107,6 +112,7 @@ typedef union {
 } laep_header_t;
 
 /** IFP **/
+//everythin in here is analogous to the mcp section. see there.
 
 #define IFP_HD_VERSION  4
 #define IFP_HD_HEADER   4
