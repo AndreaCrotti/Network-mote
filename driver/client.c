@@ -97,10 +97,6 @@ void usage(char* name) {
 }
 
 int main(int argc, char *argv[]) {
-
-    int k = 43;
-    DUMP_INT(k);
-    return 0;
     /*if (argc != 2) {
         usage(argv[0]);
     }*/
