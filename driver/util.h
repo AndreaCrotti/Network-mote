@@ -19,10 +19,13 @@
 #define assert(expr) 
 #endif
 
-#define DUMP_INT(VAR) printf("[%s:%d] "#VAR" == %u;\n",__FILE__,__LINE__,VAR)
-#define DUMP_UINT(VAR) printf("[%s:%d] "#VAR" == %d;\n",__FILE__,__LINE__,VAR)
-#define DUMP_STRING(VAR) printf("[%s:%d] "#VAR" == %s;\n",__FILE__,__LINE__,VAR)
-#define DUMP_FLOAT(VAR) printf("[%s:%d] "#VAR" == %f;\n",__FILE__,__LINE__,VAR)
+#define DUMP_VAR(VAR,TYPE) printf("[%s:%d] "#VAR" == %"#TYPE";\n",__FILE__,__LINE__,VAR)
+#define DUMP_INT(VAR) DUMP_VAR(VAR,d)
+#define DUMP_UINT(VAR) DUMP_VAR(VAR,u)
+#define DUMP_LONG(VAR) DUMP_VAR(VAR,ld)
+#define DUMP_ULONG(VAR) DUMP_VAR(VAR,lu)
+#define DUMP_STRING(VAR) DUMP_VAR(VAR,s)
+#define DUMP_FLOAT(VAR) DUMP_VAR(VAR,f)
 
 
 //TODO: We need to find a better solution here...
