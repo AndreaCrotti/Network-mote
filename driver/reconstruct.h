@@ -3,11 +3,8 @@
 
 #include "structs.h"
 
-// max number of packets kept in the temporary structure for reconstruction
-#define MAX_RECONSTRUCTABLE 100
-
-// this could be computed somehow from the MAX_FRAME_SIZE and the size carried
-#define MAX_CHUNKS 100
+// using a dividend of 256 to make much less likely that nasty things happen
+#define MAX_RECONSTRUCTABLE 32
 
 #include "util.h"
 

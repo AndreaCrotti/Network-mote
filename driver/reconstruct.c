@@ -134,7 +134,6 @@ void initReconstruction(void (*callback)(payload_t completed)) {
     }
 
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
-        // using a [] would be better?
         init_temp_packet(temp_packets + i);
     }
 }
@@ -181,7 +180,8 @@ void addChunk(payload_t data) {
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
     
     // remove the arrived packet from the bitmask
-    unsigned new_bm = (pkt->missing_bitmask) & ~(1ul << ord_no);
+    bitmask_t new_bm = (pkt->missing_bitmask) & ~(1ul << ord_no);
+
     if (new_bm == pkt->missing_bitmask) {
         printf("adding twice the same chunk!!!!\n");
         // the other one is at position POS(seq_no)
