@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <unistd.h> // usleep
+#include <unistd.h>
 
 #include "motecomm.h"
 #include "chunker.h"

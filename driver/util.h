@@ -19,6 +19,7 @@
 #define assert(expr) 
 #endif
 
+// some nice debugging functions
 #define DUMP_INT(VAR) printf("[%s:%d] "#VAR" == %u;\n",__FILE__,__LINE__,VAR)
 #define DUMP_UINT(VAR) printf("[%s:%d] "#VAR" == %d;\n",__FILE__,__LINE__,VAR)
 #define DUMP_STRING(VAR) printf("[%s:%d] "#VAR" == %s;\n",__FILE__,__LINE__,VAR)

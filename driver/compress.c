@@ -21,6 +21,13 @@ void _init_zstream(z_stream *strm) {
     strm->opaque = Z_NULL;
 }
 
+/** 
+ * Setup the stream, we use it in the same way
+ * 
+ * @param strm 
+ * @param data 
+ * @param result 
+ */
 void _setup_zstream(z_stream *strm, const payload_t *data, payload_t *result) {
     // setup the correct values in the stream
     _init_zstream(strm);
@@ -34,7 +41,6 @@ void printGained(streamlen_t before, streamlen_t after) {
     printf("compressed data is %.5f percent of original size\n", ((float) after / before) * 100);
 }
 
-// compress original data in the given result
 int payloadCompress(const payload_t data, payload_t *result) {
     int ret;
     z_stream strm;
@@ -67,9 +73,7 @@ int payloadDecompress(const payload_t data, payload_t *result) {
     _setup_zstream(&strm, &data, result);
     
     ret = inflateInit(&strm);
-    
-    if (ret != Z_OK)
-        return ret;
+    assert(ret == Z_OK);
 
     ret = inflate(&strm, Z_FINISH);    /* no bad return value */
     tot_size += (result->len - strm.avail_out);
