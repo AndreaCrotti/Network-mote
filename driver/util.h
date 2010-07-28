@@ -19,6 +19,12 @@
 #define assert(expr) 
 #endif
 
+#define DUMP_INT(VAR) printf("[%s:%d] "#VAR" == %u;\n",__FILE__,__LINE__,VAR)
+#define DUMP_UINT(VAR) printf("[%s:%d] "#VAR" == %d;\n",__FILE__,__LINE__,VAR)
+#define DUMP_STRING(VAR) printf("[%s:%d] "#VAR" == %s;\n",__FILE__,__LINE__,VAR)
+#define DUMP_FLOAT(VAR) printf("[%s:%d] "#VAR" == %f;\n",__FILE__,__LINE__,VAR)
+
+
 //TODO: We need to find a better solution here...
 #include "../shared/structs.h"
 
