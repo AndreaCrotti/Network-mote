@@ -15,6 +15,7 @@
 // the actual implementation (in the c file) of the sif function may be ommitted in order to be
 // implemented differently in nesc
 #define INCLUDE_SERIAL_IMPLEMENTATION 0
+#define INCLUDE_SERIAL_FORWARD_IMPLEMENTATION 0
 // dynamic memory allocation is not a good idea in tinyos, hence the comodities offered within this
 // module are deactivated (that means you have to allocate your objects yourself)
 #define DYNAMIC_MEMORY 0
@@ -29,6 +30,10 @@
 #define NX_SWAP_NIBBLES 1
 #endif
 
+#ifndef INCLUDE_SERIAL_FORWARD_IMPLEMENTATION
+#define INCLUDE_SERIAL_FORWARD_IMPLEMENTATION INCLUDE_SERIAL_IMPLEMENTATION
+#endif
+
 #include "motecomm.sizes.h"
 #include "hostname.h"
 
@@ -41,6 +46,7 @@ typedef void* serial_source;
 typedef void* serial_source_msg;
 #else
 #include <serialsource.h>
+#include <sfsource.h>
 #endif
 #include <stdint.h>
 
