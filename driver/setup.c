@@ -133,7 +133,6 @@ void tunReceive(fdglue_handler_t* that) {
     unsigned sendsize = 0;
     int no_chunks = neededChunks(size);
     char chunks_left;
-    //char first = 1;
 
     // generate all the subchunks and send them out
     do {
