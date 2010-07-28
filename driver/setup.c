@@ -146,9 +146,10 @@ void tunReceive(fdglue_handler_t* that) {
     // TODO: is the rest of the memory lost maybe?
     // should we alloc - memcpy - free instead?
     copyPayload(&compressed, &payload);
+    size = payload.len;
 #endif
 
-    /* debug start */ {
+     /* debug start */ {
     unsigned sum = 0;
     for (stream_t* p = buf; p - buf < size; p++) {
       sum += *p;

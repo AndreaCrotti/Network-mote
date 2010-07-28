@@ -1,5 +1,5 @@
 /**
- * Some function utilities to debug structs
+ * Some function utilities to print and manipulate our structures
  * 
  */
 #include <stdio.h>
@@ -56,12 +56,12 @@ int payloadEquals(payload_t x, payload_t y) {
             return 0;
         }
     }
+    // they are correct now
     return 1;
 }
 
 void copyPayload(payload_t *src, payload_t *dst) {
     // total dimension of the pointer and len are not the same thing actually
-    //assert(src->len <= dst->len);
     dst->len = src->len;
     memcpy((void *) dst->stream, src->stream, dst->len);
 }
@@ -86,6 +86,7 @@ int getPlen(ipv6Packet *packet) {
     int plen;
 #if !NO_IPV6
     plen = packet->header.ip6_hdr.plen;
+// FIXME: this dirty thing is just to always return something, clean it
 #else
     plen = 0;
     (void)packet;
@@ -105,7 +106,7 @@ int getSize(ipv6Packet *packet, int size) {
     int computed_size;
     if (isLast(packet)) {
         // we need to invert from htons!!
-#if !NO_IPV6
+#if !NO_IPV6 // This means IPv6 IS ENABLED!!!
         computed_size = ntohs(getPlen(packet)) - sizeof(myPacketHeader);
 #else
         computed_size = size - sizeof(struct ipv6PacketHeader);
@@ -113,6 +114,7 @@ int getSize(ipv6Packet *packet, int size) {
     } else {
         computed_size = MAX_CARRIED;
     }
+
     // TODO: Currently commmented out since mote transmit the maximum all the time
     assert((computed_size + sizeof(struct ipv6PacketHeader)) == (unsigned) size);
     return computed_size;
