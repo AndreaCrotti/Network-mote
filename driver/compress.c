@@ -6,7 +6,6 @@
 #include "../shared/structs.h"
 #include "zlib.h"
 
-/* see if the dimension is important or not */
 #define LEVEL Z_BEST_COMPRESSION
 
 /** 

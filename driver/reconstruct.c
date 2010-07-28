@@ -147,6 +147,8 @@ void initReconstruction(void (*callback)(payload_t completed)) {
 void addChunk(payload_t data) {
     // TODO: add another check of the length of the data given in
     assert(data.len <= sizeof(ipv6Packet));
+    assert(data.len >= sizeof(struct ipv6PacketHeader));
+
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
     memcpy(original, data.stream, sizeof(ipv6Packet));
 
