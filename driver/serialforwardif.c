@@ -105,10 +105,12 @@ void _serialforwardif_t_dtor(serialif_t* this) {
  * \param platform Used mote hardware (e.g. telosb)
  * \param ssm Pointer to __int__! Will be set to 0 if the connection could not be opened. Pass NULL if you do not care.
  */
+ #include <stdio.h>
 void _serialforwardif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
   int port = atoi(platform);
   assert((!this->source) && "source already created or uninitialised!");
   char const* const host = dev;
+  printf("Using host: '%s' at port: '%d'\n",host,port);
   int fd = open_sf_source(host,port);
   if (ssm) {
     *(int*)ssm = fd >= 0;
@@ -116,6 +118,9 @@ void _serialforwardif_t_open(serialif_t* this, char const* dev, char* const plat
   if (fd >= 0) {
     this->source = malloc(sizeof(struct serial_source_t)); // hack
     this->source->fd = fd;
+  } else {
+    printf("sf could not be opened\n");
+    exit(1);
   }
 }
 

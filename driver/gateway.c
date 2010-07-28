@@ -123,18 +123,18 @@ int main(int argc, char *argv[]) {
     sif = createSerialConnection(dev, &mcp);
 #elif SERIAL_STYLE == 1
     // split host:port into the variables host and port
-    char host[strlen(dev)+1];
     char* port = dev;
-    char* h = (char*)host;
     while (*port && *port != ':') {
-      *h++ = *port++;
+      port++;
     }
     if (*port != ':') {
       printf("You did not supply a port!");
       exit(1);
     }
     *port++ = 0;
-    sif = createSfConnection(host, port, &mcp);
+    printf("using host '%s' at port '%s'\n",dev,port);
+    fflush(stdout);
+    sif = createSfConnection(dev, port, &mcp);
 #else
 #error "unsupported serial style"
 #endif
