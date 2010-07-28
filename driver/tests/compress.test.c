@@ -8,11 +8,11 @@
 #include "compress.h"
 #include "various.h"
 
-// a typical dimension we might try
 #define SIZE 12
 int size = 1 << SIZE;
 
 int main() {
+    // Create payload for original, compressed and decompressed data
     stream_t data_msg[size];
     stream_t result_msg[size];
     stream_t compr_msg[size];
@@ -33,7 +33,7 @@ int main() {
     payloadCompress(msg, &result);
     payloadDecompress(result, &decompressed);
     printGained(msg.len, result.len);
-
+    
     assert(payloadEquals(msg, decompressed));
     return 0;
 }
