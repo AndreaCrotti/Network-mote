@@ -61,7 +61,7 @@ int payloadEquals(payload_t x, payload_t y) {
 
 void copyPayload(payload_t *src, payload_t *dst) {
     // total dimension of the pointer and len are not the same thing actually
-    assert(src->len <= dst->len);
+    //assert(src->len <= dst->len);
     dst->len = src->len;
     memcpy((void *) src->stream, dst->stream, dst->len);
 }
