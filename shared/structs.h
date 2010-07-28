@@ -67,6 +67,10 @@ typedef struct ipv6Packet {
     stream_t payload[MAX_CARRIED];
 } __attribute__((__packed__)) ipv6Packet;
 
+// XXX XXX XXX HACK
+struct dummy {
+  char bla[102];
+};
 
 /*********************************************/
 /* some useful functions to print structures */
