@@ -68,7 +68,6 @@ int check_if_same_chunk(packet_t *pkt1, packet_t *pkt2, int size) {
 // TODO: change name or change what is done inside here
 void send_if_completed(packet_t *pkt) {
     // now we check if everything if the packet is completed and sends it back
-
     if (is_completed(pkt)) {
         if (DEBUG)
             printf("packet seqno=%d completed, tot_size=%d\n", pkt->seq_no, pkt->tot_size);
@@ -178,12 +177,17 @@ void addChunk(payload_t data) {
     pkt->tot_size += size;
 
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
-
+    
     // remove the arrived packet from the bitmask
     unsigned new_bm = (pkt->missing_bitmask) & ~(1ul << ord_no);
     if (new_bm == pkt->missing_bitmask) {
         printf("adding twice the same chunk!!!!\n");
+        // the other one is at position POS(seq_no)
+        if (check_if_same_chunk(pkt, &temp_packets[POS(seq_no)], sizeof(packet_t))) {
         // check if really the same one
+            printf("REALLY THE SAME CHUNK!!!!\n");
+        }
+        
     } else  {
         // don't really need to even check for completion if it's a duplicate chunk
         pkt->missing_bitmask = new_bm;
