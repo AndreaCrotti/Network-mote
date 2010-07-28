@@ -21,9 +21,9 @@
 #endif
 
 #if SERIAL_STYLE == 0
-#define USAGE "./%s <usbdevice> <externalInterface>\n"
+#define USAGE "./%s <usbdevice> <externalInterface>"
 #elif SERIAL_STYLE == 1
-#define USAGE "./%s <host:port> <externalInterface>\n"
+#define USAGE "./%s <host:port> <externalInterface>"
 #else
 #define USAGE ""
 #endif
@@ -54,7 +54,7 @@
 void setup_iptables(char const *dev, char const *eth) {
     char script_cmd[100];
     sprintf(script_cmd, "sh gateway.sh %s %s", dev, eth);
-    callScript(script_cmd, "setup iptables rules", "routing setting up", 1);
+    callScript(script_cmd, "setup iptables rules", "setting up routing", 1);
 }
 
 void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
@@ -95,16 +95,15 @@ void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
 
     unsigned lcount = 0;
-
+    (void)lcount;
     for (;;) {
-        printf("listening %d ...\n",lcount++);
-        fflush(stdout);
+        LOG_INFO("listening %d ...",lcount++);
         fdg.listen(&fdg, 5 * 60);
     }
 }
 
 void usage(char* name) {
-    fprintf(stderr, USAGE, name);
+    LOG_ERROR(USAGE, name);
     exit(EX_USAGE);
 }
 
@@ -128,12 +127,10 @@ int main(int argc, char *argv[]) {
       port++;
     }
     if (*port != ':') {
-      printf("You did not supply a port!");
+      LOG_ERROR("You did not supply a port!");
       exit(1);
     }
     *port++ = 0;
-    printf("using host '%s' at port '%s'\n",dev,port);
-    fflush(stdout);
     sif = createSfConnection(dev, port, &mcp);
 #else
 #error "unsupported serial style"

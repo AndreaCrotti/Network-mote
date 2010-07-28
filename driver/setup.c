@@ -24,7 +24,7 @@ void serialReceive(fdglue_handler_t* that) {
 // function to overwrite the handler and process data from serial 
 void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
     (void)that;
-    //printf("hey I got something from the mote! p is %p\n",that->p);
+    //LOG_DEBUG("hey I got something from the mote! p is %p",that->p);
     addChunk(payload);
 }
 
@@ -38,28 +38,31 @@ void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     // Run the setup script for the tunnel
     int err = system(script_cmd);
     if (err != 0) {
+        (void)script_cmd;
+        LOG_ERROR("Could not execute script %s",script_cmd);
         perror(err_msg);
         if (is_fatal) {
             exit(1);
         }
     } else {
-        printf("%s",success);
+        (void)success;
+        LOG_INFO("%s",success);
     }
 }
 
 void reconstructDone(payload_t complete) {
-  /*printf("RECONSTRUCT DONE!\tsize: %u\n",complete.len);
-  for (unsigned i = 0; i < complete.len; i++) {
-    printf("%02X ",(unsigned)complete.stream[i]);
-  }
-  printf("\n");*/
+  LOG_DEBUG("reconstruct done\tsize: %u",complete.len);
+  //for (unsigned i = 0; i < complete.len; i++) {
+  //  LOG_DEBUG("%02X ",(unsigned)complete.stream[i]);
+  //}
   /* debug start */ {
     unsigned sum = 0;
     for (stream_t* p = (stream_t*)complete.stream; p - (stream_t*)complete.stream < (signed)complete.len; p++) {
       sum += *p;
     }
     static unsigned recv_count = 0;
-    printf(" => Checksum of RECV %u packet is %08X\n",recv_count++,sum);
+    (void)recv_count;
+    LOG_NOTE(" => Checksum of RECV %u packet is %08X",recv_count++,sum);
   } /* debug end */
   tunWriteNoQueue(/*FIXME*/ 0 /*FIXME*/,complete);
 }
@@ -83,9 +86,10 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
     initReconstruction(reconstructDone);
 
     if (*mcp) {
-        printf("Connection to %s over device %s opened.\n", mote, dev);
+        LOG_INFO("Connection to %s over device %s opened.", mote, dev);
     } else {
-        printf("There was an error opening the connection to %s over device %s.\n", mote, dev);
+        LOG_ERROR("There was an error opening the connection to %s over device %s.", mote, dev);
+        exit(1);
     }
     return sif;
 }
@@ -98,7 +102,6 @@ serialif_t *createSfConnection(char const* host, char const* port, mcp_t **_mcp)
 
     motecomm_t* mc = motecomm(NULL,sif);
     *_mcp = mcp(NULL, mc);
-    assert(*_mcp && mc && "could not create all objects");
     // at the moment we're not using these things
     /* ifp(0, mcp); */
     /* laep(0, mcp); */
@@ -111,17 +114,16 @@ serialif_t *createSfConnection(char const* host, char const* port, mcp_t **_mcp)
     initReconstruction(reconstructDone);
 
     if (*_mcp) {
-        printf("Connection to %s over port %s opened.\n", host, _port);
+        LOG_INFO("Connection to %s over port %s opened.", host, _port);
     } else {
-        printf("There was an error opening the connection to %s over device %s.\n", host, _port);
+        LOG_ERROR("There was an error opening the connection to %s over device %s.", host, _port);
+        exit(1);
     }
     return sif;
 }
 
 // receiving data from the tunnel device
 void tunReceive(fdglue_handler_t* that) {
-    //printf("tunReceive called\n");
-    
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
     // allocated only once and always reused!!
     static stream_t buf[MAX_FRAME_SIZE];
@@ -149,14 +151,17 @@ void tunReceive(fdglue_handler_t* that) {
     size = payload.len;
 #endif
 
-     /* debug start */ {
-    unsigned sum = 0;
-    for (stream_t* p = buf; p - buf < size; p++) {
-      sum += *p;
+    {
+      unsigned sum = 0;
+      if (DEBUG) {
+        for (stream_t* p = buf; p - buf < size; p++) {
+          sum += *p;
+        }
+      } /* debug end */
+      static unsigned sent_count = 0;
+      (void)sent_count;
+      LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
     }
-    static unsigned sent_count = 0;
-    printf(" <= Checksum of SENT packet %u is %08X\n",sent_count++,sum);
-    } /* debug end */
 
     ipv6Packet ipv6;
     unsigned sendsize = 0;
@@ -171,15 +176,15 @@ void tunReceive(fdglue_handler_t* that) {
         /* first = 0; */
         chunks_left = genPacket(&payload, &ipv6, &sendsize, seqno, no_chunks);
         assert(sendsize);
-        printf("Sending ord_no: %u (seq_no: %u)\n",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
+        LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
         
-        /*printf("Sending chunk with size %u\n", sendsize);
-        unsigned counter = sendsize;
+        //LOG_DEBUG("Sending chunk with size %u\n", sendsize);
+        /*unsigned counter = sendsize;
         unsigned char *char_data = (unsigned char*)&ipv6;
         while(counter--){
-            printf("%02X ", (unsigned)*char_data++);
+            p rintf("%02X ", (unsigned)*char_data++);
         }
-        printf("\n");*/
+        p rintf("\n");*/
         
         payload_t to_send = {
             .stream = (stream_t*)&ipv6,

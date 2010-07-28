@@ -82,17 +82,17 @@ int startClient(char const *dev) {
       fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
 
 
+    unsigned lcount = 0;
+    (void)lcount;
     for (;;) {
-        //static unsigned lcount = 0;
-        //printf("listening %d ...\n",lcount++);
+        LOG_INFO("listening %d ...",lcount++);
         printStatistics();
-        fflush(stdout);
         fdg.listen(&fdg, 5 * 60);
     }
 }
 
 void usage(char* name) {
-    fprintf(stderr, "%s <device>\n",name);
+    LOG_ERROR("%s <device> [notun]",name);
     exit(EX_USAGE);
 }
 

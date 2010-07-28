@@ -19,13 +19,56 @@
 #define assert(expr) 
 #endif
 
+#if LOG_LEVEL&128
 #define DUMP_VAR(VAR,TYPE) printf("[%s:%d] "#VAR" == %"#TYPE";\n",__FILE__,__LINE__,VAR)
+#else
+#define DUMP_VAR(VAR,TYPE)
+#endif
+#define DUMP_CHAR(VAR) DUMP_VAR((int)VAR,d)
+#define DUMP_UCHAR(VAR) DUMP_VAR((unsigned)VAR,u)
 #define DUMP_INT(VAR) DUMP_VAR(VAR,d)
 #define DUMP_UINT(VAR) DUMP_VAR(VAR,u)
 #define DUMP_LONG(VAR) DUMP_VAR(VAR,ld)
 #define DUMP_ULONG(VAR) DUMP_VAR(VAR,lu)
 #define DUMP_STRING(VAR) DUMP_VAR(VAR,s)
 #define DUMP_FLOAT(VAR) DUMP_VAR(VAR,f)
+
+
+// log levels
+#include <stdio.h>
+#define LOG__PRINT(TYPE,MSG,...) do {fprintf(stderr,"%-7s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); } while(0)
+
+#if LOG_LEVEL&1
+#define LOG_ERROR(MSG,...)   LOG__PRINT("ERROR",MSG,##__VA_ARGS__)
+#else
+#define LOG_ERROR(MSG,...)
+#warning "error messages not compiled"
+#endif
+
+#if LOG_LEVEL&2
+#define LOG_WARNING(MSG,...) LOG__PRINT("WARN",MSG,##__VA_ARGS__)
+#else
+#define LOG_WARNING(MSG,...)
+#endif
+#define LOG_WARN LOG_WARNING
+
+#if LOG_LEVEL&4
+#define LOG_NOTE(MSG,...)    LOG__PRINT("NOTE",MSG,##__VA_ARGS__)
+#else
+#define LOG_NOTE(MSG,...)
+#endif
+
+#if LOG_LEVEL&8
+#define LOG_INFO(MSG,...)   LOG__PRINT("INFO",MSG,##__VA_ARGS__)
+#else
+#define LOG_INFO(MSG,...)
+#endif
+
+#if LOG_LEVEL&16
+#define LOG_DEBUG(MSG,...)  LOG__PRINT("DEBUG",MSG,##__VA_ARGS__)
+#else
+#define LOG_DEBUG(MSG,...)
+#endif
 
 
 //TODO: We need to find a better solution here...

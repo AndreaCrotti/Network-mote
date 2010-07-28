@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "util.h"
 
 
 // the following implementation is only suited for the pc side, but must be different on the mote side
@@ -105,12 +106,11 @@ void _serialforwardif_t_dtor(serialif_t* this) {
  * \param platform Used mote hardware (e.g. telosb)
  * \param ssm Pointer to __int__! Will be set to 0 if the connection could not be opened. Pass NULL if you do not care.
  */
- #include <stdio.h>
 void _serialforwardif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
   int port = atoi(platform);
   assert((!this->source) && "source already created or uninitialised!");
   char const* const host = dev;
-  printf("Using host: '%s' at port: '%d'\n",host,port);
+  LOG_NOTE("Using host: '%s' at port: '%d'",host,port);
   int fd = open_sf_source(host,port);
   if (ssm) {
     *(int*)ssm = fd >= 0;
@@ -119,7 +119,7 @@ void _serialforwardif_t_open(serialif_t* this, char const* dev, char* const plat
     this->source = malloc(sizeof(struct serial_source_t)); // hack
     this->source->fd = fd;
   } else {
-    printf("sf could not be opened\n");
+    LOG_ERROR("sf could not be opened");
     exit(1);
   }
 }

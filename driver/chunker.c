@@ -52,7 +52,7 @@ int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* send
 
     // initialized if it's a new one
     if (pkt.seq_no != seq_no) {
-        printf("creating a new packet %d\n", seq_no);
+        LOG_DEBUG("creating a new packet %d", seq_no);
         pkt.seq_no = seq_no;
         pkt.ord_no = 0;
         pkt.parts = chunk_number;

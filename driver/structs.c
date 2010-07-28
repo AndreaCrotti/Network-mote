@@ -6,19 +6,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "util.h"
 
 #include "../shared/structs.h"
 
 void printPayload(payload_t t) {
-    printf("payload with length = %d\n", t.len);
+    (void)t;
+    LOG_DEBUG("payload with length = %d", t.len);
 }
 
 void printPacketHeader(myPacketHeader *pkt) {
-    printf("(seq = %d, ord = %d, parts = %d)\n", pkt->seq_no, pkt->ord_no, pkt->parts);
+    (void)pkt;
+    LOG_DEBUG("(seq = %d, ord = %d, parts = %d)", pkt->seq_no, pkt->ord_no, pkt->parts);
 }
 
 void printIpv6Header(ip6_hdr header) {
-    printf("len = %d, src...\n", header.plen);
+    (void)header;
+    LOG_DEBUG("len = %d, src...", header.plen);
 }
 
 void printIpv6Packet(ipv6Packet *pkt) {
@@ -46,13 +50,13 @@ void makeIpv6Packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, strea
 /****************************************/
 int payloadEquals(payload_t x, payload_t y) {
     if (x.len != y.len) {
-        printf("%d != %d\n", x.len, y.len);
+        LOG_DEBUG("%d != %d", x.len, y.len);
         return 0;
     }
        
     for (unsigned i = 0; i < x.len; i++) {
         if (x.stream[i] != y.stream[i]) {
-            printf("%d != %d\n", x.stream[i], y.stream[i]);
+            LOG_DEBUG("%d != %d", x.stream[i], y.stream[i]);
             return 0;
         }
     }

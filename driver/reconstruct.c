@@ -54,7 +54,7 @@ packet_t *get_packet(int seq_no) {
 
 void fake_reconstruct_done(payload_t complete) {
     (void) complete;
-    printf("packet completed, not doing anything\n");
+    LOG_INFO("packet completed, not doing anything");
 }
 
 int is_completed(packet_t *pkt) {
@@ -69,8 +69,7 @@ int check_if_same_chunk(packet_t *pkt1, packet_t *pkt2, int size) {
 void send_if_completed(packet_t *pkt) {
     // now we check if everything if the packet is completed and sends it back
     if (is_completed(pkt)) {
-        if (DEBUG)
-            printf("packet seqno=%d completed, tot_size=%d\n", pkt->seq_no, pkt->tot_size);
+        LOG_DEBUG("packet seqno=%d completed, tot_size=%d", pkt->seq_no, pkt->tot_size);
         if(DEBUG)
             finished_pkts++;
         
@@ -95,8 +94,9 @@ void send_if_completed(packet_t *pkt) {
 
         if (send_back) 
             send_back(payload);
-        else 
-            printf("WARNING: no callback function registered for completed chunks.\n");
+        else {
+            LOG_WARNING("No callback function registered for completed chunks.");
+        }
     }
 }
 
@@ -124,13 +124,12 @@ void init_temp_packet(packet_t* const pkt) {
  * @param callback callback function which will be called when the packet is completed
  */
 void initReconstruction(void (*callback)(payload_t completed)) {
-    if (DEBUG)
-        printf("initializing the reconstruction\n");
+    LOG_DEBUG("Initialising the reconstruction");
 
     send_back = callback;
     if (!callback) {
         send_back = fake_reconstruct_done;
-        printf("WARNING: installing useless callback for completed packets.\n");
+        LOG_WARNING("Installing useless callback for completed packets.\n");
     }
 
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
@@ -158,8 +157,7 @@ void addChunk(payload_t data) {
     packet_t *pkt = &temp_packets[POS(seq_no)];
     
     if (pkt->seq_no != seq_no) {
-        if (DEBUG)
-            printf("overwriting or creating new packet at position %d\n", POS(seq_no));
+        LOG_DEBUG("Overwriting or creating new packet at position %d", POS(seq_no));
         
         if (DEBUG)
             started_pkts++;
@@ -170,8 +168,7 @@ void addChunk(payload_t data) {
         pkt->tot_size = 0;
     }
 
-    if (DEBUG)
-        printf("adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %lu)\n", seq_no, ord_no, getParts(original), pkt->missing_bitmask);
+    LOG_DEBUG("Adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %lu)", seq_no, ord_no, getParts(original), pkt->missing_bitmask);
 
     // getting the real data of the packets
     int size = getSize(original, data.len);
@@ -183,11 +180,11 @@ void addChunk(payload_t data) {
     bitmask_t new_bm = (pkt->missing_bitmask) & ~(1ul << ord_no);
 
     if (new_bm == pkt->missing_bitmask) {
-        printf("adding twice the same chunk!!!!\n");
+        LOG_WARNING("adding twice the same chunk");
         // the other one is at position POS(seq_no)
         if (check_if_same_chunk(pkt, &temp_packets[POS(seq_no)], sizeof(packet_t))) {
-        // check if really the same one
-            printf("REALLY THE SAME CHUNK!!!!\n");
+            // check if really the same one
+            LOG_WARNING("REALLY THE SAME CHUNK");
         }
         
     } else  {
@@ -211,6 +208,6 @@ stream_t *getChunks(int seq_no) {
  * 
  */
 void printStatistics(void){
-    printf("%lu packets were recognized and %lu were really sent (%f%%).\n", 
-           started_pkts, finished_pkts, ((finished_pkts*100.0)/started_pkts));
+    LOG_NOTE("%lu packets were recognized and %lu were really sent (%f%%).", 
+             started_pkts, finished_pkts, ((finished_pkts*100.0)/started_pkts));
 }

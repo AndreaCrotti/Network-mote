@@ -6,11 +6,15 @@ SHARED = ../shared
 CC = gcc
 STD = -std=c99
 
+# 1:ERROR 2:WARNING 4:NOTE 8:INFO 16:DEBUG 128:VAR_DUMP
+LOG_LEVEL := '(1|2|4|8|16|128)'
+#LOG_LEVEL := '(1)'
+
 PACKET_TYPE = -DNO_IPV6=1 -DCOMPRESSION_ENABLED=1
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED) -I.
 LOW6PAN_CARRIED=102
 #LOW6PAN_CARRIED=128	
-CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT -DDEBUG $(PACKET_TYPE)
+CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT -DDEBUG $(PACKET_TYPE) -DLOG_LEVEL=$(LOG_LEVEL)
 WARN = -Wall -Wextra
 DEBUG = -ggdb -O0 -pg
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
@@ -38,15 +42,15 @@ TIME :=
 
 all: autogen $(TARGETS) $(TEST_TARGETS) $(NOPS)
 
-$(TARGETS): %: %.o $(OBJECTS_NOMAIN) $(HEADERS)
+$(TARGETS): %: %.o $(OBJECTS_NOMAIN) $(HEADERS) Makefile
 	@echo "Linking executable file <$@>."
 	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
 
-$(OBJECTS): %.o: %.c %.h $(HEADERS)
+$(OBJECTS): %.o: %.c %.h $(HEADERS) Makefile
 	@echo    "Compiling object file <$@>."
 	@$(TIME) $(CC) $(FLAGS) -c $< -o $@
 
-$(TEST_TARGETS): tests/%: tests/%.test.c $(OBJECTS_NOMAIN)
+$(TEST_TARGETS): tests/%: tests/%.test.c $(OBJECTS_NOMAIN) Makefile
 	@echo "Linking test executable file <$@>."
 	@$(TIME) $(CC) $(FLAGS) $(OBJECTS_NOMAIN) $(EXTERNALS) $< -o $@
 
@@ -76,15 +80,9 @@ split: split_reconstruct.c
 	$(CC) chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DSTANDALONE -o split_rec split_reconstruct.c
 
 
-tuntest.dbg: $(OBJECTS) client.c
-	$(CC) $(OBJECTS) $(DEBUG) $(EXTERNALS) -o tuntest.dbg
-
-tuntest.pre: $(OBJECTS) client.c
-	$(CC) $(OBJECTS) client.c $(CFLAGS) -E -o tuntest.pre
-
-motecomm.pre: motecomm.c motecomm.h motecomm.sizes.h
-	$(CC) $(FLAGS) -c motecomm.c -E -o motecomm.pre
-
+$(patsubst %.o,%.pre,$(OBJECTS)): %.pre: %.c %.h $(HEADERS) Makefile
+	@echo    "Creating preprocessed file <$@>."
+	@$(TIME) $(CC) $(FLAGS) -E $< -o $@
 
 #### PHONIES ####
 clean:
@@ -105,7 +103,7 @@ run-gw: gateway
 	@motelist -c | sed 's/^[^,]*,\([^,]*\),.*/echo Using mote at \1 \&\& .\/gateway \1 eth0/' | head -n 1 | bash
 
 ping:
-	@if [ $$(id -u) = 0 ]; then ping -fbi 0.1 10.0.0.2; else echo "You are not root, so I will ping slowly with 1."; ping -fbi 1 10.0.0.2; fi
+	@if [ $$(id -u) = 0 ]; then ping -fbi 0.1 -s 1400 10.0.0.2; else echo "You are not root, so I will ping slowly with 1."; ping -fbi 1 10.0.0.2; fi
 
 autogen: hostname.h
 
