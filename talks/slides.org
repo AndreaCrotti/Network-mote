@@ -1,10 +1,11 @@
+
 #+STARTUP: beamer
 #+OPTIONS: toc:nil
 #+LANGUAGE: en
 #+LaTeX_CLASS: beamer
 #+LaTeX_CLASS_OPTIONS: [presentation]
 #+BEAMER_FRAME_LEVEL: 2
-#+BEAMER_HEADER_EXTRA: \usetheme{Antibes} \usecolortheme{default}
+#+BEAMER_HEADER_EXTRA: \usetheme{Warsaw} \usecolortheme{default}
 #+COLUMNS: %40ITEM %10BEAMER_env(Env) %10BEAMER_envargs(Env Args) %4BEAMER_col(Col) %8BEAMER_extra(Extra)
 #+TITLE: TOSNET
 #+AUTHOR: Oscar Dustmann, Marius Grysla, Andrea Crotti
@@ -23,6 +24,39 @@
 
     Share internet connection through a *mote network*
 
+** Architecture
+*** columns                                                       :B_columns:
+    :PROPERTIES:
+    :BEAMER_env: columns
+    :END:
+
+**** .6                                                            :B_column:
+     :PROPERTIES:
+     :BEAMER_env: column
+     :END:
+
+***** Idea                                                          :B_block:
+      :PROPERTIES:
+      :BEAMER_env: block
+      :END:
+      Simulate a wire over the wireless sensor network
+
+
+***** Setup                                                         :B_block:
+      :PROPERTIES:
+      :BEAMER_env: block
+      :BEAMER_envargs: <2->
+      :END:
+      - tun device to tunnel the packets
+      - routing achieved with iptables (gateway) and iproute (client)
+      - simple mote program that broadcasts everything
+
+**** .4                                                            :B_column:
+     :PROPERTIES:
+     :BEAMER_env: column
+     :END:
+     [[file:task.pdf]]
+      
 ** Driver implementation
 *** columns                                                       :B_columns:
     :PROPERTIES:
@@ -33,27 +67,25 @@
      :PROPERTIES:
      :BEAMER_env: column
      :END:
-     
 
-**** .5                                                             :B_column:
-     :PROPERTIES:
-     :BEAMER_env: column
-     :END:
-     
-      #+ATTR_LATEX: width=5cm
-      [[file:module-tree_LEFT.pdf]]
-      
-** Mote communication
-*** columns                                                       :B_columns:
-    :PROPERTIES:
-    :BEAMER_env: columns
-    :END:
+***** __                                                            :B_block:
+      :PROPERTIES:
+      :BEAMER_env: block
+      :END:
+      - chunk IP packets to fit in tinyos packets
+        + queue to manage reconstruction
+        + chunks can get lost
 
-**** .5                                                             :B_column:
-     :PROPERTIES:
-     :BEAMER_env: column
-     :END:
-     - bullet
+***** __                                                            :B_block:
+      :PROPERTIES:
+      :BEAMER_env: block
+      :BEAMER_envargs: <2->
+      :END:
+      - compression with zlib
+      - handlers (function pointers) to decouple different modules
+      - select to listen on several file descriptors
+
+
 
 **** .5                                                             :B_column:
      :PROPERTIES:
@@ -63,10 +95,6 @@
     #+ATTR_LATEX: width=5cm
     [[file:module-tree.pdf]]
     
-
-** Compression
-   - With ipv6 header and blip it would be dramatically too slow.
-   - Header must be as small as possible
 
 ** Statistics
 *** columns                                                       :B_columns:
@@ -78,7 +106,14 @@
      :PROPERTIES:
      :BEAMER_env: column
      :END:
-     - bullet
+
+***** __                                                            :B_block:
+      :PROPERTIES:
+      :BEAMER_env: block
+      :END:
+      - speed is too slow for real application
+      - compression can increase the bitrate
+      - 
 
 **** .6                                                            :B_column:
      :PROPERTIES:
@@ -88,8 +123,13 @@
    #+ATTR_LATEX: width=7cm
    [[file:speeds.pdf]]
 
-* Speed?
-  
-* Conclusions and further work
+** Conclusion
+*** Tosnet is slow                                                  :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
 
-   
+*** Future improvements                                             :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
