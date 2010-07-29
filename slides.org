@@ -22,7 +22,13 @@
      :PROPERTIES:
      :BEAMER_env: column
      :END:
-     *Share* internet connection through a mote network
+
+***** Goal                                                          :B_block:
+      :PROPERTIES:
+      :BEAMER_env: block
+      :END:
+
+      *Share* internet connection through a mote network
 
 **** .5                                                           :B_columns:
      :PROPERTIES:
@@ -52,22 +58,22 @@
     :BEAMER_env: column
     :END:
 
-    Used technologies
-    - C99
-    - iptables
-    - iproute2
-    - shell script
-    - tun device
-    - zlib (compression)
+***** Used technologies                                             :B_block:
+      :PROPERTIES:
+      :BEAMER_env: block
+      :END:
+     - C99
+     - iptables
+     - iproute2
+     - shell script
+     - tun device
+     - zlib (compression)
 
 
 *** SF
     With serial forwarder every second a chunk is lostx
 
 
-** Event driven approach
-   Listen on two different devices, using *select* and handlers
-   
 ** Compression
    - With ipv6 header and blip it would be dramatically too slow.
    - Header must be as small as possible
