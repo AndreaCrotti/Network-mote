@@ -2,8 +2,7 @@
 # change those variables as you prefer
 PROG=$1
 PROF="gmon.out"
-STATS=$1.stats
-TYPE=pdf
+TYPE=svg
 OUT=profiled.$TYPE
 
 if uname | grep -i 'darwin'
@@ -21,5 +20,5 @@ fi
 set -x
 
 ./$@
-gprof $PROG | $GPROF2DOT | dot -T$TYPE -o $OUT
+gprof --static-call-graph -m 0 $PROG | $GPROF2DOT -e0.01 -n0.01 -c bw | dot -T$TYPE -o $OUT
 $OPEN $OUT
