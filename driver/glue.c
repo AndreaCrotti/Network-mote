@@ -6,26 +6,34 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
+/**
+ * Implementation of glue_t::setHandler. Installs/Removes a handler for the given (fd,type) tuple.
+ *
+ * \param fd The file descriptor to install/remove the handler for.
+ * \param type The kind of action you want to wait for (read/write/error). See fdglue_handle_type_t.
+ * \param hnd The handler you want to install. (Ignored if you remove an entry)
+ * \param action What you want to do? Replace, remove or append?
+ */
 void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action) {
     assert(this);
     if (action != FDGHR_APPEND) {
         fdglue_handlerlist_t dummy;
         dummy.fd = -1;
         dummy.next = this->handlers;
-        ////   dummy  ->  handlers  ->  ...  ->  NULL
+        //   dummy  ->  handlers  ->  ...  ->  NULL
         struct fdglue_handlerlist_t* it,* last = &dummy;
         for (it = dummy.next; it; it = it->next) {
             if (it->fd == fd && it->type == type) {
                 switch (action) {
-                case FDGHR_REPLACE:
-                    it->hnd = hnd;
-                    break;
-                case FDGHR_REMOVE:
-                    last->next = it->next;
-                    free(it);
-                    it = last;
-                    break;
-                default: {}
+                    case FDGHR_REPLACE:
+                        it->hnd = hnd;
+                        break;
+                    case FDGHR_REMOVE:
+                        last->next = it->next;
+                        free(it);
+                        it = last;
+                        break;
+                    default: {}
                 }
             }
             last = it;
