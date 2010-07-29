@@ -2,7 +2,7 @@
 # setup the gateway to act as a nat machine
 # see http://www.revsys.com/writings/quicktips/nat.html to understand it
 
-set -x
+#set -x
 sysctl -w net.ipv4.ip_forward=1
 
 IPT="iptables"
