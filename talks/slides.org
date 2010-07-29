@@ -1,92 +1,92 @@
 #+STARTUP: beamer
 #+OPTIONS: toc:nil
-#+LANGUAGE: it
+#+LANGUAGE: en
 #+LaTeX_CLASS: beamer
 #+LaTeX_CLASS_OPTIONS: [presentation]
 #+BEAMER_FRAME_LEVEL: 2
 #+BEAMER_HEADER_EXTRA: \usetheme{Antibes} \usecolortheme{default}
 #+COLUMNS: %40ITEM %10BEAMER_env(Env) %10BEAMER_envargs(Env Args) %4BEAMER_col(Col) %8BEAMER_extra(Extra)
 #+TITLE: TOSNET
-#+AUTHOR: Andrea Crotti, Marius Grysla, Oscar Dustmann
+#+AUTHOR: Oscar Dustmann, Marius Grysla, Andrea Crotti
 
 # See http://www.pletscher.org/writings/latex/beamerthemes.php for all the themes possible
 
 * TOSNET
-** Problem (1 slide maybe some nice image)
-*** columns                                                       :B_columns:
+** Task
+    #+ATTR_LATEX: width=\textwidth
+    [[file:networkfunny.png]]
+
+*** Goal                                                            :B_block:
     :PROPERTIES:
-    :BEAMER_env: columns
+    :BEAMER_env: block
     :END:
 
-**** .5                                                           :B_columns:
-     :PROPERTIES:
-     :BEAMER_env: column
-     :END:
-
-***** Goal                                                          :B_block:
-      :PROPERTIES:
-      :BEAMER_env: block
-      :END:
-
-      *Share* internet connection through a mote network
-
-**** .5                                                           :B_columns:
-     :PROPERTIES:
-     :BEAMER_env: column
-     :END:
-
-     Nice image
-     #+ATTR_LATEX: width=\textwidth
-     [[file:network.svg]]
+    Share internet connection through a *mote network*
 
 ** Driver implementation
 *** columns                                                       :B_columns:
     :PROPERTIES:
     :BEAMER_env: columns
     :END:
-    
 
-**** .5
+**** .5                                                             :B_column:
+     :PROPERTIES:
+     :BEAMER_env: column
+     :END:
+     
+
+**** .5                                                             :B_column:
+     :PROPERTIES:
+     :BEAMER_env: column
+     :END:
+     
+      #+ATTR_LATEX: width=5cm
+      [[file:module-tree_LEFT.pdf]]
+      
+** Mote communication
+*** columns                                                       :B_columns:
     :PROPERTIES:
-    :BEAMER_env: column
+    :BEAMER_env: columns
     :END:
-    *Architecture*
 
+**** .5                                                             :B_column:
+     :PROPERTIES:
+     :BEAMER_env: column
+     :END:
+     - bullet
+
+**** .5                                                             :B_column:
+     :PROPERTIES:
+     :BEAMER_env: column
+     :END:
+
+    #+ATTR_LATEX: width=5cm
+    [[file:module-tree.pdf]]
     
-**** .5                                                           :B_columns:
-    :PROPERTIES:
-    :BEAMER_env: column
-    :END:
-
-***** Used technologies                                             :B_block:
-      :PROPERTIES:
-      :BEAMER_env: block
-      :END:
-     - C99
-     - nesc (for mote program)
-     - iptables (masquerading)
-     - iproute2 (set routing entries)
-     - shell script
-     - tun device
-     - zlib (optional compression)
-
-
-*** SF
-    With serial forwarder every second a chunk is lostx
-
 
 ** Compression
    - With ipv6 header and blip it would be dramatically too slow.
    - Header must be as small as possible
 
-** Mote program
-   - Very simple approach
-
-** Call graph
-   #+ATTR_LATEX: height=\textheight
-   [[file:images/main_c.png]]
-
 ** Statistics
+*** columns                                                       :B_columns:
+    :PROPERTIES:
+    :BEAMER_env: columns
+    :END:
+
+**** .4                                                            :B_column:
+     :PROPERTIES:
+     :BEAMER_env: column
+     :END:
+     - bullet
+
+**** .6                                                            :B_column:
+     :PROPERTIES:
+     :BEAMER_env: column
+     :END:
+
+   #+ATTR_LATEX: width=7cm
+   [[file:speeds.pdf]]
 
 * Speed?
   
