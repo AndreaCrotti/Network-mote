@@ -63,11 +63,12 @@
       :BEAMER_env: block
       :END:
      - C99
-     - iptables
-     - iproute2
+     - nesc (for mote program)
+     - iptables (masquerading)
+     - iproute2 (set routing entries)
      - shell script
      - tun device
-     - zlib (compression)
+     - zlib (optional compression)
 
 
 *** SF
