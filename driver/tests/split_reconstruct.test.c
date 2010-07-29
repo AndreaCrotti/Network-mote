@@ -53,9 +53,7 @@ void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
             payload_t *added = &(result[pos]);
             /* printf("adding on %d\n", seq * i); */
             (added->stream) = malloc(sizeof(ipv6Packet));
-            // FIXME: there must a problem here since we are not setting the stream
             genPacket(&copied, (ipv6Packet *) added->stream, &(added->len), seq, parts);
-            // add the chunks in random order now
         }
     }
     // now we have created the big array containing everything
@@ -76,28 +74,6 @@ payload_t *gen_ipv6_payloads(int count) {
 void free_payloads(payload_t *payloads, int count) {
     for (int i = 0; i < count; i++) {
         free((void *) payloads[i].stream);
-    }
-}
-
-void simple_test(payload_t fixed) {
-    int len = fixed.len;
-    int chunks_no = neededChunks(len);
-    printf("having %d\n", chunks_no);
-    payload_t *result = gen_ipv6_payloads(chunks_no);
-    
-    genIpv6Packets2(&fixed, result, 0, chunks_no);
-
-    initReconstruction(NULL);
-
-    for (int i = 0; i < chunks_no; i++) {
-        addChunk(result[i]);
-    }
-    
-    stream_t *chunks = getChunks(0);
-
-    for (int i = 0; i < msg_size; i++) {
-        printf("i = %d, %d %d\n", i, chunks[i], fixed.stream[i]);
-        /* assert(chunks[i] == fixed.stream[i]); */
     }
 }
 
