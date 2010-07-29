@@ -35,7 +35,7 @@
 
 #define CONTROL(color) "\033[0;"color"m"
 #define ERROR_COLOR "31"
-#define INFO_COLOR "34"
+#define INFO_COLOR "36"
 #define NOTE_COLOR "34"
 #define WARNING_COLOR "35"
 #define DEBUG_COLOR "32"
