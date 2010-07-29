@@ -36,15 +36,17 @@
 #define CONTROL(color) "\033[0;"color"m"
 #define ERROR_COLOR "31"
 #define INFO_COLOR "34"
-#define WARNING_COLOR "32"
+#define NOTE_COLOR "34"
+#define WARNING_COLOR "35"
+#define DEBUG_COLOR "32"
 #define RESET CONTROL("0")
 
 // log levels
 #include <stdio.h>
-#define LOG__PRINT(TYPE,MSG,...) {fprintf(stderr,"%-7s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); }
+#define LOG__PRINT(TYPE,MSG,...) {fprintf(stderr,"%-9s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); }
 
 #if LOG_LEVEL&1
-#define LOG_ERROR(MSG,...)   LOG__PRINT(CONTROL(WARNING_COLOR)"ERROR"RESET,MSG,##__VA_ARGS__)
+#define LOG_ERROR(MSG,...)   LOG__PRINT(CONTROL(ERROR_COLOR)"ERROR"RESET,MSG,##__VA_ARGS__)
 #else
 #define LOG_ERROR(MSG,...)
 #warning "error messages not compiled"
@@ -58,7 +60,7 @@
 #define LOG_WARN LOG_WARNING
 
 #if LOG_LEVEL&4
-#define LOG_NOTE(MSG,...)    LOG__PRINT("NOTE",MSG,##__VA_ARGS__)
+#define LOG_NOTE(MSG,...)    LOG__PRINT(CONTROL(NOTE_COLOR)"NOTE"RESET,MSG,##__VA_ARGS__)
 #else
 #define LOG_NOTE(MSG,...)
 #endif
@@ -70,7 +72,7 @@
 #endif
 
 #if LOG_LEVEL&16
-#define LOG_DEBUG(MSG,...)  LOG__PRINT("DEBUG",MSG,##__VA_ARGS__)
+#define LOG_DEBUG(MSG,...)  LOG__PRINT(CONTROL(DEBUG_COLOR)"DEBUG"RESET,MSG,##__VA_ARGS__)
 #else
 #define LOG_DEBUG(MSG,...)
 #endif
