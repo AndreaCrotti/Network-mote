@@ -113,7 +113,8 @@
       :END:
       - speed is too slow for real application
       - compression can increase the bitrate
-      - 
+      - more sophisticated with 6lowpan
+        + ipv6 header
 
 **** .6                                                            :B_column:
      :PROPERTIES:
@@ -124,12 +125,17 @@
    [[file:speeds.pdf]]
 
 ** Conclusion
-*** Tosnet is slow                                                  :B_block:
+*** Possible improvements                                            :B_block:
     :PROPERTIES:
     :BEAMER_env: block
     :END:
+    - multi-client support
+    - real network routing protocol
+    - too much overhead to an already slow connection
 
-*** Future improvements                                             :B_block:
+*** Conclusions                                                     :B_block:
     :PROPERTIES:
     :BEAMER_env: block
     :END:
+    - *ioctl* can drive you mad
+    - commented code is a good thing
