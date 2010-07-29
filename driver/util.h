@@ -43,7 +43,7 @@
 
 // log levels
 #include <stdio.h>
-#define LOG__PRINT(TYPE,MSG,...) {fprintf(stderr,"%-9s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); }
+#define LOG__PRINT(TYPE,MSG,...) {fprintf(stderr,"%-20s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); }
 
 #if LOG_LEVEL&1
 #define LOG_ERROR(MSG,...)   LOG__PRINT(CONTROL(ERROR_COLOR)"ERROR"RESET,MSG,##__VA_ARGS__)
