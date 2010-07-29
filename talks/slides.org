@@ -1,4 +1,3 @@
-
 #+STARTUP: beamer
 #+OPTIONS: toc:nil
 #+LANGUAGE: en
