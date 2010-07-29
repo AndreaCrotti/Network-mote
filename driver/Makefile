@@ -16,7 +16,7 @@ LOW6PAN_CARRIED=102
 #LOW6PAN_CARRIED=128	
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT -DDEBUG $(PACKET_TYPE) -DLOG_LEVEL=$(LOG_LEVEL)
 WARN = -Wall -Wextra
-DEBUG = -ggdb -O0 -pg
+DEBUG = -ggdb -O0 -pg -fno-omit-frame-pointer
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
 HEADERS = util.h motecomm.sizes.h config.h hostname.h

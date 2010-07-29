@@ -33,13 +33,17 @@
 #define DUMP_STRING(VAR) DUMP_VAR(VAR,s)
 #define DUMP_FLOAT(VAR) DUMP_VAR(VAR,f)
 
+#define CONTROL "27[0;"
+#define ERROR_COLOR "31m"
+#define INFO_COLOR "34m"
+#define WARNING_COLOR "32m"
 
 // log levels
 #include <stdio.h>
-#define LOG__PRINT(TYPE,MSG,...) do {fprintf(stderr,"%-7s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); } while(0)
+#define LOG__PRINT(TYPE,MSG,...) {fprintf(stderr,"%-7s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); }
 
 #if LOG_LEVEL&1
-#define LOG_ERROR(MSG,...)   LOG__PRINT("ERROR",MSG,##__VA_ARGS__)
+#define LOG_ERROR(MSG,...)   LOG__PRINT(CONTROL ERROR_COLOR "ERROR",MSG,##__VA_ARGS__)
 #else
 #define LOG_ERROR(MSG,...)
 #warning "error messages not compiled"
@@ -59,7 +63,7 @@
 #endif
 
 #if LOG_LEVEL&8
-#define LOG_INFO(MSG,...)   LOG__PRINT("INFO",MSG,##__VA_ARGS__)
+#define LOG_INFO(MSG,...)   LOG__PRINT(CONTROL INFO_COLOR "INFO",MSG,##__VA_ARGS__)
 #else
 #define LOG_INFO(MSG,...)
 #endif

@@ -9,17 +9,16 @@
 #+TITLE: TOSNET
 #+AUTHOR: Andrea Crotti, Marius Grysla, Oscar Dustmann
 
-* Problem (1 slide)
-** Connecting
-   - sdfsdkfj
-   - lsdfjk
+* TOSNET
+** Problem (1 slide maybe some nice image)
 
-* Architecture
+** Driver implementation
+   - tun / tap
+   - compression
+
 ** Event driven approach
    Listen on two different devices, using *select* and handlers
    
-** Tunnelling
-
 ** Compression
    - With ipv6 header and blip it would be dramatically too slow.
    - Header must be as small as possible
@@ -31,8 +30,12 @@
    #+ATTR_LATEX: height=\textheight
    [[file:images/main_c.png]]
 
+** Statistics
+
 * Speed?
   
+* Conclusions and further work
+** 
    
 
 #* Emacs
