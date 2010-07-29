@@ -82,7 +82,7 @@
       :END:
       - compression with zlib
       - handlers (function pointers) to decouple different modules
-      - select to listen on several file descriptors
+      - *select* to listen on several file descriptors
 
 
 

@@ -20,10 +20,9 @@
  * @param payload_len length of the payload
  */
 void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
-    // FIXME: src and dest are surely not loopback address
     header->ip6_src = in6addr_loopback;
     header->ip6_dst = in6addr_loopback;
-    // 16 bit file
+    // 16 bit file, so we need to convert to network format
     header->plen = htons(payload_len);
 }
 
