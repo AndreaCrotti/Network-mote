@@ -157,6 +157,11 @@ int tun_write(int fd, payload_t data){
     // should not exit directly here maybe?
     //TODO: Maybe send is better here
     if((nwrite = write(fd, data.stream, data.len)) < 0){
+        DUMP_UINT(data.len);
+        DUMP_UINT(data.stream[0]);
+        DUMP_UINT(data.stream[1]);
+        DUMP_UINT(data.stream[2]);
+        DUMP_UINT(data.stream[3]);
         perror("Writing data");
         exit(1);
     }
@@ -176,7 +181,7 @@ void addToWriteQueue(int client_no, payload_t data) {
     // add the message to the queue
     write_queue *queue = &(tun_devices[client_no].queue);
     add_to_queue(queue, data);
-    /* printf("now queue %d <-> %d\n", queue->first, queue->last); */
+    LOG_DEBUG("write-queue: now queue spans %d <-> %d", queue->first, queue->last);
     // now use a select to try to send out everything
 
     // try to send out as many messages as possible
@@ -186,7 +191,7 @@ void addToWriteQueue(int client_no, payload_t data) {
         message = fetch_from_queue(queue);
         if (!is_writable(fd)) {
             unsigned nwrite = tun_write(fd, data);
-            /* printf("wrote %d bytes\n", nwrite); */
+            LOG_DEBUG("write-queue: wrote %d bytes", nwrite);
             if (nwrite) {
                 // otherwise means partially written data
                 assert(nwrite == data.len);
@@ -236,7 +241,7 @@ int checkFd(int fd) {
  */
 void add_to_queue(write_queue *queue, payload_t data) {
     assert(!queue_full(queue));
-    /* printf("adding %s to the queue\n", element); */
+    LOG_DEBUG("write-queue: adding %p to the queue",data.stream);
     queue->data[queue->last] = data;
     // going forward of one position
     queue->last = NEXT(queue->last);

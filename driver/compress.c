@@ -6,6 +6,8 @@
 #include "../shared/structs.h"
 #include "zlib.h"
 
+#include "util.h"
+
 #define LEVEL Z_BEST_COMPRESSION
 
 /** 
@@ -37,7 +39,9 @@ void _setup_zstream(z_stream *strm, const payload_t *data, payload_t *result) {
 }
 
 void printGained(streamlen_t before, streamlen_t after) {
-    printf("compressed data is %.5f percent of original size\n", ((float) after / before) * 100);
+    (void)before;
+    (void)after;
+    LOG_INFO("Compressed data is %.5f%% of original size.", ((float) after / before) * 100);
 }
 
 int payloadCompress(const payload_t data, payload_t *result) {
