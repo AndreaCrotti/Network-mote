@@ -1,4 +1,4 @@
-#+AUTHOR: Andrea Crotti, Marius Grysla, Oscar Dustmann
+>#+AUTHOR: Andrea Crotti, Marius Grysla, Oscar Dustmann
 # TODO: change name of the project maybe?
 MotNet
 
@@ -52,7 +52,7 @@ typedef struct {
   - simple-motes
 
 
-
-
-
-
+* Next Improvements
+** TODO add a simple handshaking protocol removing the ugly forced sleep
+** TODO add support for an intermediate node
+** TODO (optional) some support for multiple clients

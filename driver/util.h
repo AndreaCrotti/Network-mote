@@ -33,13 +33,23 @@
 #define DUMP_STRING(VAR) DUMP_VAR(VAR,s)
 #define DUMP_FLOAT(VAR) DUMP_VAR(VAR,f)
 
-#define CONTROL(color) "\033[0;"color"m"
-#define ERROR_COLOR "31"
-#define INFO_COLOR "36"
-#define NOTE_COLOR "34"
-#define WARNING_COLOR "35"
-#define DEBUG_COLOR "32"
+#define CONTROL(color) "\033[0;%s"color"m"
+#define RED "31"
+#define GREEN "32"
+#define YELLOW "33"
+#define BLUE "34"
+#define MAGENTA "35"
+#define CYAN "36"
+#define WHITE "37"
+
+#define ERROR_COLOR RED
+#define INFO_COLOR CYAN
+#define NOTE_COLOR BLUE
+#define WARNING_COLOR MAGENTA
+#define DEBUG_COLOR GREEN
 #define RESET CONTROL("0")
+
+/* #define COLOR(color,string) CONTROL(color) string RESET */
 
 // log levels
 #include <stdio.h>
@@ -47,6 +57,7 @@
 
 #if LOG_LEVEL&1
 #define LOG_ERROR(MSG,...)   LOG__PRINT(CONTROL(ERROR_COLOR)"ERROR"RESET,MSG,##__VA_ARGS__)
+/* #define LOG_ERROR(MSG,...)   LOG__PRINT(COLOR(ERROR_COLOR,MSG),##__VA_ARGS__) */
 #else
 #define LOG_ERROR(MSG,...)
 #warning "error messages not compiled"

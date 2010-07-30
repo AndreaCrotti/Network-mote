@@ -9,6 +9,8 @@
 #include "util.h"
 
 #define LEVEL Z_BEST_COMPRESSION
+#define COMPRESS 0
+#define DECOMPRESS 1
 
 /** 
  * Initialize the stream to default values
@@ -42,6 +44,23 @@ void printGained(streamlen_t before, streamlen_t after) {
     (void)before;
     (void)after;
     LOG_INFO("Compressed data is %.5f%% of original size.", ((float) after / before) * 100);
+}
+
+int _zlib_manage(int mode, const payload_t data, payload_t *result) {
+    int ret;
+    z_stream strm;
+    _setup_zstream(&strm, &data, result);
+    switch (mode) {
+    case COMPRESS:
+        ret = deflateInit(&strm, LEVEL);
+        break;
+    case DECOMPRESS:
+        ret = inflateInit(&strm);
+    }
+    assert(ret == Z_OK);
+    
+    // now check the difference between two approoaches
+    return Z_OK;
 }
 
 int payloadCompress(const payload_t data, payload_t *result) {
