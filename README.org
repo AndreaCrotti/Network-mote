@@ -11,6 +11,7 @@ MotNet
 
 * Architecture
 
+* Coding style
 
 * Files
   This is the tree of files in our application
@@ -56,4 +57,7 @@ typedef struct {
 ** TODO add support for adaptative compression
 ** TODO add a simple handshaking protocol removing the ugly forced sleep
 ** TODO add support for an intermediate node
+** TODO remove code duplication from client/gateway source files
 ** TODO (optional) some support for multiple clients
+** TODO uniform code style (_ and doc)
+** TODO do some real automated tests to compute real speed of the connection
