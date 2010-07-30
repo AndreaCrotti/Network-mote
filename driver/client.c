@@ -36,7 +36,7 @@ void setup_routes(char const* const tun_name) {
     callScript(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
 }
 
-int startClient(char const *dev) {
+int startClient(char const *dev) {    
 
     if (!notun) {
         // on the server instead could create many
@@ -97,6 +97,7 @@ void usage(char* name) {
 }
 
 int main(int argc, char *argv[]) {
+
     /*if (argc != 2) {
         usage(argv[0]);
     }*/
