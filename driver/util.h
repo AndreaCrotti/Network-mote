@@ -33,7 +33,7 @@
 #define DUMP_STRING(VAR) DUMP_VAR(VAR,s)
 #define DUMP_FLOAT(VAR) DUMP_VAR(VAR,f)
 
-#define CONTROL(color) "\033[0;%s"color"m"
+#define CONTROL(color) "\033[0;"color"m"
 #define RED "31"
 #define GREEN "32"
 #define YELLOW "33"

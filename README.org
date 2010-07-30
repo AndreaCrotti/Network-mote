@@ -53,6 +53,7 @@ typedef struct {
 
 
 * Next Improvements
+** TODO add support for adaptative compression
 ** TODO add a simple handshaking protocol removing the ugly forced sleep
 ** TODO add support for an intermediate node
 ** TODO (optional) some support for multiple clients

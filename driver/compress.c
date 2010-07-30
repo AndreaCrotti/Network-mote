@@ -12,13 +12,15 @@
 #define COMPRESS 0
 #define DECOMPRESS 1
 
+static z_stream strm;
+
 /** 
  * Initialize the stream to default values
  * Used in same way by compression and decompression
  * 
  * @param strm zstream to initialize
  */
-void _init_zstream(z_stream *strm) {
+void _reset_zstream(z_stream *strm) {
     strm->zalloc = Z_NULL;
     strm->zfree = Z_NULL;
     strm->opaque = Z_NULL;
@@ -33,7 +35,7 @@ void _init_zstream(z_stream *strm) {
  */
 void _setup_zstream(z_stream *strm, const payload_t *data, payload_t *result) {
     // setup the correct values in the stream
-    _init_zstream(strm);
+    _reset_zstream(strm);
     strm->avail_in = data->len;
     strm->avail_out = result->len;
     strm->next_in = (unsigned char *) data->stream;
@@ -48,7 +50,6 @@ void printGained(streamlen_t before, streamlen_t after) {
 
 int _zlib_manage(int mode, const payload_t data, payload_t *result) {
     int ret;
-    z_stream strm;
     _setup_zstream(&strm, &data, result);
     switch (mode) {
     case COMPRESS:
@@ -65,7 +66,6 @@ int _zlib_manage(int mode, const payload_t data, payload_t *result) {
 
 int payloadCompress(const payload_t data, payload_t *result) {
     int ret;
-    z_stream strm;
     // maybe out should be bigger
     _setup_zstream(&strm, &data, result);
     streamlen_t tot_size = 0;
