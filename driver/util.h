@@ -49,15 +49,15 @@
 #define DEBUG_COLOR GREEN
 #define RESET CONTROL("0")
 
-/* #define COLOR(color,string) CONTROL(color) string RESET */
+#define COLOR(color,string) CONTROL(color) string RESET
 
 // log levels
 #include <stdio.h>
 #define LOG__PRINT(TYPE,MSG,...) {fprintf(stderr,"%-20s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); }
 
 #if LOG_LEVEL&1
-#define LOG_ERROR(MSG,...)   LOG__PRINT(CONTROL(ERROR_COLOR)"ERROR"RESET,MSG,##__VA_ARGS__)
-/* #define LOG_ERROR(MSG,...)   LOG__PRINT(COLOR(ERROR_COLOR,MSG),##__VA_ARGS__) */
+/* #define LOG_ERROR(MSG,...)   LOG__PRINT(CONTROL(ERROR_COLOR)"ERROR"RESET,MSG,##__VA_ARGS__) */
+#define LOG_ERROR(MSG,...)   LOG__PRINT(COLOR(ERROR_COLOR,"ERROR"),MSG,##__VA_ARGS__)
 #else
 #define LOG_ERROR(MSG,...)
 #warning "error messages not compiled"
