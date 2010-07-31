@@ -27,7 +27,7 @@ void _reset_zstream(z_stream *strm) {
 }
 
 /** 
- * Setup the stream, we use it in the same way
+ * Setup the stream for compression and decompression
  * 
  * @param strm 
  * @param data 

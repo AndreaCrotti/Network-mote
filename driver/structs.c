@@ -74,7 +74,7 @@ myPacketHeader *getHeader(ipv6Packet *packet) {
     return &(packet->header.packetHeader);
 }
 
-int isLast(ipv6Packet *packet) {
+bool isLast(ipv6Packet *packet) {
     return (getOrdNo(packet) == (getParts(packet) - 1));
 }
 

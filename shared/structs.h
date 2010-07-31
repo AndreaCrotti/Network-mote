@@ -23,10 +23,7 @@
 
 #define COPY_STRUCT (DESTP, SOURCEP, TYPE) *(TYPE*)(DESTP) = *(TYPE*)(SOURCEP)
 
-//#define TRUE 1
-//#define FALSE 0
-//typedef unsigned char bool;
-
+#include <stdbool.h>
 #include <ip.h>
 
 typedef unsigned char stream_t;

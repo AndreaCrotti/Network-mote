@@ -61,3 +61,4 @@ typedef struct {
 ** TODO (optional) some support for multiple clients
 ** TODO uniform code style (_ and doc)
 ** TODO do some real automated tests to compute real speed of the connection
+** TODO remove all the (void)var things, if there is a variable use it ;)

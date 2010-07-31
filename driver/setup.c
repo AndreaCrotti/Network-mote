@@ -144,11 +144,13 @@ void tunReceive(fdglue_handler_t* that) {
     
     // we'll overwrite it when done
     payloadCompress(payload, &compressed);
-    printGained(payload.len, compressed.len);
-    // TODO: is the rest of the memory lost maybe?
-    // should we alloc - memcpy - free instead?
-    copyPayload(&compressed, &payload);
-    size = payload.len;
+    // overwrite the current value ONLY if has to be compressed
+    if (compressed.len < payload.len) {
+        printGained(payload.len, compressed.len);
+        // should we alloc - memcpy - free instead?
+        copyPayload(&compressed, &payload);
+        size = payload.len;
+    }
 #endif
 
     {
@@ -159,7 +161,6 @@ void tunReceive(fdglue_handler_t* that) {
         }
       } /* debug end */
       static unsigned sent_count = 0;
-      (void)sent_count;
       LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
     }
 
