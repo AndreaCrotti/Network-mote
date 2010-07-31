@@ -62,3 +62,17 @@ typedef struct {
 ** TODO uniform code style (_ and doc)
 ** TODO do some real automated tests to compute real speed of the connection
 ** TODO remove all the (void)var things, if there is a variable use it ;)
+** TODO drop privileges when not needed anymore
+** TODO testing with a pipe instead of using the real usb device
+#+begin_src c
+  pid_t pid;
+  int mypipe[2];
+  
+  /* Create the pipe.  */
+  if (pipe (mypipe))
+      {
+          fprintf (stderr, "Pipe failed.\n");
+          return EXIT_FAILURE;
+      }   
+#+end_src
+
