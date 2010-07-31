@@ -74,6 +74,10 @@ myPacketHeader *getHeader(ipv6Packet *packet) {
     return &(packet->header.packetHeader);
 }
 
+bool is_compressed(ipv6Packet *packet) {
+    return getHeader(packet)->is_compressed;
+}
+
 bool isLast(ipv6Packet *packet) {
     return (getOrdNo(packet) == (getParts(packet) - 1));
 }

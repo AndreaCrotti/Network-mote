@@ -136,7 +136,7 @@ void tunReceive(fdglue_handler_t* that) {
 
 #if COMPRESSION_ENABLED
     // replace the payload with another payload
-    stream_t compr_data[MAX_FRAME_SIZE];
+    static stream_t compr_data[MAX_FRAME_SIZE];
     payload_t compressed = {
         .len = MAX_FRAME_SIZE,
         .stream = compr_data

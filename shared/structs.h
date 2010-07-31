@@ -114,6 +114,7 @@ int getSize(ipv6Packet *packet, int size);
 int getParts(ipv6Packet *packet);
 int getOrdNo(ipv6Packet *packet);
 int getSeqNo(ipv6Packet *packet);
+bool is_compressed(ipv6Packet *packet);
 
 #endif
 

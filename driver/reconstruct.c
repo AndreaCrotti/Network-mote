@@ -27,14 +27,13 @@ typedef struct {
     // That is the max size of the theoretically completed packet
     stream_t chunks[MAX_FRAME_SIZE];
     int tot_size;
+    bool is_compressed;
 } packet_t;
 
 // Statistic variables
 unsigned long started_pkts = 0;
 unsigned long finished_pkts = 0;
 
-// just using a send function would be fine
-//static void (*send_back)(ipv6Packet *completed);
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
 static void (*send_back)(payload_t completed);
 
@@ -57,15 +56,14 @@ void fake_reconstruct_done(payload_t complete) {
     LOG_INFO("packet completed, not doing anything");
 }
 
-int is_completed(packet_t *pkt) {
+bool is_completed(packet_t *pkt) {
     return (pkt->missing_bitmask == 0);
 }
 
-int check_if_same_chunk(packet_t *pkt1, packet_t *pkt2, int size) {
+bool check_if_same_chunk(packet_t *pkt1, packet_t *pkt2, int size) {
     return memcmp((void *) pkt1, (void *) pkt2, size);
 }
 
-// TODO: change name or change what is done inside here
 void send_if_completed(packet_t *pkt) {
     // now we check if everything if the packet is completed and sends it back
     if (is_completed(pkt)) {
@@ -79,24 +77,20 @@ void send_if_completed(packet_t *pkt) {
         };
 
 #if COMPRESSION_ENABLED
-        stream_t compr_data[MAX_FRAME_SIZE];
+        static stream_t compr_data[MAX_FRAME_SIZE];
         payload_t compressed = {
             .len = MAX_FRAME_SIZE,
             .stream = compr_data
         };
     
-        // we'll overwrite it when done
-        payloadDecompress(payload, &compressed);
-        // TODO: is the rest of the memory lost maybe?
-        // should we alloc - memcpy - free instead?
-        copyPayload(&compressed, &payload);
-#endif
-
-        if (send_back) 
-            send_back(payload);
-        else {
-            LOG_WARNING("No callback function registered for completed chunks.");
+        if (pkt->is_compressed) {
+            // we'll overwrite it when done
+            payloadDecompress(payload, &compressed);
+            // should we alloc - memcpy - free instead?
+            copyPayload(&compressed, &payload);
         }
+#endif
+        send_back(payload);
     }
 }
 
@@ -111,7 +105,8 @@ void init_temp_packet(packet_t* const pkt) {
   *pkt = (packet_t){
     .seq_no = -1,
     .missing_bitmask = -1ul,
-    .tot_size = 0
+    .tot_size = 0,
+    .is_compressed = true
   };
 
   memset((void*)(pkt->chunks), 0, MAX_FRAME_SIZE * sizeof(stream_t));
@@ -161,12 +156,16 @@ void addChunk(payload_t data) {
         
         if (DEBUG)
             started_pkts++;
-
+        
+        pkt->is_compressed = is_compressed(original);
         // resetting to the initial configuration
         pkt->missing_bitmask = (1ul << getParts(original)) - 1;
         pkt->seq_no = seq_no;
         pkt->tot_size = 0;
     }
+
+    // all the chunks of the same packet are compressed OR not compressed
+    assert(pkt->is_compressed == is_compressed(original));
 
     LOG_DEBUG("Adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %lu)", seq_no, ord_no, getParts(original), pkt->missing_bitmask);
 
