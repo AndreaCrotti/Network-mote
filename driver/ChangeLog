@@ -1,0 +1,4 @@
+2010-07-31  Andrea Crotti  <andrea.crotti.0@gmail.com>
+
+	* setup.c (tunReceive): Now compression is adaptive
+

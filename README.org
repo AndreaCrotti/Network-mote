@@ -54,7 +54,9 @@ typedef struct {
 
 
 * Next Improvements
-** TODO add support for adaptative compression
+** DONE add support for adaptative compression
+   CLOSED: [2010-07-31 Sab 18:21]
+   - CLOSING NOTE [2010-07-31 Sab 18:21]
 ** TODO add a simple handshaking protocol removing the ugly forced sleep
 ** TODO add support for an intermediate node that forwards everything
 ** TODO remove code duplication from client/gateway source files
@@ -76,3 +78,6 @@ typedef struct {
       }
 #+end_src
 
+
+** TODO Use perror when possible to show messages
+** TODO add cleaning exit code on exit

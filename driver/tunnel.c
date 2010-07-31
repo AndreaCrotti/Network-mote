@@ -30,19 +30,11 @@
 #define TUN_DEV "/dev/net/tun"
 #define NEXT(x) ((x + 1) % MAX_QUEUED)
 
-// implementation of a FIFO queue as a circular array
-typedef struct write_queue {
-    payload_t data[MAX_QUEUED];
-    int first;
-    int last;
-} write_queue;
-
 // structure of a tun device
 typedef struct tundev {
     char *ifname;
     int fd;
     int client; // client we're serving
-    write_queue queue;
 } tundev;
 
 
@@ -53,15 +45,14 @@ char ifname[IFNAMSIZ];
 static tundev tun_devices[MAX_CLIENTS];
 static int flags;
 
-payload_t fetch_from_queue(write_queue *queue);
-void add_to_queue(write_queue *queue, payload_t data);
-int queue_empty(write_queue *queue);
-int queue_full(write_queue *queue);
-int is_writable(int fd);
-void set_fd(int client_no, int fd);
-void delete_last(write_queue *queue);
-int tun_write(int fd, payload_t data);
 
+int getFd(int client_no) {
+    return tun_devices[client_no].fd;
+}
+
+void set_fd(int client_no, int fd) {
+    tun_devices[client_no].fd = fd;
+}
 
 /** 
  * Setup the flags, basically if using TUN or TAP device
@@ -70,10 +61,8 @@ int tun_write(int fd, payload_t data);
  */
 void tunSetup(int tun_flags) {
     flags = tun_flags;
-    // setup the queue for each of the clients
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        tun_devices[i].queue.first = 0;
-        tun_devices[i].queue.last = 0;
+        tun_devices[i].fd = -1;
     }
 }
 
@@ -104,7 +93,7 @@ int tunOpen(int client_no, char *dev) {
     }
 
     // Try to create the device
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
+    if((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0) {
         close(fd);
         perror("Creating the device");
         return err;
@@ -119,16 +108,14 @@ int tunOpen(int client_no, char *dev) {
     return 1;
 }
 
-int getFd(int client_no) {
-    return tun_devices[client_no].fd;
-}
-
-void set_fd(int client_no, int fd) {
-    tun_devices[client_no].fd = fd;
-}
-
-int queueEmpty(int client_no) {
-    return queue_empty(&(tun_devices[client_no].queue));
+void close_all_tunnels() {
+    int fd;
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        fd = tun_devices[i].fd;
+        if (fd > 0) {
+            close(fd);
+        }
+    }
 }
 
 int tunRead(int client_no, char *buf, int length){
@@ -142,129 +129,15 @@ int tunRead(int client_no, char *buf, int length){
     return nread;
 }
 
-/** 
- * Writes data from buf to the device.
- * 
- * @param fd The tunnel device.
- * @param buf Pointer to the data.
- * @param length Maximal number of bytes to write.
- * 
- * @return number of bytes written.
- */
-int tun_write(int fd, payload_t data){
+void tun_write(int client_no, payload_t data){
     int nwrite;
+    int fd = getFd(client_no);
     
     // should not exit directly here maybe?
     //TODO: Maybe send is better here
-    if((nwrite = write(fd, data.stream, data.len)) < 0){
-        DUMP_UINT(data.len);
-        DUMP_UINT(data.stream[0]);
-        DUMP_UINT(data.stream[1]);
-        DUMP_UINT(data.stream[2]);
-        DUMP_UINT(data.stream[3]);
+    if((nwrite = write(fd, data.stream, data.len)) < 0) {
         perror("Writing data");
         exit(1);
     }
-    return nwrite;
+    assert((unsigned) nwrite == data.len);
 }
-
-void tunWriteNoQueue(int client_no, payload_t data) {
-    int fd = getFd(client_no);
-    // use some simple error checking here instead
-    unsigned sent = tun_write(fd, data);
-    assert(sent == data.len);
-}
-
-void addToWriteQueue(int client_no, payload_t data) {
-    assert(0);
-    int fd = getFd(client_no);
-    // add the message to the queue
-    write_queue *queue = &(tun_devices[client_no].queue);
-    add_to_queue(queue, data);
-    LOG_DEBUG("write-queue: now queue spans %d <-> %d", queue->first, queue->last);
-    // now use a select to try to send out everything
-
-    // try to send out as many messages as possible
-    payload_t message;
-    // quit immediately the loop if we sent everything or is not writable
-    while (!queue_empty(queue)) {
-        message = fetch_from_queue(queue);
-        if (!is_writable(fd)) {
-            unsigned nwrite = tun_write(fd, data);
-            LOG_DEBUG("write-queue: wrote %d bytes", nwrite);
-            if (nwrite) {
-                // otherwise means partially written data
-                assert(nwrite == data.len);
-                // only now we can remove it from the queue
-                delete_last(queue);
-            }
-        }
-    }
-}
-
-/** 
- * Check if the device is ready for writing
- * 
- * @param fd file descriptor to check
- */
-int is_writable(int fd) {
-    fd_set fds;
-    struct timeval timeout = {.tv_sec = 3, .tv_usec = 0};
-    int rc;
-    FD_ZERO(&fds);
-    FD_SET(fd, &fds);
-    
-    // is this fd+1 exactly what we need here?
-    rc = select(fd + 1, NULL, &fds, NULL, &timeout);
-    return FD_ISSET(fd,&fds) ? 1 : 0;
-}
-
-int checkFd(int fd) {
-    fd_set fds;
-    struct timeval timeout = {.tv_sec = 3, .tv_usec = 0};
-    int rc;
-    FD_ZERO(&fds);
-    FD_SET(fd, &fds);
-    
-    // is this fd+1 exactly what we need here?
-    rc = select(fd + 1, &fds, &fds, &fds, &timeout);
-    /* int modes[] = {1, 2, 4}; */
-    return FD_ISSET(fd,&fds) ? 1 : 0;
-}
-
-
-/**
- * Adding element, managing a full queue with assertion (because it should not happen)
- * 
- * @param queue queue to add to
- * @param data payload to add to the queue
- */
-void add_to_queue(write_queue *queue, payload_t data) {
-    assert(!queue_full(queue));
-    LOG_DEBUG("write-queue: adding %p to the queue",data.stream);
-    queue->data[queue->last] = data;
-    // going forward of one position
-    queue->last = NEXT(queue->last);
-}
-
-int queue_full(write_queue *queue) {
-    return (NEXT(queue->last) == (queue->first));
-}
-
-int queue_empty(write_queue *queue) {
-    return (queue->first == queue->last);
-}
-
-/** 
- * @param queue queue
- * 
- * @return the first element inserted into the queue or NULL if not found
- */
-payload_t fetch_from_queue(write_queue *queue) {
-    return queue->data[queue->first];
-}
-
-void delete_last(write_queue *queue) {
-    queue->first = NEXT(queue->first);
-}
-

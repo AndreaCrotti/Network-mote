@@ -39,30 +39,13 @@ int getFd(int client_no);
  */
 int tunRead(int client_no, char *buf, int n);
 
-/**
- * Add one message to the write queue
- * and then try to send them all out
- *
- * @param client_no client connected
- * @param buf buffer to send
- * @param len length of the buffer
- */
-void addToWriteQueue(int client_no, payload_t data);
-
 /** 
  * Write on tun device without using the fancy queue
  * 
  * @param client_no client connected
  * @param data payload to write
  */
-void tunWriteNoQueue(int client_no, payload_t data);
-
-/**
- * Check if a queue is empty.
- *
- * @param client_no which client?
- */
-int queueEmpty(int client_no);
+void tun_write(int client_no, payload_t data);
 
 /** 
  * Setup the tunnel module

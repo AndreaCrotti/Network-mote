@@ -66,7 +66,7 @@ void reconstructDone(payload_t complete) {
     static unsigned recv_count = 0;
     LOG_NOTE(" => Checksum of RECV %u packet is %08X", recv_count++, sum);
   } /* debug end */
-  tunWriteNoQueue(/*FIXME*/ 0 /*FIXME*/,complete);
+  tun_write(/*FIXME*/ 0 /*FIXME*/,complete);
 }
 
 serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
@@ -152,12 +152,16 @@ void tunReceive(fdglue_handler_t* that) {
     payloadCompress(payload, &compressed);
     // overwrite the current value ONLY if has to be compressed
     if (compressed.len < payload.len) {
+        LOG_DEBUG("enabling compression");
         printGained(payload.len, compressed.len);
         // should we alloc - memcpy - free instead?
         copyPayload(&compressed, &payload);
         size = payload.len;
         payload.is_compressed = true;
+    } else {
+        LOG_DEBUG("compression disabled, non compressible data");
     }
+            
 #endif
 
     {
