@@ -12,6 +12,8 @@ struct TunHandlerInfo {
     motecomm_t* mcomm;
 };
 
+void main_loop(fdglue_t *fdg);
+
 void laSet(laep_handler_t* this, la_t const address);
 
 void tunReceive(fdglue_handler_t* that);

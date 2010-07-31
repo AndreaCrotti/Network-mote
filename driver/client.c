@@ -36,7 +36,7 @@ void setup_routes(char const* const tun_name) {
     callScript(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
 }
 
-int startClient(char const *dev) {    
+void startClient(char const *dev) {    
 
     if (!notun) {
         // on the server instead could create many
@@ -81,14 +81,7 @@ int startClient(char const *dev) {
     if (!notun)
       fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
 
-
-    unsigned lcount = 0;
-    (void)lcount;
-    for (;;) {
-        LOG_INFO("listening %d ...",lcount++);
-        printStatistics();
-        fdg.listen(&fdg, 5 * 60);
-    }
+    main_loop(&fdg);
 }
 
 void usage(char* name) {

@@ -15,6 +15,16 @@
 #include "setup.h"
 #include "compress.h"
 
+void main_loop(fdglue_t *fdg) {
+    unsigned lcount = 0;
+    (void)lcount;
+    for (;;) {
+        LOG_INFO("listening %d ...",lcount++);
+        printStatistics();
+        fdg->listen(fdg, 5 * 60);
+    }
+}
+
 // a wrapper for mcp::receive that will be understood by the fdglue module
 void serialReceive(fdglue_handler_t* that) {
     mcp_t* this = (mcp_t*)(that->p);

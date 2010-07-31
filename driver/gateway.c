@@ -94,12 +94,7 @@ void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND);
     fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
 
-    unsigned lcount = 0;
-    (void)lcount;
-    for (;;) {
-        LOG_INFO("listening %d ...",lcount++);
-        fdg.listen(&fdg, 5 * 60);
-    }
+    main_loop(&fdg);
 }
 
 void usage(char* name) {
