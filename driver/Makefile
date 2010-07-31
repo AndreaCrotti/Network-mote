@@ -2,18 +2,16 @@ BLIP = $(TOSROOT)/support/sdk/c/blip
 SF = $(TOSROOT)/support/sdk/c/sf
 SHARED = ../shared
 
-# using c99 C standard, mainly for "for (int i = 0)..."
+# using c99 C standard, for example for "for (int i = 0)..."
 CC = gcc
 STD = -std=c99
 
 # 1:ERROR 2:WARNING 4:NOTE 8:INFO 16:DEBUG 128:VAR_DUMP
 LOG_LEVEL := '(1|2|4|8|16|128)'
-#LOG_LEVEL := '(1|2)'
 
 PACKET_TYPE = -DNO_IPV6=1 -DCOMPRESSION_ENABLED=1
 INCLUDE = -I$(BLIP) -I$(BLIP)/lib6lowpan -I$(TOSROOT)/tos/types -I$(SF) -I$(SHARED) -I.
 LOW6PAN_CARRIED=102
-#LOW6PAN_CARRIED=128	
 CFLAGS = -D_GNU_SOURCE -DPC -DTOSH_DATA_LENGTH=$(LOW6PAN_CARRIED) -DCLIENT -DDEBUG $(PACKET_TYPE) -DLOG_LEVEL=$(LOG_LEVEL)
 WARN = -Wall -Wextra
 DEBUG = -ggdb -O0 -pg -fno-omit-frame-pointer
@@ -33,7 +31,6 @@ NOPS :=
 #For external libraries
 EXTERNALS := $(SF)/sfsource.o $(SF)/serialsource.o /usr/lib/libz.so
 EXTRAPHONIES = 
-
 
 #TIME := time -f '\t%E' --
 TIME := 
@@ -73,13 +70,6 @@ hostname.h: hostname.sh
 #### DEBUG ####
 
 # whatever changes we have to recompile the tests
-reconstruct: reconstruct.c
-	$(CC) $(WARN) $(STD) $(INCLUDE) $(CFLAGS) $(DEBUG) -DSTANDALONE -DDEBUG -o reconstruct reconstruct.c
-
-split: split_reconstruct.c
-	$(CC) chunker.o reconstruct.o $(STD) $(CFLAGS) $(INCLUDE) $(WARN) $(DEBUG) -DDEBUG -DSTANDALONE -o split_rec split_reconstruct.c
-
-
 $(patsubst %.o,%.pre,$(OBJECTS)): %.pre: %.c %.h $(HEADERS) Makefile
 	@echo    "Creating preprocessed file <$@>."
 	@$(TIME) $(CC) $(FLAGS) -E $< -o $@

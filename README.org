@@ -56,7 +56,7 @@ typedef struct {
 * Next Improvements
 ** TODO add support for adaptative compression
 ** TODO add a simple handshaking protocol removing the ugly forced sleep
-** TODO add support for an intermediate node
+** TODO add support for an intermediate node that forwards everything
 ** TODO remove code duplication from client/gateway source files
 ** TODO (optional) some support for multiple clients
 ** TODO uniform code style (_ and doc)
@@ -73,6 +73,6 @@ typedef struct {
       {
           fprintf (stderr, "Pipe failed.\n");
           return EXIT_FAILURE;
-      }   
+      }
 #+end_src
 
