@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "motecomm.h"
 #include "chunker.h"
@@ -15,7 +16,16 @@
 #include "setup.h"
 #include "compress.h"
 
+void _close_everything(int param) {
+    LOG_DEBUG("closing all open file descriptors");
+    (void)param; // only useful for *signal*
+    close_all_tunnels();
+    // close also other file descriptors
+}
+
 void main_loop(fdglue_t *fdg) {
+    signal(SIGINT, _close_everything);
+
     unsigned lcount = 0;
     (void)lcount;
     for (;;) {

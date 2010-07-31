@@ -29,6 +29,13 @@ int tunOpen(int client_no, char *dev);
 int getFd(int client_no);
 
 /** 
+ * Close everything gracefully
+ * 
+ */
+void close_all_tunnels();
+
+
+/** 
  * Reads data from the tunnel and exits if a error occurred.
  * 
  * @param client_no
