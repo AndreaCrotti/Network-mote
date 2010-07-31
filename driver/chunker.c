@@ -37,7 +37,6 @@ unsigned neededChunks(int data_size) {
     return ((data_size + MAX_CARRIED-1)/MAX_CARRIED);
 }
 
-// TODO: comment in chunker.h
 int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, seq_no_t const seq_no, int const chunk_number) {
     assert(packet);
     assert(payload);
@@ -48,16 +47,20 @@ int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* send
         .seq_no = 0xFF,
         .ord_no = 0xFF
     };
-
+    
     // initialized if it's a new one
     if (pkt.seq_no != seq_no) {
         LOG_DEBUG("creating a new packet %d", seq_no);
         pkt.seq_no = seq_no;
         pkt.ord_no = 0;
         pkt.parts = chunk_number;
+        pkt.is_compressed = payload->is_compressed;
     }
+    // this should be always true unless we try to compress some chunks and not compress others
+    assert(pkt.is_compressed == payload->is_compressed);
 
     packet->header.packetHeader = pkt;
+    // increasing ord number on the static struct
     pkt.ord_no++;
     *sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
     // setup the ipv6 we need

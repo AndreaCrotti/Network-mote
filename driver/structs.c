@@ -11,17 +11,14 @@
 #include "../shared/structs.h"
 
 void printPayload(payload_t t) {
-    (void)t;
     LOG_DEBUG("payload with length = %d", t.len);
 }
 
 void printPacketHeader(myPacketHeader *pkt) {
-    (void)pkt;
     LOG_DEBUG("(seq = %d, ord = %d, parts = %d)", pkt->seq_no, pkt->ord_no, pkt->parts);
 }
 
 void printIpv6Header(ip6_hdr header) {
-    (void)header;
     LOG_DEBUG("len = %d, src...", header.plen);
 }
 
@@ -92,12 +89,12 @@ int getOrdNo(ipv6Packet *packet) {
 
 int getPlen(ipv6Packet *packet) {
     int plen;
+    (void)packet;
 #if !NO_IPV6
     plen = packet->header.ip6_hdr.plen;
 // FIXME: this dirty thing is just to always return something, clean it
 #else
     plen = 0;
-    (void)packet;
     assert(0);
 #endif
     return plen;
@@ -110,11 +107,10 @@ int getParts(ipv6Packet *packet) {
 // not really needed now since we already get the right size
 int getSize(ipv6Packet *packet, int size) {
     // TODO check size
-    (void)size;
     int computed_size;
     if (isLast(packet)) {
         // we need to invert from htons!!
-#if !NO_IPV6 // This means IPv6 IS ENABLED!!!
+#if !NO_IPV6
         computed_size = ntohs(getPlen(packet)) - sizeof(myPacketHeader);
 #else
         computed_size = size - sizeof(struct ipv6PacketHeader);
@@ -123,7 +119,6 @@ int getSize(ipv6Packet *packet, int size) {
         computed_size = MAX_CARRIED;
     }
 
-    // TODO: Currently commmented out since mote transmit the maximum all the time
     assert((computed_size + sizeof(struct ipv6PacketHeader)) == (unsigned) size);
     return computed_size;
 }

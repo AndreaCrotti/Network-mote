@@ -32,6 +32,7 @@ typedef unsigned int streamlen_t;
 typedef struct {
     stream_t const* stream;
     streamlen_t len;
+    bool is_compressed;
 } payload_t;
 
 typedef struct in6_addr in6_src;

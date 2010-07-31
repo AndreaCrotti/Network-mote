@@ -28,24 +28,17 @@ void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
     addChunk(payload);
 }
 
-// TODO: here there should be all the logic of the gateway/client
-void mainLoop() {
-    
-}
-
 // call the script and give error if not working
 void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     // Run the setup script for the tunnel
     int err = system(script_cmd);
     if (err != 0) {
-        (void)script_cmd;
-        LOG_ERROR("Could not execute script %s",script_cmd);
+        LOG_ERROR("Could not execute script %s", script_cmd);
         perror(err_msg);
         if (is_fatal) {
             exit(1);
         }
     } else {
-        (void)success;
         LOG_INFO("%s",success);
     }
 }
@@ -61,8 +54,7 @@ void reconstructDone(payload_t complete) {
       sum += *p;
     }
     static unsigned recv_count = 0;
-    (void)recv_count;
-    LOG_NOTE(" => Checksum of RECV %u packet is %08X",recv_count++,sum);
+    LOG_NOTE(" => Checksum of RECV %u packet is %08X", recv_count++, sum);
   } /* debug end */
   tunWriteNoQueue(/*FIXME*/ 0 /*FIXME*/,complete);
 }
@@ -132,14 +124,18 @@ void tunReceive(fdglue_handler_t* that) {
     assert(size);
     static seq_no_t seqno = 0;
     ++seqno;
-    payload_t payload = {.stream = buf, .len = size};
+    payload_t payload = {
+        .stream = buf,
+        .len = size,
+        .is_compressed = false
+    };
 
 #if COMPRESSION_ENABLED
     // replace the payload with another payload
     static stream_t compr_data[MAX_FRAME_SIZE];
     payload_t compressed = {
         .len = MAX_FRAME_SIZE,
-        .stream = compr_data
+        .stream = compr_data,
     };
     
     // we'll overwrite it when done
@@ -150,6 +146,7 @@ void tunReceive(fdglue_handler_t* that) {
         // should we alloc - memcpy - free instead?
         copyPayload(&compressed, &payload);
         size = payload.len;
+        payload.is_compressed = true;
     }
 #endif
 
