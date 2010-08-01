@@ -30,9 +30,9 @@ int main() {
     msg.stream = data_msg;
     genCompressablePayload(&msg, size / 2);
 
-    payloadCompress(msg, &result);
-    payloadDecompress(result, &decompressed);
-    printGained(msg.len, result.len);
+    payload_compress(msg, &result);
+    payload_decompress(result, &decompressed);
+    print_gained(msg.len, result.len);
     
     assert(payloadEquals(msg, decompressed));
     return 0;

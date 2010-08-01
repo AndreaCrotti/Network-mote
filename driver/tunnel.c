@@ -46,7 +46,7 @@ static tundev tun_devices[MAX_CLIENTS];
 static int flags;
 
 
-int getFd(int client_no) {
+int get_fd(int client_no) {
     return tun_devices[client_no].fd;
 }
 
@@ -59,7 +59,7 @@ void set_fd(int client_no, int fd) {
  * 
  * @param tun_flags 
  */
-void tunSetup(int tun_flags) {
+void tun_setup(int tun_flags) {
     flags = tun_flags;
     for (int i = 0; i < MAX_CLIENTS; i++) {
         tun_devices[i].fd = -1;
@@ -68,7 +68,7 @@ void tunSetup(int tun_flags) {
 
 // TODO: remove the need of *dev also, this should be tun_new and always \0
 // FIXME: should it ever connect to the same device twice?
-int tunOpen(int client_no, char *dev) {
+int tun_open(int client_no, char *dev) {
     struct ifreq ifr;
     int err;
     char *clonedev = TUN_DEV;
@@ -118,8 +118,8 @@ void close_all_tunnels() {
     }
 }
 
-int tunRead(int client_no, char *buf, int length){
-    int fd = getFd(client_no);
+int tun_read(int client_no, char *buf, int length){
+    int fd = get_fd(client_no);
     int nread;
 
     if((nread = read(fd, buf, length)) < 0){
@@ -131,7 +131,7 @@ int tunRead(int client_no, char *buf, int length){
 
 void tun_write(int client_no, payload_t data){
     int nwrite;
-    int fd = getFd(client_no);
+    int fd = get_fd(client_no);
     
     // should not exit directly here maybe?
     //TODO: Maybe send is better here

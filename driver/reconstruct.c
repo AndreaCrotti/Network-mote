@@ -85,7 +85,7 @@ void send_if_completed(packet_t *pkt) {
     
         if (pkt->is_compressed) {
             // we'll overwrite it when done
-            payloadDecompress(payload, &compressed);
+            payload_decompress(payload, &compressed);
             // should we alloc - memcpy - free instead?
             copyPayload(&compressed, &payload);
         }
@@ -118,7 +118,7 @@ void init_temp_packet(packet_t* const pkt) {
  * 
  * @param callback callback function which will be called when the packet is completed
  */
-void initReconstruction(void (*callback)(payload_t completed)) {
+void init_reconstruction(void (*callback)(payload_t completed)) {
     LOG_DEBUG("Initialising the reconstruction");
 
     send_back = callback;
@@ -137,7 +137,7 @@ void initReconstruction(void (*callback)(payload_t completed)) {
  * 
  * @param data 
  */
-void addChunk(payload_t data) {
+void add_chunk(payload_t data) {
     // TODO: add another check of the length of the data given in
     assert(data.len <= sizeof(ipv6Packet));
     assert(data.len >= sizeof(struct ipv6PacketHeader));
@@ -194,7 +194,7 @@ void addChunk(payload_t data) {
     free(original);
 }
 
-stream_t *getChunks(int seq_no) {
+stream_t *get_chunks(int seq_no) {
     packet_t *pkt = get_packet(seq_no);
     if (pkt)
         return pkt->chunks;
@@ -206,7 +206,7 @@ stream_t *getChunks(int seq_no) {
  * Prints some statistical information about how many packets were completed.
  * 
  */
-void printStatistics(void){
+void print_statistics(void){
     LOG_NOTE("%lu packets were recognized and %lu were really sent (%f%%).", 
              started_pkts, finished_pkts, ((finished_pkts*100.0)/started_pkts));
 }

@@ -23,12 +23,12 @@ int main(int argc, char *argv[]) {
     (void)argv;
     // setup a tun device and then work with it
     int client = 0;
-    tunSetup(IFF_TUN);
+    tun_setup(IFF_TUN);
     char tun_name[IFNAMSIZ];
     tun_name[0] = 0;
     char buff[] = "ciao ciao \0";
     // tunnel for client 0 created correctly
-    if (tunOpen(client, tun_name)) {
+    if (tun_open(client, tun_name)) {
         for (int i = 0; i < 100; i++) {
             //addToWriteQueue(client, buff, 10);
             tun_write(client, (payload_t) {.stream = (stream_t*)buff, .len = 10});

@@ -13,14 +13,14 @@
  * 
  * @param callback takes a function which will send back packets when they're completed
  */
-void initReconstruction(void (*callback)(payload_t completed));
+void init_reconstruction(void (*callback)(payload_t completed));
 
 /** 
  * Adding a new chunk of data
  * 
  * @param data 
  */
-void addChunk(payload_t data);
+void add_chunk(payload_t data);
 
 
 /** 
@@ -28,11 +28,11 @@ void addChunk(payload_t data);
  * 
  * @return pointer to the chunks
  */
-stream_t *getChunks(int seq_no);
+stream_t *get_chunks(int seq_no);
 
 /** 
  * Prints some statistical information about how many packets were completed. 
  */
-void printStatistics(void);
+void print_statistics(void);
 
 #endif

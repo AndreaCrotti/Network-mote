@@ -56,7 +56,6 @@
 #define LOG__PRINT(TYPE,MSG,...) {fprintf(stderr,"%-20s " MSG "\n","<" TYPE ">",##__VA_ARGS__); fflush(stderr); }
 
 #if LOG_LEVEL&1
-/* #define LOG_ERROR(MSG,...)   LOG__PRINT(CONTROL(ERROR_COLOR)"ERROR"RESET,MSG,##__VA_ARGS__) */
 #define LOG_ERROR(MSG,...)   LOG__PRINT(COLOR(ERROR_COLOR,"ERROR"),MSG,##__VA_ARGS__)
 #else
 #define LOG_ERROR(MSG,...)
@@ -88,8 +87,6 @@
 #define LOG_DEBUG(MSG,...)
 #endif
 
-
-//TODO: We need to find a better solution here...
 #include "../shared/structs.h"
 
 #define class(NAME_T,body) \

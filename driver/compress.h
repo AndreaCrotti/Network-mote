@@ -9,7 +9,7 @@
  * 
  * @return return code
  */
-int payloadCompress(const payload_t data, payload_t *result);
+int payload_compress(const payload_t data, payload_t *result);
 
 /** 
  * Decompress the data
@@ -19,9 +19,9 @@ int payloadCompress(const payload_t data, payload_t *result);
  * 
  * @return 
  */
-int payloadDecompress(const payload_t data, payload_t *result);
+int payload_decompress(const payload_t data, payload_t *result);
 
 // some statistics
-void printGained(streamlen_t before, streamlen_t after);
+void print_gained(streamlen_t before, streamlen_t after);
 
 #endif /* COMPRESS_H */

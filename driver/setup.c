@@ -30,7 +30,7 @@ void main_loop(fdglue_t *fdg) {
     (void)lcount;
     for (;;) {
         LOG_INFO("listening %d ...",lcount++);
-        printStatistics();
+        print_statistics();
         fdg->listen(fdg, 5 * 60);
     }
 }
@@ -45,7 +45,7 @@ void serialReceive(fdglue_handler_t* that) {
 void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
     (void)that;
     //LOG_DEBUG("hey I got something from the mote! p is %p",that->p);
-    addChunk(payload);
+    add_chunk(payload);
 }
 
 // call the script and give error if not working
@@ -95,7 +95,7 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
       .receive = serialProcess
     });
 
-    initReconstruction(reconstructDone);
+    init_reconstruction(reconstructDone);
 
     if (*mcp) {
         LOG_INFO("Connection to %s over device %s opened.", mote, dev);
@@ -123,7 +123,7 @@ serialif_t *createSfConnection(char const* host, char const* port, mcp_t **_mcp)
       .receive = serialProcess
     });
 
-    initReconstruction(reconstructDone);
+    init_reconstruction(reconstructDone);
 
     if (*_mcp) {
         LOG_INFO("Connection to %s over port %s opened.", host, _port);
@@ -140,7 +140,7 @@ void tunReceive(fdglue_handler_t* that) {
     // allocated only once and always reused!!
     static stream_t buf[MAX_FRAME_SIZE];
     memset(buf, 0, MAX_FRAME_SIZE);
-    int size = tunRead(this->client_no, (char*)buf,MAX_FRAME_SIZE);
+    int size = tun_read(this->client_no, (char*)buf,MAX_FRAME_SIZE);
     assert(size);
     static seq_no_t seqno = 0;
     ++seqno;
@@ -159,11 +159,11 @@ void tunReceive(fdglue_handler_t* that) {
     };
     
     // we'll overwrite it when done
-    payloadCompress(payload, &compressed);
+    payload_compress(payload, &compressed);
     // overwrite the current value ONLY if has to be compressed
     if (compressed.len < payload.len) {
         LOG_DEBUG("enabling compression");
-        printGained(payload.len, compressed.len);
+        print_gained(payload.len, compressed.len);
         // should we alloc - memcpy - free instead?
         copyPayload(&compressed, &payload);
         size = payload.len;

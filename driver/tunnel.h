@@ -19,14 +19,14 @@
  * 
  * @return Error-code.
  */
-int tunOpen(int client_no, char *dev);
+int tun_open(int client_no, char *dev);
 
 /** 
  * @param client_no 
  * 
  * @return the file descriptor of the client
  */
-int getFd(int client_no);
+int get_fd(int client_no);
 
 /** 
  * Close everything gracefully
@@ -44,7 +44,7 @@ void close_all_tunnels();
  * 
  * @return number of bytes read.
  */
-int tunRead(int client_no, char *buf, int n);
+int tun_read(int client_no, char *buf, int n);
 
 /** 
  * Write on tun device without using the fancy queue
@@ -59,6 +59,6 @@ void tun_write(int client_no, payload_t data);
  * 
  * @param tun_flags IFF_TUN or IFF_TAP basically for tun/tap devices
  */
-void tunSetup(int tun_flags);
+void tun_setup(int tun_flags);
 
 #endif

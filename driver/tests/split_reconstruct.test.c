@@ -28,7 +28,7 @@ void add_random_order(payload_t *msgs, int count) {
     int pos;
     while (count) {
         pos = random() % count;
-        addChunk(msgs[pos]);
+        add_chunk(msgs[pos]);
         swap_msgs(pos, count-1, msgs);
         count--;
     }
@@ -60,33 +60,15 @@ void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
     add_random_order(result, count * parts);
 }
 
-// return an array of ipv6Packet put in nice payload_t structures
-// careful here
-payload_t *gen_ipv6_payloads(int count) {
-    payload_t *payloads = calloc(count, sizeof(payload_t));
-    for (int i = 0; i < count; i++) {
-        payloads[i].stream = malloc(sizeof(ipv6Packet));
-        payloads[i].len = 0;
-    }
-    return payloads;
-}
-
-void free_payloads(payload_t *payloads, int count) {
-    for (int i = 0; i < count; i++) {
-        free((void *) payloads[i].stream);
-    }
-}
-
 int main(int argc, char *argv[]) {
     if ((argc != 3) && (argc != 1)) {
         printf("usage: split_reconstruct [exp] [num msgs]\n");
     }
-    
     if (argc == 3) {
         // now we split the data and try to reconstruct it
         msg_size = (1 << atoi(argv[1]));
         num_msgs = atoi(argv[2]);
-    } else if (argc != 1) {
+    } else if (argc == 1) {
         msg_size = MSG_SIZE;
         num_msgs = NUM_MSGS;
     }
@@ -98,7 +80,7 @@ int main(int argc, char *argv[]) {
 
     getRandomMsg(&fixed_payload, msg_size);
     /* simple_test(fixed_payload); */
-    initReconstruction(NULL);
+    init_reconstruction(NULL);
 
     int parts = neededChunks(msg_size);
     payload_t result[parts * num_msgs];
@@ -108,7 +90,7 @@ int main(int argc, char *argv[]) {
     // check if we got back the right data
     stream_t *chunks;
     for (int seq = 0; seq < num_msgs; seq++) {
-        chunks = getChunks(seq);
+        chunks = get_chunks(seq);
         assert(chunks != NULL);
         // checking that the original data is the same as the data we compute
         for (int i = 0; i < msg_size; i++) {

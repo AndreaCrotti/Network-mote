@@ -60,14 +60,14 @@ void setup_iptables(char const *dev, char const *eth) {
 void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
-    tunSetup(TUNTAP_INTERFACE);
+    tun_setup(TUNTAP_INTERFACE);
 
     // a new device should be opened!
     tun_name[0] = 0;    
     // create the tap-device
     
     // it will exit abruptly if it doesn't open it correctly
-    tunOpen(CLIENT_NO, tun_name);
+    tun_open(CLIENT_NO, tun_name);
 
     setup_iptables(tun_name, eth);
 
@@ -92,7 +92,7 @@ void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     };
 
     fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND);
-    fdg.setHandler(&fdg, getFd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
+    fdg.setHandler(&fdg, get_fd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
 
     main_loop(&fdg);
 }
