@@ -26,7 +26,7 @@ void tunReceive(fdglue_handler_t* that);
  * @param err print in case of error
  * @param is_fatal exit if failing and 1, only error otherwise
  */
-void callScript(char *script_cmd, char *success, char *err, int is_fatal);
+void call_script(char *script_cmd, char *success, char *err, int is_fatal);
 
 void serialReceive(fdglue_handler_t* that);
 

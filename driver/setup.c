@@ -49,7 +49,7 @@ void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
 }
 
 // call the script and give error if not working
-void callScript(char *script_cmd, char *success, char *err_msg, int is_fatal) {
+void call_script(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     // Run the setup script for the tunnel
     int err = system(script_cmd);
     if (err != 0) {
@@ -196,7 +196,7 @@ void tunReceive(fdglue_handler_t* that) {
           usleep(SERIAL_INTERVAL_US);
         /* } */
         /* first = 0; */
-        chunks_left = genPacket(&payload, &ipv6, &sendsize, seqno, no_chunks);
+        chunks_left = gen_packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
         assert(sendsize);
         LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
         

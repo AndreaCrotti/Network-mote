@@ -71,7 +71,7 @@ int main() {
     strncpy(script_call + strlen(setup_script) + 1, name, IFNAMSIZ);
     printf("Calling script with %s\n", script_call); 
     fflush(stdout);
-    callScript(script_call, "Created iptable entries\n", 
+    call_script(script_call, "Created iptable entries\n", 
                "An error occured during creaton of iptable entries", 0);
 
     for(;;){

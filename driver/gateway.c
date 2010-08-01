@@ -54,7 +54,7 @@
 void setup_iptables(char const *dev, char const *eth) {
     char script_cmd[100];
     sprintf(script_cmd, "sh gateway.sh %s %s", dev, eth);
-    callScript(script_cmd, "setup iptables rules", "setting up routing", 1);
+    call_script(script_cmd, "setup iptables rules", "setting up routing", 1);
 }
 
 void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {

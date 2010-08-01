@@ -22,7 +22,7 @@
 void genIpv6Header(ip6_hdr *const header, size_t payload_len) {
     header->ip6_src = in6addr_loopback;
     header->ip6_dst = in6addr_loopback;
-    // 16 bit file, so we need to convert to network format
+    // 16 bit variables must be converted to network order
     header->plen = htons(payload_len);
 }
 
@@ -37,7 +37,7 @@ unsigned neededChunks(int data_size) {
     return ((data_size + MAX_CARRIED-1)/MAX_CARRIED);
 }
 
-int genPacket(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, seq_no_t const seq_no, int const chunk_number) {
+int gen_packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, seq_no_t const seq_no, int const chunk_number) {
     assert(packet);
     assert(payload);
     assert(payload->len > 0);
