@@ -8,7 +8,7 @@
 #include "compress.h"
 #include "various.h"
 
-#define SIZE 12
+#define SIZE 10
 int size = 1 << SIZE;
 
 int main() {
@@ -29,13 +29,12 @@ int main() {
 
     init_compression();
     msg.stream = data_msg;
-    gen_compressable_payload(&msg, size / 2);
+    get_random_msg(&msg, size / 2);
 
     payload_compress(msg, &result);
     payload_decompress(result, &decompressed);
     print_gained(msg.len, result.len);
     
     assert(payloadEquals(msg, decompressed));
-    close_compression();
     return 0;
 }

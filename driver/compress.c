@@ -27,6 +27,13 @@ void _reset_zstream(z_stream *strm) {
     strm->opaque = Z_NULL;
 }
 
+void init_compression(void) {
+    _reset_zstream(&strm_compress);
+    _reset_zstream(&strm_decompress);
+    deflateInit(&strm_compress, LEVEL);
+    inflateInit(&strm_decompress);
+}
+
 /** 
  * Setup the stream for compression and decompression
  */
@@ -49,16 +56,18 @@ int _zlib_manage(int mode, const payload_t data, payload_t *result) {
     switch (mode) {
     case COMPRESS:
         strm = &strm_compress;
+        deflateReset(strm);
         _setup_zstream(strm, &data, result);
-        deflateInit(strm, LEVEL);
         ret = deflate(strm, Z_FINISH);
+        deflateEnd(&strm_compress);
         break;
 
     case DECOMPRESS:
         strm = &strm_decompress;
+        inflateReset(strm);
         _setup_zstream(strm, &data, result);
-        inflateInit(strm);
         ret = inflate(strm, Z_FINISH);
+        inflateEnd(&strm_decompress);
         break;
     }
 
@@ -73,14 +82,4 @@ int payload_compress(const payload_t data, payload_t *result) {
 
 int payload_decompress(const payload_t data, payload_t *result) {
     return _zlib_manage(DECOMPRESS, data, result);
-}
-
-void init_compression(void) {
-    _reset_zstream(&strm_compress);
-    _reset_zstream(&strm_decompress);
-}
-
-void close_compression(void) {
-    deflateEnd(&strm_compress);
-    inflateEnd(&strm_decompress);
 }
