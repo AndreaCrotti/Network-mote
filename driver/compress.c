@@ -1,4 +1,5 @@
 // see http://www.zlib.net/manual.html for more info
+// TODO: check again for possible memory leaks (one still there apparently)
 
 #include <stdio.h>
 #include <string.h>
@@ -7,6 +8,7 @@
 #include "zlib.h"
 
 #include "util.h"
+#include "compress.h"
 
 #define LEVEL Z_BEST_COMPRESSION
 #define COMPRESS 0
@@ -34,6 +36,11 @@ void init_compression(void) {
     inflateInit(&strm_decompress);
 }
 
+void close_compression(void) {
+    deflateEnd(&strm_compress);
+    inflateEnd(&strm_decompress);
+}
+
 /** 
  * Setup the stream for compression and decompression
  */
@@ -56,18 +63,16 @@ int _zlib_manage(int mode, const payload_t data, payload_t *result) {
     switch (mode) {
     case COMPRESS:
         strm = &strm_compress;
-        deflateReset(strm);
         _setup_zstream(strm, &data, result);
         ret = deflate(strm, Z_FINISH);
-        deflateEnd(&strm_compress);
+        deflateReset(&strm_compress);
         break;
 
     case DECOMPRESS:
         strm = &strm_decompress;
-        inflateReset(strm);
         _setup_zstream(strm, &data, result);
         ret = inflate(strm, Z_FINISH);
-        inflateEnd(&strm_decompress);
+        inflateReset(&strm_decompress);
         break;
     }
 
