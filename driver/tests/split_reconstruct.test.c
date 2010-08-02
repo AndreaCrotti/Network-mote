@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     fixed_payload.stream = buff;
     fixed_payload.len = msg_size;
 
-    getRandomMsg(&fixed_payload, msg_size);
+    get_random_msg(&fixed_payload, msg_size);
     /* simple_test(fixed_payload); */
     init_reconstruction(NULL);
 

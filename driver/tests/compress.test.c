@@ -29,7 +29,7 @@ int main() {
 
     init_compression();
     msg.stream = data_msg;
-    genCompressablePayload(&msg, size / 2);
+    gen_compressable_payload(&msg, size / 2);
 
     payload_compress(msg, &result);
     payload_decompress(result, &decompressed);

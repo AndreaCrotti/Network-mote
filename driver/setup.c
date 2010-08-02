@@ -18,9 +18,10 @@
 
 void _close_everything(int param) {
     LOG_DEBUG("closing all open file descriptors");
-    (void)param; // only useful for *signal*
+    (void)param; // param only useful for signal prototype
+    
+    // closing tunnel and compression module
     close_all_tunnels();
-    // close also other file descriptors
     close_compression();
 }
 
