@@ -24,4 +24,8 @@ int payload_decompress(const payload_t data, payload_t *result);
 // some statistics
 void print_gained(streamlen_t before, streamlen_t after);
 
+void init_compression(void);
+
+void close_compression(void);
+
 #endif /* COMPRESS_H */

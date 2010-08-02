@@ -2,6 +2,47 @@
 # TODO: change name of the project maybe?
 MotNet
 
+
+* Next Improvements
+** DONE add support for adaptative compression
+   CLOSED: [2010-07-31 Sab 18:21]
+   - CLOSING NOTE [2010-07-31 Sab 18:21]
+** DONE add cleaning exit code on exit
+   CLOSED: [2010-08-02 Lun 11:21]
+   - CLOSING NOTE [2010-08-02 Lun 11:21] \\
+     Using signal and a generic closing function!
+
+** TODO add a simple handshaking protocol removing the ugly forced sleep
+** TODO add support for an intermediate node that forwards everything
+** TODO remove code duplication from client/gateway source files
+** TODO (optional) some support for multiple clients
+** TODO uniform code style (_ and doc)
+** TODO do some real automated tests to compute real speed of the connection
+** TODO remove all the (void)var things, if there is a variable use it ;)
+** TODO drop privileges when not needed anymore
+   "setgid(),initgroups(), then setuid()" should be more or less our system calls.
+   Drop to another less privileged user must be done correctly.
+   We also might fork the program keeping the tunnel manager always on
+
+** TODO testing with a pipe instead of using the real usb device
+#+begin_src c
+  pid_t pid;
+  int mypipe[2];
+  
+  /* Create the pipe.  */
+  if (pipe (mypipe))
+      {
+          fprintf (stderr, "Pipe failed.\n");
+          return EXIT_FAILURE;
+      }
+#+end_src
+    If is enought to simulate a serial interface we can use  [[http://www.kernel.org/doc/man-pages/online/pages/man7/pty.7.html][pty usage]]
+    Probably is enough to simulate a pty with a master/slave thing.
+
+
+** TODO Use perror when possible to show messages
+** TODO Finally fix the stupid tossim simulation to see how it works
+
 * Goal
   The oal of this project is to create a create a network between motes.
   Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
@@ -51,38 +92,3 @@ typedef struct {
   - motes
 
   - simple-motes
-
-
-* Next Improvements
-** DONE add support for adaptative compression
-   CLOSED: [2010-07-31 Sab 18:21]
-   - CLOSING NOTE [2010-07-31 Sab 18:21]
-** TODO add a simple handshaking protocol removing the ugly forced sleep
-** TODO add support for an intermediate node that forwards everything
-** TODO remove code duplication from client/gateway source files
-** TODO (optional) some support for multiple clients
-** TODO uniform code style (_ and doc)
-** TODO do some real automated tests to compute real speed of the connection
-** TODO remove all the (void)var things, if there is a variable use it ;)
-** TODO drop privileges when not needed anymore
-   "setgid(),initgroups(), then setuid()" should be more or less our system calls.
-   Drop to another less privileged user must be done correctly.
-   We also might fork the program keeping the tunnel manager always on
-
-** TODO testing with a pipe instead of using the real usb device
-#+begin_src c
-  pid_t pid;
-  int mypipe[2];
-  
-  /* Create the pipe.  */
-  if (pipe (mypipe))
-      {
-          fprintf (stderr, "Pipe failed.\n");
-          return EXIT_FAILURE;
-      }
-#+end_src
-    If is enought to simulate a serial interface we can use  [[http://www.kernel.org/doc/man-pages/online/pages/man7/pty.7.html][pty usage]]
-
-
-** TODO Use perror when possible to show messages
-** TODO add cleaning exit code on exit

@@ -21,10 +21,13 @@ void _close_everything(int param) {
     (void)param; // only useful for *signal*
     close_all_tunnels();
     // close also other file descriptors
+    close_compression();
 }
 
 void main_loop(fdglue_t *fdg) {
     signal(SIGINT, _close_everything);
+    LOG_DEBUG("Initialize the compression module");
+    init_compression();
 
     unsigned lcount = 0;
     (void)lcount;

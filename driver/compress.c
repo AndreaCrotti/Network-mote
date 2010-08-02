@@ -12,7 +12,8 @@
 #define COMPRESS 0
 #define DECOMPRESS 1
 
-static z_stream strm;
+static z_stream strm_compress;
+static z_stream strm_decompress;
 
 /** 
  * Initialize the stream to default values
@@ -31,7 +32,6 @@ void _reset_zstream(z_stream *strm) {
  */
 void _setup_zstream(z_stream *strm, const payload_t *data, payload_t *result) {
     // setup the correct values in the stream
-    _reset_zstream(strm);
     strm->avail_in = data->len;
     strm->avail_out = result->len;
     strm->next_in = (unsigned char *) data->stream;
@@ -44,20 +44,26 @@ void print_gained(streamlen_t before, streamlen_t after) {
 
 int _zlib_manage(int mode, const payload_t data, payload_t *result) {
     int ret;
-    _setup_zstream(&strm, &data, result);
+    z_stream *strm;
+
     switch (mode) {
     case COMPRESS:
-        deflateInit(&strm, LEVEL);
-        ret = deflate(&strm, Z_FINISH);
+        strm = &strm_compress;
+        _setup_zstream(strm, &data, result);
+        deflateInit(strm, LEVEL);
+        ret = deflate(strm, Z_FINISH);
         break;
+
     case DECOMPRESS:
-        inflateInit(&strm);
-        ret = inflate(&strm, Z_FINISH);
+        strm = &strm_decompress;
+        _setup_zstream(strm, &data, result);
+        inflateInit(strm);
+        ret = inflate(strm, Z_FINISH);
         break;
     }
-    assert(ret == Z_STREAM_END);
 
-    result->len = (result->len - strm.avail_out);
+    assert(ret == Z_STREAM_END);
+    result->len = (result->len - strm->avail_out);
     return Z_OK;
 }
 
@@ -67,4 +73,14 @@ int payload_compress(const payload_t data, payload_t *result) {
 
 int payload_decompress(const payload_t data, payload_t *result) {
     return _zlib_manage(DECOMPRESS, data, result);
+}
+
+void init_compression(void) {
+    _reset_zstream(&strm_compress);
+    _reset_zstream(&strm_decompress);
+}
+
+void close_compression(void) {
+    deflateEnd(&strm_compress);
+    inflateEnd(&strm_decompress);
 }

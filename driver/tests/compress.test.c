@@ -27,6 +27,7 @@ int main() {
         .len = size
     };
 
+    init_compression();
     msg.stream = data_msg;
     genCompressablePayload(&msg, size / 2);
 
@@ -35,5 +36,6 @@ int main() {
     print_gained(msg.len, result.len);
     
     assert(payloadEquals(msg, decompressed));
+    close_compression();
     return 0;
 }
