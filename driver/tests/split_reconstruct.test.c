@@ -16,6 +16,13 @@
 int msg_size;
 int num_msgs;
 
+/** 
+ * Swap two messages at the given positions
+ * 
+ * @param p1 
+ * @param p2 
+ * @param msgs 
+ */
 void swap_msgs(int p1, int p2, payload_t *msgs) {
     payload_t tmp;
     tmp = msgs[p1];
@@ -23,7 +30,6 @@ void swap_msgs(int p1, int p2, payload_t *msgs) {
     msgs[p2] = tmp;
 }
 
-// add all those packets in random order
 void add_random_order(payload_t *msgs, int count) {
     int pos;
     while (count) {

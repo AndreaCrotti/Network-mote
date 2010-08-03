@@ -90,36 +90,6 @@ class RadioNetwork(object):
         self.topology.remove((node1, node2))
         self.radio.remove(node1, node2)
 
-    def disconnect_node(self, node):
-        "remove all the connections of node"
-        asList = list(self.topology)
-        for couple in asList:
-            if node in couple:
-                try:
-                    self.remove_connection(*couple)
-                except KeyError:
-                    pass
-    
-    def topo_to_radio(self, topology, nodes):
-        "Update the real radio world given the topology"
-        from itertools import combinations
-        # remove what is connected and should not be and viceversa
-        for x, y in combinations(nodes, 2):
-            # can be simply like that since adding something already there
-            # or removing something not present doesn't create problems
-            if (x,y) in self.topology:
-                self.add_connection(x, y)
-            else:
-                self.remove_connection(x, y)                
-
-    def connected(self, node1, node2):
-        "Return True if the two nodes are connected"
-        r = self.radio.connected(node1, node2)
-        t = (node1, node2) in self.topology
-        # just to check that we're working correctly on both
-        assert(r == t)
-        return r
-
 # add to the local variables also the variables in the 
 class Simulation(object):
     def __init__(self, port, channels, test=False):

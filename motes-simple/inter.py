@@ -5,30 +5,27 @@ import rlcompleter
 import readline
 from collections import namedtuple
 
-# FIXME: use an ordered structure instead
-# namedtuple or ordereddict for example are fine
 class MenuMaker(object):
-    def __init__(self, options, style="num"):
+    def __init__(self, options):
         "Pass a list of couples in form ((string, method), ...)"
-        self.style = style
-        self.strings = (x[0] for x in options)
-        self.options = dict(options)
-        # don't use strings to make sure it's the right setting
-        self.menu = dict(enumerate(self.options.keys()))
+        self.options = options
 
     def __str__(self):
         # only enumerate the things
-        menu_str = ["%d) %s" % (x, y) for x, y in self.menu.items()]
+        menu_str = ["%d) %s" % (x, y[0]) for x, y in enumerate(self.options)]
         return "\n" + "\n".join(menu_str) + "\n"
 
     # maybe one other thing like __call__ would be better
     def call_option(self):
         # not really needed since it's only a number
-        # complete_on(self.menu.keys())
         print str(self)
         ch = input()
         # calling the right function, should work anywhere given the correct scope
-        self.options[self.menu[ch]]()
+        try:
+            self.options[ch][1]()
+        except IndexError:
+            print "%d is not a valid choice" % ch
+            self.call_option()
 
 
 # check if this is really working
