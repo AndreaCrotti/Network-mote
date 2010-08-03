@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     /* simple_test(fixed_payload); */
     init_reconstruction(NULL);
 
-    int parts = neededChunks(msg_size);
+    int parts = needed_chunks(msg_size);
     payload_t result[parts * num_msgs];
 
     add_random_seqs(fixed_payload, result, parts, num_msgs);

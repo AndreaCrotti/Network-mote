@@ -1,7 +1,6 @@
->#+AUTHOR: Andrea Crotti, Marius Grysla, Oscar Dustmann
+#+AUTHOR: Andrea Crotti, Marius Grysla, Oscar Dustmann
 # TODO: change name of the project maybe?
 MotNet
-
 
 * Next Improvements
 ** DONE add support for adaptative compression
@@ -41,7 +40,7 @@ MotNet
 
 
 ** TODO Use perror when possible to show messages
-** TODO Finally fix the stupid tossim simulation to see how it works
+** TODO [#A] Finally fix the stupid tossim simulation to see how it works
 
 * Goal
   The oal of this project is to create a create a network between motes.

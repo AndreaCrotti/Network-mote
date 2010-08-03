@@ -191,7 +191,7 @@ void tunReceive(fdglue_handler_t* that) {
 
     ipv6Packet ipv6;
     unsigned sendsize = 0;
-    int no_chunks = neededChunks(size);
+    int no_chunks = needed_chunks(size);
     char chunks_left;
 
     // generate all the subchunks and send them out

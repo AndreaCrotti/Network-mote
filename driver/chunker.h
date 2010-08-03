@@ -9,8 +9,8 @@
 
 int gen_packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sendsize, seq_no_t const seq_no, int const chunk_number);
 
-void genIpv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const unsigned parts);
+void gen_ipv6Packets2(payload_t *const payload, payload_t *const result, int const seq_no, const unsigned parts);
 
-unsigned neededChunks(int data_size);
+unsigned needed_chunks(int data_size);
 
 #endif
