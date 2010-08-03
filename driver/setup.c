@@ -138,6 +138,32 @@ serialif_t *createSfConnection(char const* host, char const* port, mcp_t **_mcp)
     return sif;
 }
 
+// a fake - or dummy - connection to an application running on the same machine
+serialif_t* createFifoConnection(mcp_t** _mcp) {
+  serialif_t* sif = serialfakeif(NULL);
+  assert(sif);
+  motecomm_t* mc = motecomm(NULL,sif);
+  *_mcp = mcp(NULL, mc);
+  // at the moment we're not using these things
+  /* ifp(0, mcp); */
+  /* laep(0, mcp); */
+  /* _laep.setHandler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = laSet, .p = NULL}); */
+  mc->setHandler(mc,(motecomm_handler_t) {
+    .p = 0,
+    .receive = serialProcess
+  });
+
+  init_reconstruction(reconstructDone);
+
+  if (*_mcp) {
+        LOG_INFO("Fake connection over stdin/stdout opened.");
+  } else {
+        LOG_ERROR("There was an error opening the fake connection over stdin/stdout.");
+        exit(1);
+  }
+  return sif;
+}
+
 // receiving data from the tunnel device
 void tunReceive(fdglue_handler_t* that) {
     struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);

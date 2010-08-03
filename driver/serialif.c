@@ -94,6 +94,8 @@ void _serialif_t_read(serialif_t* this, payload_t* const payload) {
     memcpy((void*)(payload->stream),(void*)(buf.stream+8),buf.len - 8);
     free((void*)buf.stream);
   } else {
+    payload->len = 0;
+    free((void*)(payload->stream));
     payload->stream = NULL;
   }
 }

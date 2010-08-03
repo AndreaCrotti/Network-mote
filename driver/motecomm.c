@@ -86,6 +86,30 @@ serialif_t* serialforwardif(serialif_t* this, char const* const host, char* cons
   }
   return this;
 }
+
+
+int _serialfakeif_t_send(serialif_t* this, payload_t const payload);
+void _serialfakeif_t_read(serialif_t* this, payload_t* const payload);
+void _serialfakeif_t_dtor(serialif_t* this);
+void _serialfakeif_t_ditch(serialif_t* this, payload_t* const payload);
+int _serialfakeif_t_fd(serialif_t* this);
+void _serialfakeif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm);
+
+// serialforwardif_t constructor
+serialif_t* serialfakeif(serialif_t* this) {
+  SETDTOR(CTOR(this)) _serialfakeif_t_dtor;
+  this->send = _serialfakeif_t_send;
+  this->read = _serialfakeif_t_read;
+  this->ditch = _serialfakeif_t_ditch;
+  this->fd = _serialfakeif_t_fd;
+  this->source = 0;
+  _serialfakeif_t_open(this,0,0,0);
+  if (!this->source) {
+    DTOR(this);
+    this = NULL;
+  }
+  return this;
+}
 #endif
 
 /**** motecomm_t ****/

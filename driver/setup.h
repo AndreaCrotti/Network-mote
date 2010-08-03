@@ -32,6 +32,7 @@ void serialReceive(fdglue_handler_t* that);
 
 serialif_t * createSerialConnection(char const *dev, mcp_t **mcp);
 serialif_t *createSfConnection(char const* host, char const* port, mcp_t **mcp);
+serialif_t* createFifoConnection(mcp_t** _mcp);
 
 /** 
  * Processing data from the serial interface
