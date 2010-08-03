@@ -59,9 +59,13 @@ void startClient(char const *dev) {
     fdglue(&fdg);
     
     mcp_t *mcp;
-    serialif_t *sif = createSerialConnection(dev, &mcp);
+    serialif_t *sif;
+    if (dev) {
+      sif = createSerialConnection(dev, &mcp);
+    } else {
+      sif = createFifoConnection(&mcp);
+    }
 
-    fflush(stdout);
     struct TunHandlerInfo thi = {
         .client_no = CLIENT_NO,
         .mcomm = mcp->getComm(mcp)
@@ -84,14 +88,23 @@ void startClient(char const *dev) {
 }
 
 void usage(char* name) {
-    LOG_ERROR("%s <device> [notun]",name);
+    LOG_ERROR("%s [<device>] [notun]",name);
     exit(EX_USAGE);
 }
 
 int main(int argc, char *argv[]) {
-    notun = (argc >= 3 && 0 == strcmp(argv[2], "notun"));
+    notun = (0 == strcmp(argv[argc-1],"notun"));
+    
+    char const* dev;
 
-    char const* dev = argv[1];
+    if (argc < 2+notun) {
+      LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
+      LOG_INFO("You may run for example:");
+      LOG_INFO("mkfifo \"$MYFIFO\" && ./client < \"$MYFIFO\" | ./gateway - eth0 > \"$MYFIFO\"; [ -p \"$MYFIFO\" ] && rm \"$MYFIFO\"");
+      dev = 0; //special meaning
+    } else {
+      dev = argv[1];
+    }
 
     startClient(dev);
     return 0;

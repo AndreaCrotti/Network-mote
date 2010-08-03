@@ -103,6 +103,7 @@ class (serialif_t,
 serialif_t* serialif(serialif_t* this, char const* const dev, char* const platform, serial_source_msg* ssm);
 #ifndef _TOS_MOTECOMM
 serialif_t* serialforwardif(serialif_t* this, char const* const host, char* const port);
+serialif_t* serialfakeif(serialif_t* this);
 #endif
 
 /****************************************************************

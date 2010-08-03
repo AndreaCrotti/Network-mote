@@ -109,13 +109,27 @@ int main(int argc, char *argv[]) {
 
     char *dev = argv[1];
     char const *eth = argv[2];
+
+    char const fake = dev[0] == '-' && dev[1] == 0;
+    LOG_DEBUG("fake: %d",fake);
     
     // creating the serial interface connection
     mcp_t *mcp;
     serialif_t *sif;
 #if SERIAL_STYLE == 0
-    sif = createSerialConnection(dev, &mcp);
+    if (fake) {
+      LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
+      LOG_INFO("You may run for example:");
+      LOG_INFO("mkfifo \"$MYFIFO\" && ./client < \"$MYFIFO\" | ./gateway - eth0 > \"$MYFIFO\"; [ -p \"$MYFIFO\" ] && rm \"$MYFIFO\"");
+      sif = createFifoConnection(&mcp);
+    } else {
+      sif = createSerialConnection(dev, &mcp);
+    }
 #elif SERIAL_STYLE == 1
+    if (fake) {
+      LOG_ERROR("Fake connection ('-') is not supported with the serial forwarding gateway ('%s').",argv[0]);
+      exit(1);
+    }
     // split host:port into the variables host and port
     char* port = dev;
     while (*port && *port != ':') {
