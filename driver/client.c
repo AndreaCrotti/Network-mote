@@ -37,7 +37,6 @@ void setup_routes(char const* const tun_name) {
 }
 
 void startClient(char const *dev) {    
-
     if (!notun) {
         // on the server instead could create many
         char tun_name[IFNAMSIZ];
@@ -90,11 +89,7 @@ void usage(char* name) {
 }
 
 int main(int argc, char *argv[]) {
-
-    /*if (argc != 2) {
-        usage(argv[0]);
-    }*/
-    notun = (argc >= 3 && 0 == strcmp(argv[2],"notun"));
+    notun = (argc >= 3 && 0 == strcmp(argv[2], "notun"));
 
     char const* dev = argv[1];
 
