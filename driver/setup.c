@@ -23,6 +23,7 @@ void _close_everything(int param) {
     // closing tunnel and compression module
     close_all_tunnels();
     close_compression();
+    exit(EXIT_SUCCESS);
 }
 
 void main_loop(fdglue_t *fdg) {
