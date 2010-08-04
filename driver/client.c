@@ -61,9 +61,9 @@ void startClient(char const *dev) {
     mcp_t *mcp;
     serialif_t *sif;
     if (dev) {
-      sif = createSerialConnection(dev, &mcp);
+        sif = createSerialConnection(dev, &mcp);
     } else {
-      sif = createFifoConnection(&mcp);
+        sif = createFifoConnection(&mcp);
     }
 
     struct TunHandlerInfo thi = {
@@ -82,7 +82,7 @@ void startClient(char const *dev) {
 
     fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND);
     if (!notun)
-      fdg.setHandler(&fdg, get_fd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
+        fdg.setHandler(&fdg, get_fd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
 
     main_loop(&fdg);
 }
@@ -98,12 +98,12 @@ int main(int argc, char *argv[]) {
     char const* dev;
 
     if (argc < 2+notun) {
-      LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
-      LOG_INFO("You may run for example:");
-      LOG_INFO("mkfifo \"$MYFIFO\" && ./client < \"$MYFIFO\" | ./gateway - eth0 > \"$MYFIFO\"; [ -p \"$MYFIFO\" ] && rm \"$MYFIFO\"");
-      dev = 0; //special meaning
+        LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
+        LOG_INFO("You may run for example:");
+        LOG_INFO("mkfifo \"$MYFIFO\" && ./client < \"$MYFIFO\" | ./gateway - eth0 > \"$MYFIFO\"; [ -p \"$MYFIFO\" ] && rm \"$MYFIFO\"");
+        dev = 0; //special meaning
     } else {
-      dev = argv[1];
+        dev = argv[1];
     }
 
     startClient(dev);
