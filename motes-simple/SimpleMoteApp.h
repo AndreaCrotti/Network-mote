@@ -12,7 +12,7 @@
  * General definitions.
  */
 enum{
-    MAX_MOTES = 16;
+    MAX_MOTES = 16
 };
 
 /* 

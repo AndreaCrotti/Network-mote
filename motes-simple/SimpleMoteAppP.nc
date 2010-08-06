@@ -38,6 +38,9 @@ implementation{
     // Array of pointers to the queues' tails.
     uint16_t *tails[MAX_MOTES];
 
+    // The message that is used for serial acknowledgements.
+    message_t ack_msg;
+
     /*************/
     /* Functions */
     /*************/
@@ -82,10 +85,9 @@ implementation{
      * An acknowledgement is just of an empty Active Message.
      */
     task void sendSerialAck(){
-        const message_t ack_msg;
 
         //TODO: Does that work, or does TinyOS give us an error for the 0?
-        SerialSend.send(&ack_msg, 0);
+        call SerialSend.send(AM_BROADCAST_ADDR, &ack_msg, 0);
     }
 
     /**********/
@@ -98,6 +100,14 @@ implementation{
      * @see tos.interfaces.Boot.booted
      */
     event void Boot.booted(){
+        uint8_t i;
+
+        // Initialize the queues
+        for(i = 0; i < MAX_MOTES; i++){
+            heads[i] = queues[i];
+            tails[i] = queues[i];
+        }
+
         call RadioControl.start();
         call SerialControl.start();
     }
