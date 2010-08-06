@@ -24,6 +24,19 @@ module SimpleMoteAppP{
 }
 implementation{
 
+    /*************/
+    /* Variables */
+    /*************/
+
+    // A queue for every mote, in which we save the latest 16 messages to identify
+    // duplicates.
+    // The higher byte will hold the sequential number, while the lower byte will
+    // hold the number of the chunk.
+    uint16_t queues[16][MAX_MOTES];
+    // Array of pointers to the queues' heads.
+    uint16_t *heads[MAX_MOTES];
+    // Array of pointers to the queues' tails.
+    uint16_t *tails[MAX_MOTES];
 
     /*************/
     /* Functions */

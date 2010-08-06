@@ -8,10 +8,11 @@
 #ifndef __SimpleMoteApp_h
 #define __SimpleMoteApp_h
 
-
-// FIXME: why this stupid value is not written there?
-enum {
-    AM_MESSAGE_T = 0x89
+/*
+ * General definitions.
+ */
+enum{
+    MAX_MOTES = 16;
 };
 
 /* 
