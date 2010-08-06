@@ -14,19 +14,6 @@
 #include "motecomm.h"
 
 /** 
- * Generate a correct ipv6 header, this is the BLIP ipv6 structure!
- * 
- * @param header header to overwrite
- * @param payload_len length of the payload
- */
-void gen_ipv6Header(ip6_hdr *const header, size_t payload_len) {
-    header->ip6_src = in6addr_loopback;
-    header->ip6_dst = in6addr_loopback;
-    // 16 bit variables must be converted to network order
-    header->plen = htons(payload_len);
-}
-
-/** 
  * Computes the needed number of chunks given a payload size.
  * 
  * @param data_size The payload size.
@@ -64,9 +51,6 @@ int gen_packet(payload_t* const payload, ipv6Packet* const packet, unsigned* sen
     pkt.ord_no++;
     *sendsize = (payload->len < MAX_CARRIED) ? (payload->len) : MAX_CARRIED;
     // setup the ipv6 we need
-#if !NO_IPV6
-    gen_ipv6Header(&(packet->header.ip6_hdr), sizeof(myPacketHeader) + *sendsize);
-#endif
     memcpy(packet->payload, payload->stream, *sendsize);
     payload->len -= *sendsize;
     payload->stream += *sendsize;
@@ -99,9 +83,6 @@ void gen_ipv6Packets2(payload_t *const payload, payload_t *const result, int con
         ipv6->header.packetHeader = pkt;
         result[i].stream = (stream_t *) ipv6;
         result[i].len = sendsize;
-#if !NO_IPV6
-        gen_ipv6Header(&(ipv6->header.ip6_hdr), sizeof(myPacketHeader) + sendsize);
-#endif
         memcpy(ipv6->payload, payload->stream, sendsize);
     }
 }
