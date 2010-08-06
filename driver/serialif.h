@@ -3,10 +3,10 @@
 
 #include <serialsource.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 /****** copied from serialsource.c ******/
 /****** DO NOT MODIFY! ******/
-typedef int bool;
 #define BUFSIZE 256
 #define MTU 256
 struct serial_source_t {

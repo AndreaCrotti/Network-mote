@@ -37,7 +37,6 @@ typedef struct {
 
 typedef struct in6_addr in6_src;
 typedef struct in6_addr in6_dst;
-typedef uint8_t boolean;
 
 // just for more ease of writing
 typedef struct sockaddr_in6 sockaddr_in6;
@@ -51,7 +50,7 @@ typedef struct myPacketHeader {
     seq_no_t seq_no;
     uint8_t ord_no;
     // tells if the payload is compressed or not
-    boolean is_compressed;
+    bool is_compressed;
     // how many chunks in total
     uint8_t parts;
 } __attribute__((__packed__)) myPacketHeader;
@@ -112,6 +111,10 @@ int payloadEquals(payload_t x, payload_t y);
  * Returns a pointer to our own header
  */
 myPacketHeader *getHeader(ipv6Packet *packet);
+
+/*************************************************/
+/* Accessing to internal fields of the structure */
+/*************************************************/
 int getSize(ipv6Packet *packet, int size);
 int getParts(ipv6Packet *packet);
 int getOrdNo(ipv6Packet *packet);
