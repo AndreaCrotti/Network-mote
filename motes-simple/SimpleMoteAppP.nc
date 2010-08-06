@@ -28,10 +28,10 @@ implementation{
     /* Variables */
     /*************/
 
-    // A queue for every mote, in which we save the latest 16 messages to identify
-    // duplicates.
-    // The higher byte will hold the sequential number, while the lower byte will
-    // hold the number of the chunk.
+    // A queue for every mote, in which we save the latest 16 messages to 
+    // identify duplicates.
+    // The higher byte will hold the sequential number, while the lower byte
+    // will hold the number of the chunk.
     uint16_t queues[16][MAX_MOTES];
     // Array of pointers to the queues' heads.
     uint16_t *heads[MAX_MOTES];
@@ -41,19 +41,21 @@ implementation{
     /*************/
     /* Functions */
     /*************/
+
     /** 
      * Toggles a LED when a message is send to the radio. 
      */
     void radioBlink(){
         call Leds.led0Toggle();
     }
-    /** 
 
+    /** 
      * Toggles a LED when a message is send to the serial. 
      */
     void serialBlink(){
         call Leds.led1Toggle();
     }
+
     /** 
      * Toggles a LED when a message couldn't be send and is dropped 
      */
@@ -73,6 +75,17 @@ implementation{
     uint8_t sR_len;
     task void sendRadio(){
         call RadioSend.send(sR_dest, sR_m, sR_len);
+    }
+
+    /**
+     * Sends an acknowledgement for the last packet over the serial.
+     * An acknowledgement is just of an empty Active Message.
+     */
+    task void sendSerialAck(){
+        const message_t ack_msg;
+
+        //TODO: Does that work, or does TinyOS give us an error for the 0?
+        SerialSend.send(&ack_msg, 0);
     }
 
     /**********/
@@ -126,6 +139,9 @@ implementation{
         // broadcast the message over the radio
         sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
         post sendRadio();
+
+        // Send an acknowledgement to the connected PC
+        post sendSerialAck();
 
         return m;
     }
