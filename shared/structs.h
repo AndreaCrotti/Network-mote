@@ -44,6 +44,7 @@ typedef struct sockaddr_in6 sockaddr_in6;
 typedef struct ip6_hdr ip6_hdr;
 
 typedef uint8_t seq_no_t;
+typedef uint16_t am_addr_t;
 
 // also the internal struct should be packed
 typedef struct myPacketHeader {

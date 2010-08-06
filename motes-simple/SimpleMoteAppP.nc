@@ -1,5 +1,5 @@
 #include "SimpleMoteApp.h"
-//#include "../shared/structs.h"
+/* #include "../shared/structs.h" */
 
 module SimpleMoteAppP{
     uses{
@@ -32,11 +32,9 @@ implementation{
     // identify duplicates.
     // The higher byte will hold the sequential number, while the lower byte
     // will hold the number of the chunk.
-    uint16_t queues[16][MAX_MOTES];
+    uint16_t queues[MAX_MOTES][PACKET_QUEUE_SIZE];
     // Array of pointers to the queues' heads.
     uint16_t *heads[MAX_MOTES];
-    // Array of pointers to the queues' tails.
-    uint16_t *tails[MAX_MOTES];
 
     // The message that is used for serial acknowledgements.
     message_t ack_msg;
@@ -44,6 +42,29 @@ implementation{
     /*************/
     /* Functions */
     /*************/
+
+    /** 
+     * Inserts a new message identifier into one of the queues.
+     * 
+     * @param client The TOS_NODE_ID. Should be smaller that MAX_MOTES!!!
+     * @param seq_nr The sequential number of the message.
+     * @param ord_nr The chunk number.
+     */
+    void addToQueue(am_addr_t client, uint8_t seq_nr, uint8_t ord_nr){
+        uint16_t identifier;
+
+        // Build identifier from seq_nr and ord_nr
+        identifier = (((uint16_t) seq_nr) << 8) | ord_nr;
+
+        if(heads[client] == &queues[client][PACKET_QUEUE_SIZE - 1]){
+            // We are at the end of the queue
+            heads[client] = queues[client];
+            *heads[client] = identifier;
+        }else{
+            // Normal insertion
+            *(++heads[client]) = identifier;
+        }
+    }
 
     /** 
      * Toggles a LED when a message is send to the radio. 
@@ -80,6 +101,16 @@ implementation{
         call RadioSend.send(sR_dest, sR_m, sR_len);
     }
 
+    /** 
+     * A task for sending serial  messages and the used variables.
+     */
+    am_addr_t sS_dest;
+    message_t* sS_m;
+    uint8_t sS_len;
+    task void sendSerial(){
+        call SerialSend.send(sS_dest, sS_m, sS_len);
+    }
+
     /**
      * Sends an acknowledgement for the last packet over the serial.
      * An acknowledgement is just of an empty Active Message.
@@ -105,7 +136,6 @@ implementation{
         // Initialize the queues
         for(i = 0; i < MAX_MOTES; i++){
             heads[i] = queues[i];
-            tails[i] = queues[i];
         }
 
         call RadioControl.start();
@@ -189,9 +219,15 @@ implementation{
      * @see tos.interfaces.Receive.receive
      */
     event message_t* RadioReceive.receive(message_t* m, void* payload, uint8_t len){
+        am_addr_t source = call AMPacket.source(m);
+        myPacketHeader *myph = (myPacketHeader*) m;
+        
+        // Add this message to the queue of seen messages
+        addToQueue(source, myph->seq_no, myph->ord_no);
 
         // Just forward the message over the serial device
-        call SerialSend.send(AM_BROADCAST_ADDR, m, len);
+        sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
+        post sendRadio();
 
         return m;
     }
