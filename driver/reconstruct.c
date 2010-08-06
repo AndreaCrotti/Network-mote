@@ -165,7 +165,8 @@ void add_chunk(payload_t data) {
     }
 
     // all the chunks of the same packet are compressed OR not compressed
-    assert(pkt->is_compressed == is_compressed(original));
+    if (pkt->is_compressed != is_compressed(original))
+        LOG_WARNING("inconsistent compression flag found");
 
     LOG_DEBUG("Adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %lu)", seq_no, ord_no, getParts(original), pkt->missing_bitmask);
 
