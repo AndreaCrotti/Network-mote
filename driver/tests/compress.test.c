@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "../shared/structs.h"
+#include "structs.h"
 #include "compress.h"
 #include "various.h"
 
@@ -35,7 +35,7 @@ int main() {
         payload_compress(msg, &result);
         payload_decompress(result, &decompressed);
         print_gained(msg.len, result.len);
-        assert(payloadEquals(msg, decompressed));
+        assert(payload_equals(msg, decompressed));
     }
 
     close_compression();

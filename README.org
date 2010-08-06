@@ -42,7 +42,7 @@ MotNet
 ** TODO [#A] Finally fix the stupid tossim simulation to see how it works
 
 * Goal
-  The oal of this project is to create a create a network between motes.
+  The goal of this project is to create a create a network between motes.
   Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
 
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
@@ -86,15 +86,9 @@ MotNet
     In this directory we keep the data structures definition that we use both from the client/gateway program and the program installed on the motes
     + structs.h
       This contains the basic data structures we use communicate with the motes.
-      They are shared between the driver program and program that runs on the motes      
+      They are shared between the driver program and program that runs on the motes
 
-#+begin_src c
-typedef struct {
-  stream_t const* stream;
-  streamlen_t len;
-} payload_t;
-#+end_src
+  - motes-simple
+    + SimpleMoteAppC.nc
+      configuration file
 
-  - motes
-
-  - simple-motes

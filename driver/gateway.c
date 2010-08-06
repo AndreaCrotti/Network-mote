@@ -38,7 +38,7 @@
 #include "chunker.h"
 
 #include "glue.h"
-#include "../shared/structs.h"
+#include "structs.h"
 #include "setup.h"
 
 #define CLIENT_NO 0

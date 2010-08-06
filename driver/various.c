@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "../shared/structs.h"
+#include "structs.h"
 
 // or we pass the pointer or we use *len and modify the pointer of the number
 void get_random_msg(payload_t *data, int size) {

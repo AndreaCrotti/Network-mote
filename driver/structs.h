@@ -81,16 +81,16 @@ struct dummy {
  * Check if the two payloads are equal, of course the length must be correct
  * 
  */
-void printPayload(payload_t t);
-void printPacketHeader(myPacketHeader *pkt);
-void printIpv6Header(ip6_hdr header);
-void printIpv6Packet(ipv6Packet *pkt);
+void print_payload(payload_t t);
+void print_packet_header(myPacketHeader *pkt);
+void print_ipv6Header(ip6_hdr header);
+void print_ipv6Packet(ipv6Packet *pkt);
 
 /** 
  * Create a ipv6packet with those values, mainly for testing and debugging
  * 
  */
-void makeIpv6Packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
+void make_ipv6Packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 
 /****************************************************************/
 /* accessing to the internal data of the structures more easily */
@@ -99,13 +99,13 @@ void makeIpv6Packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stre
 /**
  * Copy a payload structure, size of destiantion must be greater or equal
  */
-void copyPayload(payload_t *src, payload_t *dst);
+void copy_payload(payload_t *src, payload_t *dst);
 
 /** 
  * Check if the two payloads are equal, of course the length must be correct
  * 
  */
-int payloadEquals(payload_t x, payload_t y);
+int payload_equals(payload_t x, payload_t y);
 
 /** 
  * Returns a pointer to our own header
@@ -115,10 +115,10 @@ myPacketHeader *getHeader(ipv6Packet *packet);
 /*************************************************/
 /* Accessing to internal fields of the structure */
 /*************************************************/
-int getSize(ipv6Packet *packet, int size);
-int getParts(ipv6Packet *packet);
-int getOrdNo(ipv6Packet *packet);
-int getSeqNo(ipv6Packet *packet);
+int get_size(ipv6Packet *packet, int size);
+int get_parts(ipv6Packet *packet);
+int get_ord_no(ipv6Packet *packet);
+int get_seq_no(ipv6Packet *packet);
 bool is_compressed(ipv6Packet *packet);
 
 #endif

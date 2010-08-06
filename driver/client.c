@@ -19,7 +19,7 @@
 #include "client.h"
 #include "reconstruct.h"
 
-#include "../shared/structs.h"
+#include "structs.h"
 #include "setup.h"
 
 #define CLIENT_NO 0
