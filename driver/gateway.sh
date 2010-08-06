@@ -3,7 +3,7 @@
 # see http://www.revsys.com/writings/quicktips/nat.html to understand it
 
 #set -x
-sysctl -w net.ipv4.ip_forward=1 -q
+sysctl -q -w net.ipv4.ip_forward=1
 
 IPT="iptables"
 
