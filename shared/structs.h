@@ -111,6 +111,10 @@ int payloadEquals(payload_t x, payload_t y);
  * Returns a pointer to our own header
  */
 myPacketHeader *getHeader(ipv6Packet *packet);
+
+/*************************************************/
+/* Accessing to internal fields of the structure */
+/*************************************************/
 int getSize(ipv6Packet *packet, int size);
 int getParts(ipv6Packet *packet);
 int getOrdNo(ipv6Packet *packet);

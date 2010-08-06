@@ -19,7 +19,6 @@
 
 typedef long unsigned bitmask_t;
 
-// FIXME: some types are not big enough handling big numbers
 typedef struct {
     int seq_no;
     // bitmaks of chunks still missing

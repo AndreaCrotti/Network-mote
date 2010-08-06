@@ -36,7 +36,7 @@ void setup_routes(char const* const tun_name) {
     call_script(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
 }
 
-void startClient(char const *dev) {    
+void start_client(char const *dev) {    
     if (!notun) {
         // on the server instead could create many
         char tun_name[IFNAMSIZ];
@@ -106,6 +106,6 @@ int main(int argc, char *argv[]) {
         dev = argv[1];
     }
 
-    startClient(dev);
+    start_client(dev);
     return 0;
 }

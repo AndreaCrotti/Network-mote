@@ -10,13 +10,13 @@ MotNet
    CLOSED: [2010-08-02 Lun 11:21]
    - CLOSING NOTE [2010-08-02 Lun 11:21] \\
      Using signal and a generic closing function!
-
+     
 ** TODO add a simple handshaking protocol removing the ugly forced sleep
 ** TODO add support for an intermediate node that forwards everything
 ** TODO remove code duplication from client/gateway source files
 ** TODO (optional) some support for multiple clients
 ** TODO uniform code style (_ and doc)
-** TODO do some real automated tests to compute real speed of the connection
+** TODO [#B] do some real automated tests to compute real speed of the connection
 ** TODO remove all the (void)var things, if there is a variable use it ;)
 ** TODO drop privileges when not needed anymore
    "setgid(),initgroups(), then setuid()" should be more or less our system calls.
@@ -38,8 +38,7 @@ MotNet
     If is enought to simulate a serial interface we can use  [[http://www.kernel.org/doc/man-pages/online/pages/man7/pty.7.html][pty usage]]
     Probably is enough to simulate a pty with a master/slave thing.
 
-
-** TODO Use perror when possible to show messages
+    
 ** TODO [#A] Finally fix the stupid tossim simulation to see how it works
 
 * Goal
@@ -47,7 +46,6 @@ MotNet
   Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
 
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
-
 
 * Architecture
 
@@ -61,25 +59,33 @@ MotNet
       this module in charge of reconstructing the chunks we get from from the network
 
     + chunker.c
+      functions to split the message into many chunks
 
     + client.c
+      start the client version of the program
 
     + gateway.c
+      start the gateway
 
     + tunnel.c
+      manage the tunnel (open close write read)
+
+    + setup.c
+      all the functions used both by the client and the gateway
 
     + structs.c
       contain some useful functions to manage our own data structures
 
     + motecomm.c
+      low level communication between motes and driver program
 
     + glue.c
 
   - shared
     In this directory we keep the data structures definition that we use both from the client/gateway program and the program installed on the motes
     + structs.h
-      myPacketHeader and ipv6 header (ad defined in *blip*) structure manipulation
-      We use for example very often the payload_t structure to manage data
+      This contains the basic data structures we use communicate with the motes.
+      They are shared between the driver program and program that runs on the motes      
 
 #+begin_src c
 typedef struct {
