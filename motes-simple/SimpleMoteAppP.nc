@@ -44,17 +44,43 @@ implementation{
     /*************/
 
     /** 
+     * Test, whether an message signature is in the queue (was recently seen).
+     * 
+     * @param client The TOS_NODE_ID. Should be smaller that MAX_MOTES!!!
+     * @param seq_no The sequential number of the message.
+     * @param ord_no The chunk number.
+     * 
+     * @return 1, if the signature is contained, 0 otherwise.
+     */
+    boolean inQueue(am_addr_t client, seq_no_t seq_no, uint8_t ord_no){
+        uint8_t i;
+        uint16_t identifier;
+
+        // Build identifier from seq_nr and ord_nr
+        identifier = (((uint16_t) seq_no) << 8) | ord_no;
+
+        // Just loop over all elements
+        for(i = 0; i < PACKET_QUEUE_SIZE; i++){
+            if(queues[client][i] == identifier){
+                return 1;
+            }
+        }
+        
+        return 0;
+    }
+
+    /** 
      * Inserts a new message identifier into one of the queues.
      * 
      * @param client The TOS_NODE_ID. Should be smaller that MAX_MOTES!!!
      * @param seq_nr The sequential number of the message.
      * @param ord_nr The chunk number.
      */
-    void addToQueue(am_addr_t client, uint8_t seq_nr, uint8_t ord_nr){
+    void addToQueue(am_addr_t client, seq_no_t seq_no, uint8_t ord_no){
         uint16_t identifier;
 
         // Build identifier from seq_nr and ord_nr
-        identifier = (((uint16_t) seq_nr) << 8) | ord_nr;
+        identifier = (((uint16_t) seq_no) << 8) | ord_no;
 
         if(heads[client] == &queues[client][PACKET_QUEUE_SIZE - 1]){
             // We are at the end of the queue
@@ -131,11 +157,15 @@ implementation{
      * @see tos.interfaces.Boot.booted
      */
     event void Boot.booted(){
-        uint8_t i;
+        uint8_t i,j;
 
-        // Initialize the queues
+        // Initialize the queues with the maximal values
         for(i = 0; i < MAX_MOTES; i++){
             heads[i] = queues[i];
+            
+            for(j = 0; j < PACKET_QUEUE_SIZE; j++){
+                queues[i][j] = -1;
+            }
         }
 
         call RadioControl.start();
@@ -175,7 +205,7 @@ implementation{
      * @see tos.interfaces.Receive.receive
      */
     event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len){
-        
+
         // broadcast the message over the radio
         sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
         post sendRadio();
@@ -224,11 +254,21 @@ implementation{
         
         // Add this message to the queue of seen messages
         addToQueue(source, myph->seq_no, myph->ord_no);
-
-        // Just forward the message over the serial device
-        sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
-        post sendRadio();
-
+        
+        // Test if the message is for us
+        if(myph->sender == TOS_NODE_ID){
+            // Forward it to the serial
+            sS_dest = AM_BROADCAST_ADDR; sS_m = m; sS_len = len;
+            post sendSerial();
+        }else{
+            // Test, whether the message should be broadcasted over the radio
+            if(!inQueue(source, myph->seq_no, myph->ord_no)){
+                // Forward it!
+                sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
+                post sendRadio();
+            }
+        }
+            
         return m;
     }
 }
