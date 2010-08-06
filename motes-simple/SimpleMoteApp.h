@@ -8,10 +8,11 @@
 #ifndef __SimpleMoteApp_h
 #define __SimpleMoteApp_h
 
-
-// FIXME: why this stupid value is not written there?
-enum {
-    AM_MESSAGE_T = 0x89
+/*
+ * General definitions.
+ */
+enum{
+    MAX_MOTES = 16
 };
 
 /* 
@@ -28,7 +29,24 @@ enum {
  */
 enum {
     RADIO_QUEUE_SIZE = 10,
-    SERIAL_QUEUE_SIZE = 10
+    SERIAL_QUEUE_SIZE = 10,
+    PACKET_QUEUE_SIZE = 16
 };
+
+typedef uint8_t seq_no_t;
+typedef uint8_t boolean;
+
+// also the internal struct should be packed
+typedef struct myPacketHeader {
+    //FIXME: am_addr_t should be used, but does not compile for some reason...
+    uint16_t sender;
+    uint16_t receiver;
+    seq_no_t seq_no;
+    uint8_t ord_no;
+    // tells if the payload is compressed or not
+    boolean is_compressed;
+    // how many chunks in total
+    uint8_t parts;
+} __attribute__((__packed__)) myPacketHeader;
 
 #endif

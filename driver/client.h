@@ -1,6 +1,6 @@
 #ifndef _CLIENT_H
 #define _CLIENT_H
 
-void startClient(char const *dev);
+void start_client(char const *dev);
 
 #endif

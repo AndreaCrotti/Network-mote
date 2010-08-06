@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include "../shared/structs.h"
+#include "structs.h"
 #include "zlib.h"
 
 #include "util.h"

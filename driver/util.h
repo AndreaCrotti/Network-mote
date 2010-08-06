@@ -87,7 +87,7 @@
 #define LOG_DEBUG(MSG,...)
 #endif
 
-#include "../shared/structs.h"
+#include "structs.h"
 
 #define class(NAME_T,body) \
   typedef struct NAME_T NAME_T;\

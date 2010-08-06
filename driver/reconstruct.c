@@ -13,13 +13,12 @@
 #include "chunker.h"
 #include "tunnel.h"
 #include "compress.h"
-#include "../shared/structs.h"
+#include "structs.h"
 
 #define POS(x) (x % MAX_RECONSTRUCTABLE)
 
 typedef long unsigned bitmask_t;
 
-// FIXME: some types are not big enough handling big numbers
 typedef struct {
     int seq_no;
     // bitmaks of chunks still missing
@@ -87,7 +86,7 @@ void send_if_completed(packet_t *pkt) {
             // we'll overwrite it when done
             payload_decompress(payload, &compressed);
             // should we alloc - memcpy - free instead?
-            copyPayload(&compressed, &payload);
+            copy_payload(&compressed, &payload);
         }
 #endif
         send_back(payload);
@@ -145,8 +144,8 @@ void add_chunk(payload_t data) {
     ipv6Packet *original = malloc(sizeof(ipv6Packet));
     memcpy(original, data.stream, sizeof(ipv6Packet));
 
-    int seq_no = getSeqNo(original);
-    int ord_no = getOrdNo(original);
+    int seq_no = get_seq_no(original);
+    int ord_no = get_ord_no(original);
     
     // just for readability
     packet_t *pkt = &temp_packets[POS(seq_no)];
@@ -159,7 +158,7 @@ void add_chunk(payload_t data) {
         
         pkt->is_compressed = is_compressed(original);
         // resetting to the initial configuration
-        pkt->missing_bitmask = (1ul << getParts(original)) - 1;
+        pkt->missing_bitmask = (1ul << get_parts(original)) - 1;
         pkt->seq_no = seq_no;
         pkt->tot_size = 0;
     }
@@ -168,10 +167,10 @@ void add_chunk(payload_t data) {
     if (pkt->is_compressed != is_compressed(original))
         LOG_WARNING("inconsistent compression flag found");
 
-    LOG_DEBUG("Adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %lu)", seq_no, ord_no, getParts(original), pkt->missing_bitmask);
+    LOG_DEBUG("Adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %lu)", seq_no, ord_no, get_parts(original), pkt->missing_bitmask);
 
     // getting the real data of the packets
-    int size = getSize(original, data.len);
+    int size = get_size(original, data.len);
     pkt->tot_size += size;
 
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);

@@ -196,7 +196,7 @@ void tunReceive(fdglue_handler_t* that) {
         LOG_DEBUG("enabling compression");
         print_gained(payload.len, compressed.len);
         // should we alloc - memcpy - free instead?
-        copyPayload(&compressed, &payload);
+        copy_payload(&compressed, &payload);
         size = payload.len;
         payload.is_compressed = true;
     } else {
