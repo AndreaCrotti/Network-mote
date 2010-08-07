@@ -1,0 +1,153 @@
+% Created 2010-08-07 Sab 15:27
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{soul}
+\usepackage{t1enc}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\providecommand{\alert}[1]{\textbf{#1}}
+
+\title{MotNet}
+\author{Andrea Crotti, Marius Grysla, Oscar Dustmann}
+\date{07 Agosto 2010}
+
+\begin{document}
+
+\maketitle
+
+\setcounter{tocdepth}{3}
+\tableofcontents
+\vspace*{1cm}
+
+\section{Next Improvements}
+\label{sec-1}
+\subsection{\textbf{DONE} add support for adaptative compression}
+\label{sec-1_1}
+
+   \texttt{CLOSED:} \textit{2010-07-31 Sab 18:21}
+
+\begin{itemize}
+\item CLOSING NOTE \textit{2010-07-31 Sab 18:21}
+\end{itemize}
+\subsection{\textbf{DONE} add cleaning exit code on exit}
+\label{sec-1_2}
+
+   \texttt{CLOSED:} \textit{2010-08-02 Lun 11:21}
+
+\begin{itemize}
+\item CLOSING NOTE \textit{2010-08-02 Lun 11:21} \\
+Using signal and a generic closing function!
+\end{itemize}
+
+     
+\subsection{\textbf{TODO} add a simple handshaking protocol removing the ugly forced sleep}
+\label{sec-1_3}
+\subsection{\textbf{TODO} add support for an intermediate node that forwards everything}
+\label{sec-1_4}
+\subsection{\textbf{TODO} remove code duplication from client/gateway source files}
+\label{sec-1_5}
+\subsection{\textbf{TODO} (optional) some support for multiple clients}
+\label{sec-1_6}
+\subsection{\textbf{TODO} uniform code style (\_{} and doc)}
+\label{sec-1_7}
+\subsection{\textbf{TODO} do some real automated tests to compute real speed of the connection}
+\label{sec-1_8}
+\subsection{\textbf{TODO} remove all the (void)var things, if there is a variable use it ;)}
+\label{sec-1_9}
+\subsection{\textbf{TODO} drop privileges when not needed anymore}
+\label{sec-1_10}
+
+   ``setgid(),initgroups(), then setuid()'' should be more or less our system calls.
+   Drop to another less privileged user must be done correctly.
+   We also might fork the program keeping the tunnel manager always on
+\subsection{\textbf{TODO} testing with a pipe instead of using the real usb device}
+\label{sec-1_11}
+
+\begin{verbatim}
+pid_t pid;
+int mypipe[2];
+
+/* Create the pipe.  */
+if (pipe (mypipe))
+    {
+        fprintf (stderr, "Pipe failed.\n");
+        return EXIT_FAILURE;
+    }
+\end{verbatim}
+    If is enought to simulate a serial interface we can use  \href{http://www.kernel.org/doc/man-pages/online/pages/man7/pty.7.html}{pty usage}
+    Probably is enough to simulate a pty with a master/slave thing.
+
+    
+\subsection{\textbf{TODO} Finally fix the stupid tossim simulation to see how it works}
+\label{sec-1_12}
+\section{Goal}
+\label{sec-2}
+
+  The goal of this project is to create a create a network between motes.
+  Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
+
+  Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
+\section{Architecture}
+\label{sec-3}
+
+  
+\section{Coding style}
+\label{sec-4}
+\section{Files}
+\label{sec-5}
+
+  This is the tree of files in our application
+\begin{itemize}
+\item driver
+    In this directory we have client and gateway program, written in C for linux systems with some bash scripts.
+
+\begin{itemize}
+\item reconstruct.c
+      this module in charge of reconstructing the chunks we get from from the network
+\item chunker.c
+      functions to split the message into many chunks
+\item client.c
+      start the client version of the program
+\item gateway.c
+      start the gateway
+\item tunnel.c
+      manage the tunnel (open close write read)
+\item setup.c
+      all the functions used both by the client and the gateway
+\item structs.c
+      contain some useful functions to manage our own data structures
+\item motecomm.c
+      low level communication between motes and driver program
+\item glue.c
+\end{itemize}
+
+\item shared
+    In this directory we keep the data structures definition that we use both from the client/gateway program and the program installed on the motes
+
+\begin{itemize}
+\item structs.h
+      This contains the basic data structures we use communicate with the motes.
+      They are shared between the driver program and program that runs on the motes
+\end{itemize}
+
+\item motes-simple
+
+\begin{itemize}
+\item SimpleMoteAppC.nc
+      configuration file
+\end{itemize}
+
+\end{itemize}
+
+\end{document}

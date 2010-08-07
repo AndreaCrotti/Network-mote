@@ -58,6 +58,9 @@ $(IMPLIED_HEADERS): %.h:
 $(NOPS): %.o: %.c %.h
 	@echo "WARNING: NOT MAKING TARGET '$@'!" && echo "         file(s) '$?' was(were) modified but '$@' is in NOPS:" && echo "         $(NOPS)" && touch $@
 
+doc:
+	pdflatex ../README.tex --output-directory ../
+	doxygen
 
 #### OTHER ####
 
@@ -98,4 +101,4 @@ autogen: hostname.h
 
 force: clean all
 
-.PHONY: clean diag force autogen run ping test tests $(EXTRAPHONIES) $(NICETT)
+.PHONY: clean diag force autogen run ping doc test tests $(EXTRAPHONIES) $(NICETT)
