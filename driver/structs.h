@@ -24,7 +24,7 @@
 #define COPY_STRUCT (DESTP, SOURCEP, TYPE) *(TYPE*)(DESTP) = *(TYPE*)(SOURCEP)
 
 #include <stdbool.h>
-#include <ip.h>
+#include <stdint.h>
 
 typedef unsigned char stream_t;
 typedef unsigned int streamlen_t;
@@ -34,13 +34,6 @@ typedef struct {
     streamlen_t len;
     bool is_compressed;
 } payload_t;
-
-typedef struct in6_addr in6_src;
-typedef struct in6_addr in6_dst;
-
-// just for more ease of writing
-typedef struct sockaddr_in6 sockaddr_in6;
-typedef struct ip6_hdr ip6_hdr;
 
 typedef uint8_t seq_no_t;
 typedef uint16_t am_addr_t;
@@ -59,9 +52,6 @@ typedef struct myPacketHeader {
 typedef struct ipv6Packet {
     // sent data ...
     struct ipv6PacketHeader{
-#if !NO_IPV6 
-        struct ip6_hdr ip6_hdr;
-#endif
         myPacketHeader packetHeader;
     } __attribute__((__packed__)) header;
 
@@ -83,7 +73,6 @@ struct dummy {
  */
 void print_payload(payload_t t);
 void print_packet_header(myPacketHeader *pkt);
-void print_ipv6Header(ip6_hdr header);
 void print_ipv6Packet(ipv6Packet *pkt);
 
 /** 

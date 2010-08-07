@@ -18,15 +18,8 @@ void print_packet_header(myPacketHeader *pkt) {
     LOG_DEBUG("(seq = %d, ord = %d, parts = %d)", pkt->seq_no, pkt->ord_no, pkt->parts);
 }
 
-void print_ipv6Header(ip6_hdr header) {
-    LOG_DEBUG("len = %d, src...", header.plen);
-}
-
 void print_ipv6Packet(ipv6Packet *pkt) {
     print_packet_header(&((pkt->header).packetHeader));
-#if !NO_IPV6
-    print_ipv6Header((pkt->header).ip6_hdr);
-#endif
 }
 
 // only used for testing out something
@@ -35,12 +28,8 @@ void make_ipv6Packet(ipv6Packet *packet, int seq_no, int ord_no, int parts, stre
     packet->header.packetHeader.ord_no = ord_no;
     packet->header.packetHeader.parts = parts;
     // now also set the payload and it's length
-#if !NO_IPV6
-    packet->header.ip6_hdr.plen = len + sizeof(packet->header);
-#endif
     memcpy(payload, packet->payload, len);
 }
-
 
 /****************************************/
 /* Functions to access to the structure */
@@ -87,19 +76,6 @@ int get_ord_no(ipv6Packet *packet) {
     return get_header(packet)->ord_no;
 }
 
-int get_plen(ipv6Packet *packet) {
-    int plen;
-    (void)packet;
-#if !NO_IPV6
-    plen = packet->header.ip6_hdr.plen;
-// FIXME: this dirty thing is just to always return something, clean it
-#else
-    plen = 0;
-    assert(0);
-#endif
-    return plen;
-}
-
 int get_parts(ipv6Packet *packet) {
    return get_header(packet)->parts;
 }
@@ -110,11 +86,7 @@ int get_size(ipv6Packet *packet, int size) {
     int computed_size;
     if (is_last(packet)) {
         // we need to invert from htons!!
-#if !NO_IPV6
-        computed_size = ntohs(get_plen(packet)) - sizeof(myPacketHeader);
-#else
         computed_size = size - sizeof(struct ipv6PacketHeader);
-#endif
     } else {
         computed_size = MAX_CARRIED;
     }
