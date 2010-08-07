@@ -29,7 +29,7 @@ IMPLIED_HEADERS := $(patsubst %.c,%.h,$(CODEFILES))
 NOPS :=
 
 #For external libraries
-EXTERNALS := /usr/lib/libz.so #$(SF)/sfsource.o $(SF)/serialsource.o 
+EXTERNALS := /usr/lib/libz.so $(SF)/sfsource.o $(SF)/serialsource.o 
 EXTRAPHONIES = 
 
 #TIME := time -f '\t%E' --
