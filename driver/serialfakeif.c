@@ -44,6 +44,13 @@ void _serialfakeif_t_ditch(serialif_t* this, payload_t* const payload) {
 int _serialfakeif_t_send(serialif_t* this, payload_t const payload) {
   assert(this);
   payload_t buf;
+  {
+    unsigned hash = 0;
+    for (unsigned i = 0; i < payload.len; i++) {
+      hash+=payload.stream[i];
+    }
+    LOG_DEBUG("Writing to stdout: %u bytes, hash: %u",payload.len,hash);
+  }
   buf.len = sizeof(struct message_header_mine_t)+payload.len*sizeof(stream_t);
   buf.stream = malloc(buf.len);
   memset((void*)buf.stream,0,sizeof(struct message_header_mine_t));
@@ -70,7 +77,9 @@ void _serialfakeif_t_read(serialif_t* this, payload_t* const payload) {
   assert(this);
   static unsigned char readbuffer[TOSH_DATA_LENGTH];
   payload_t buf = {.stream = readbuffer, .len = TOSH_DATA_LENGTH};
-  read(((serialfake_fd_t*)(this->source))->in,(void*)buf.stream,buf.len);
+  do {
+    buf.len = read(((serialfake_fd_t*)(this->source))->in,(void*)buf.stream,buf.len);
+  } while(!buf.len);
   if (!buf.stream != !buf.len || buf.len < 8) {
     buf.stream = NULL;
     buf.len = 0;
@@ -83,6 +92,13 @@ void _serialfakeif_t_read(serialif_t* this, payload_t* const payload) {
     free((void*)(payload->stream));
     payload->len = 0;
     payload->stream = NULL;
+  }
+  {
+    unsigned hash = 0;
+    for (unsigned i = 0; i < payload->len; i++) {
+      hash+=payload->stream[i];
+    }
+    LOG_DEBUG("Reading from stdin: %u bytes, hash: %u",payload->len,hash);
   }
 }
 

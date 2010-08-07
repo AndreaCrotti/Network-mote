@@ -73,26 +73,8 @@ void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
 
     // wrapper for select
     fdglue_t fdg;
-    fdglue(&fdg);
 
-    // structures for the handlers, it's an event driven program
-    // so we need to setup handlers
-    struct TunHandlerInfo thi = {
-        .client_no = CLIENT_NO,
-        .mcomm = mcp->getComm(mcp)
-    };
-
-    fdglue_handler_t hand_sif = {
-        .p = mcp,
-        .handle = serialReceive
-    };
-    fdglue_handler_t hand_thi = {
-        .p = &thi,
-        .handle = tunReceive
-    };
-
-    fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND);
-    fdg.setHandler(&fdg, get_fd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
+    initGlue(&fdg,sif,mcp,0,CLIENT_NO);
 
     main_loop(&fdg);
 }

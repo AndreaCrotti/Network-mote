@@ -56,7 +56,6 @@ void start_client(char const *dev) {
 
     // wrapper for select
     fdglue_t fdg;
-    fdglue(&fdg);
     
     mcp_t *mcp;
     serialif_t *sif;
@@ -66,23 +65,7 @@ void start_client(char const *dev) {
         sif = createFifoConnection(&mcp);
     }
 
-    struct TunHandlerInfo thi = {
-        .client_no = CLIENT_NO,
-        .mcomm = mcp->getComm(mcp)
-    };
-
-    fdglue_handler_t hand_sif = {
-        .p = mcp,
-        .handle = serialReceive
-    };
-    fdglue_handler_t hand_thi = {
-        .p = &thi,
-        .handle = tunReceive
-    };
-
-    fdg.setHandler(&fdg, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND);
-    if (!notun)
-        fdg.setHandler(&fdg, get_fd(CLIENT_NO), FDGHT_READ, hand_thi, FDGHR_APPEND);
+    initGlue(&fdg,sif,mcp,notun,CLIENT_NO);
 
     main_loop(&fdg);
 }

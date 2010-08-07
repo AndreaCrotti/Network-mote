@@ -14,7 +14,7 @@
  * @param hnd The handler you want to install. (Ignored if you remove an entry)
  * @param action What you want to do? Replace, remove or append?
  */
-void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action) {
+void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action, char** const active) {
     assert(this);
     if (action != FDGHR_APPEND) {
         fdglue_handlerlist_t dummy;
@@ -48,6 +48,9 @@ void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const typ
         p->fd = fd;
         p->type = type;
         p->hnd = hnd;
+        if (active)
+          *active = &(p->active);
+        p->active = 1;
         p->next = this->handlers;
         this->handlers = p;
         if (fd > this->nfds)
@@ -67,12 +70,14 @@ void _fdglue_t_listen(fdglue_t* this, unsigned timeout) {
     FD_ZERO(&er);
     struct fdglue_handlerlist_t* it;
     for (it = this->handlers; it; it = it->next) {
-        FD_SET(it->fd,fdmap[it->type]);
+        if (it->active) {
+            FD_SET(it->fd,fdmap[it->type]);
+        }
     }
     struct timeval tv = {.tv_sec = timeout, .tv_usec = 0};
     if (-1 != select(this->nfds+1, &rd, &wr, &er, &tv)) {
         for (it = this->handlers; it; it = it->next) {
-            if (FD_ISSET(it->fd,fdmap[it->type])) {
+            if (it->active && FD_ISSET(it->fd,fdmap[it->type])) {
                 it->hnd.handle(&(it->hnd));
             }
         }
