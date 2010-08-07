@@ -33,6 +33,7 @@ typedef enum {
 typedef struct fdglue_handlerlist_t {
   struct fdglue_handlerlist_t* next;
   int fd;                                                           /* do not remove this comment */
+  char active;
   fdglue_handle_type_t type;
   fdglue_handler_t hnd;
 } fdglue_handlerlist_t;
@@ -43,7 +44,7 @@ typedef struct fdglue_handlerlist_t {
 class (fdglue_t,
   struct fdglue_handlerlist_t* handlers;
   int nfds;
-  void (*setHandler)(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action);
+  void (*setHandler)(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action, char** const active);
   void (*listen)(fdglue_t* this, unsigned timeout);
 );
 

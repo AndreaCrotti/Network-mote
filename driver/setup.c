@@ -16,6 +16,16 @@
 #include "setup.h"
 #include "compress.h"
 
+char* tunActive;
+
+void serialBufferFull(void) {
+  *tunActive = 0;
+}
+
+void serialBufferEmpty(void) {
+  *tunActive = 1;
+}
+
 void _close_everything(int param) {
     LOG_DEBUG("closing all open file descriptors");
     (void)param; // param only useful for signal prototype
@@ -24,6 +34,35 @@ void _close_everything(int param) {
     close_all_tunnels();
     close_compression();
     exit(EXIT_SUCCESS);
+}
+
+void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, char notun, int client_no) {
+    tunActive = NULL;
+    
+    fdglue(g);
+
+    // structures for the handlers, it's an event driven program
+    // so we need to setup handlers
+    struct TunHandlerInfo* thi = malloc(sizeof(struct TunHandlerInfo));
+    thi->client_no = client_no;
+    thi->mcomm = mcp->getComm(mcp);
+
+    fdglue_handler_t hand_sif = {
+        .p = mcp,
+        .handle = serialReceive
+    };
+    fdglue_handler_t hand_thi = {
+        .p = thi,
+        .handle = tunReceive
+    };
+
+    g->setHandler(g, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND,NULL);
+    if (!notun)
+      g->setHandler(g, get_fd(client_no), FDGHT_READ, hand_thi, FDGHR_APPEND, &tunActive);
+
+    // give the serial interface a chance to tell us when we are too fast for it
+    sif->onBufferFull = serialBufferFull;
+    sif->onBufferEmpty = serialBufferEmpty;
 }
 
 void main_loop(fdglue_t *fdg) {
@@ -36,6 +75,9 @@ void main_loop(fdglue_t *fdg) {
     for (;;) {
         LOG_INFO("listening %d ...",lcount++);
         print_statistics();
+        // note: 5 minutes is just an arbitrary sleep interval
+        // if we wait for 5 minutes and did not receive a single packet,
+        // this loop will just reiterate (printing stats and so on)
         fdg->listen(fdg, 5 * 60);
     }
 }
@@ -223,10 +265,7 @@ void tunReceive(fdglue_handler_t* that) {
 
     // generate all the subchunks and send them out
     do {
-        //if (!first) {  // FIXME!
-          usleep(SERIAL_INTERVAL_US);
-        /* } */
-        /* first = 0; */
+        //usleep(SERIAL_INTERVAL_US); // not needed
         chunks_left = gen_packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
         assert(sendsize);
         LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
