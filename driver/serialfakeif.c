@@ -15,7 +15,7 @@ typedef struct {
 #if INCLUDE_SERIAL_FORWARD_IMPLEMENTATION
 
 /**
- * \returns The used file descriptor
+ * @return The used file descriptor
  */
 int _serialfakeif_t_fd(serialif_t* this) {
   assert(this);

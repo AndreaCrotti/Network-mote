@@ -16,7 +16,7 @@ DEFINE_QUEUE(payload_t)
 void _serialif_t_openMessage(serial_source_msg problem);
 
 /**
- * \returns The used file descriptor
+ * @return The used file descriptor
  */
 int _serialif_t_fd(serialif_t* this) {
   assert(this);
