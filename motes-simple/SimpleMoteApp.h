@@ -5,8 +5,8 @@
  * @author Marius Grysla
  * @date Fr 23. Juli 10:00:23 CEST 2010
  **/
-#ifndef __SimpleMoteApp_h
-#define __SimpleMoteApp_h
+#ifndef SIMPLEMOTEAPP_H
+#define SIMPLEMOTEAPP_H
 
 /*
  * General definitions.
