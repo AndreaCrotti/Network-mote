@@ -8,6 +8,8 @@
 #ifndef SIMPLEMOTEAPP_H
 #define SIMPLEMOTEAPP_H
 
+#include "AM.h"
+
 /*
  * General definitions.
  */

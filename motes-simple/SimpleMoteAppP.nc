@@ -1,5 +1,4 @@
 #include "SimpleMoteApp.h"
-/* #include "../shared/structs.h" */
 
 module SimpleMoteAppP{
     uses{
