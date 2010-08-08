@@ -38,7 +38,6 @@ enum {
 typedef uint8_t seq_no_t;
 typedef uint8_t boolean;
 
-// also the internal struct should be packed
 typedef struct myPacketHeader {
     am_addr_t sender;
     am_addr_t receiver;
