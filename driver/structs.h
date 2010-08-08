@@ -40,6 +40,8 @@ typedef uint16_t am_addr_t;
 
 // also the internal struct should be packed
 typedef struct myPacketHeader {
+    am_addr_t sender;
+    am_addr_t receiver;
     seq_no_t seq_no;
     uint8_t ord_no;
     // tells if the payload is compressed or not

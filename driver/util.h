@@ -24,6 +24,7 @@
 #else
 #define DUMP_VAR(VAR,TYPE)
 #endif
+
 #define DUMP_CHAR(VAR) DUMP_VAR((int)VAR,d)
 #define DUMP_UCHAR(VAR) DUMP_VAR((unsigned)VAR,u)
 #define DUMP_INT(VAR) DUMP_VAR(VAR,d)
