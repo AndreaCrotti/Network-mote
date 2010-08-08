@@ -102,8 +102,8 @@ class (serialif_t,
 /**
  *  Create a new serialif_t object.
  *
- *  \param dev Name of the local usb Device: e.g. "/dev/ttyUSB0"
- *  \param platform Name of the architecture we want to talk to: e.g. "telosb"
+ *  @param dev Name of the local usb Device: e.g. "/dev/ttyUSB0"
+ *  @param platform Name of the architecture we want to talk to: e.g. "telosb"
  */
 serialif_t* serialif(serialif_t* this, char const* const dev, char* const platform, serial_source_msg* ssm);
 #ifndef _TOS_MOTECOMM
@@ -138,7 +138,7 @@ class (motecomm_t,
 /**
  *  Create a new motecomm_t object.
  *
- *  \param interf An already initialised serialif_t object. NULL is illegal!
+ *  @param interf An already initialised serialif_t object. NULL is illegal!
  */
 motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf);
 
@@ -189,7 +189,7 @@ class (mcp_t,
 /**
  *  Create a new mcp_t object.
  *
- *  \param uniqComm The motecomm_t object to use.
+ *  @param uniqComm The motecomm_t object to use.
  *                  Note: there can be only one uniqComm in the whole system.
  *                  Future fixes may change that.
  *                  The first time an mcp is created you must not supply NULL, however
@@ -237,7 +237,7 @@ class (mccmp_t,
 /**
  *  Create a new mccmp_t object.
  *
- *  \param _mcp used mcp_t object (lower layer)
+ *  @param _mcp used mcp_t object (lower layer)
  *              This mccmp_t object will then install itself as default mccmp implementation in _mcp!
  */
 mccmp_t* mccmp(mccmp_t* this, mcp_t* const _mcp);
@@ -282,7 +282,7 @@ class (laep_t,
 /**
  *  Create a new laep_t object.
  *
- *  \param _mcp used mcp_t object (lower layer)
+ *  @param _mcp used mcp_t object (lower layer)
  */
 laep_t* laep(laep_t* this, mcp_t* const _mcp);
 
@@ -315,7 +315,7 @@ class (ifp_t,
 /**
  *  Create a new ifp_t object.
  *
- *  \param _mcp used mcp_t object (lower layer)
+ *  @param _mcp used mcp_t object (lower layer)
  */
 ifp_t* ifp(ifp_t* this, mcp_t* const _mcp);
 

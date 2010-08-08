@@ -24,7 +24,7 @@ int _serialif_t_fd(serialif_t* this) {
 }
 
 /**
- * \param payload Contains both the pointer and length of the data provided
+ * @param payload Contains both the pointer and length of the data provided
  *                by the ::read method. Call it instead of free!
  */
 void _serialif_t_ditch(serialif_t* this, payload_t* const payload) {
@@ -43,7 +43,7 @@ serial_source_msg* _serialif_t_openMessage_target = NULL;
 /**
  * This handler is required by the serial_source library.
  *
- * \param problem Will be set to the status of the serial open instruction
+ * @param problem Will be set to the status of the serial open instruction
  */
 void _serialif_t_openMessage(serial_source_msg problem) {
   if (_serialif_t_openMessage_target) {
@@ -54,7 +54,7 @@ void _serialif_t_openMessage(serial_source_msg problem) {
 /**
  * Implementation of serialif_t::send - do not call explicitly.
  *
- * \param payload What we are supposed to send. We promise not to change it.
+ * @param payload What we are supposed to send. We promise not to change it.
  */
 int _serialif_t_send(serialif_t* this, payload_t const payload) {
   assert(this);
@@ -95,7 +95,7 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
 /**
  * Implementation of serialif_t::read - to not call explicitly.
  *
- * \param payload A pointer to the variable WE ARE SUPPOSED TO PUT THE PAYLOAD.
+ * @param payload A pointer to the variable WE ARE SUPPOSED TO PUT THE PAYLOAD.
  *                When you are done with it, please call serialif_t::ditch.
  *                Note: the pointer wont be changed, but its content.
  */
@@ -143,9 +143,9 @@ void _serialif_t_dtor(serialif_t* this) {
 /**
  * Implementation of serialif_t::open - do not call it explicitly.
  *
- * \param dev Used hardware device (e.g. /dev/ttyUSB0)
- * \param platform Used mote hardware (e.g. telosb)
- * \param ssm Optional pointer to a variable to hold errors thay may be produced. Set to NULL if you don't care.
+ * @param dev Used hardware device (e.g. /dev/ttyUSB0)
+ * @param platform Used mote hardware (e.g. telosb)
+ * @param ssm Optional pointer to a variable to hold errors thay may be produced. Set to NULL if you don't care.
  */
 void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
   serial_source_msg _ssm = 128;

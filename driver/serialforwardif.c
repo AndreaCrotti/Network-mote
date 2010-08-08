@@ -20,7 +20,7 @@ int _serialforwardif_t_fd(serialif_t* this) {
 }
 
 /**
- * \param payload Contains both the pointer and length of the data provided
+ * @param payload Contains both the pointer and length of the data provided
  *                by the ::read method. Call it instead of free!
  */
 void _serialforwardif_t_ditch(serialif_t* this, payload_t* const payload) {
@@ -36,7 +36,7 @@ void _serialforwardif_t_ditch(serialif_t* this, payload_t* const payload) {
 /**
  * Implementation of serialif_t::send - do not call explicitly.
  *
- * \param payload What we are supposed to send. We promise not to change it.
+ * @param payload What we are supposed to send. We promise not to change it.
  */
 int _serialforwardif_t_send(serialif_t* this, payload_t const payload) {
   assert(this);
@@ -60,7 +60,7 @@ int _serialforwardif_t_send(serialif_t* this, payload_t const payload) {
 /**
  * Implementation of serialif_t::read - to not call explicitly.
  *
- * \param payload A pointer to the variable WE ARE SUPPOSED TO PUT THE PAYLOAD.
+ * @param payload A pointer to the variable WE ARE SUPPOSED TO PUT THE PAYLOAD.
  *                When you are done with it, please call serialif_t::ditch.
  *                Note: the pointer wont be changed, but its content.
  */
@@ -103,9 +103,9 @@ void _serialforwardif_t_dtor(serialif_t* this) {
 /**
  * Implementation of serialif_t::open - do not call it explicitly.
  *
- * \param dev Used hardware device (e.g. /dev/ttyUSB0)
- * \param platform Used mote hardware (e.g. telosb)
- * \param ssm Pointer to __int__! Will be set to 0 if the connection could not be opened. Pass NULL if you do not care.
+ * @param dev Used hardware device (e.g. /dev/ttyUSB0)
+ * @param platform Used mote hardware (e.g. telosb)
+ * @param ssm Pointer to __int__! Will be set to 0 if the connection could not be opened. Pass NULL if you do not care.
  */
 void _serialforwardif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
   int port = atoi(platform);
