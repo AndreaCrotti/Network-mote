@@ -58,8 +58,8 @@ void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
             int pos = (seq * parts) + i;
             payload_t *added = &(result[pos]);
             /* printf("adding on %d\n", seq * i); */
-            (added->stream) = malloc(sizeof(ipv6Packet));
-            gen_packet(&copied, (ipv6Packet *) added->stream, &(added->len), seq, parts);
+            (added->stream) = malloc(sizeof(myPacket));
+            gen_packet(&copied, (myPacket *) added->stream, &(added->len), seq, parts);
         }
     }
     // now we have created the big array containing everything

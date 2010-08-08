@@ -4,9 +4,9 @@
 // measures in bytes
 #define SIZE_IPV6_HEADER 40
 // For the usage of additional headers MAX_CARRIED has to be smaller
-#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(struct ipv6PacketHeader))
-#define TOT_PACKET_SIZE(payload_len) (sizeof(struct ipv6PacketHeader) + payload_len)
-#define PAYLOAD_LEN (MAX_CARRIED - sizeof(ipv6Packet))
+#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(myPacketHeader))
+#define TOT_PACKET_SIZE(payload_len) (sizeof(myPacketHeader) + payload_len)
+#define PAYLOAD_LEN (MAX_CARRIED - sizeof(myPacket))
 
 #define TUNTAP_INTERFACE IFF_TUN
 
@@ -48,15 +48,10 @@ typedef struct myPacketHeader {
     uint8_t parts;
 } __attribute__((__packed__)) myPacketHeader;
 
-// only the final ipv6 packet must be "__packed__".
-typedef struct ipv6Packet {
-    // sent data ...
-    struct ipv6PacketHeader{
-        myPacketHeader packetHeader;
-    } __attribute__((__packed__)) header;
-
+typedef struct myPacket {
+    myPacketHeader packetHeader;
     stream_t payload[MAX_CARRIED];
-} __attribute__((__packed__)) ipv6Packet;
+} __attribute__((__packed__)) myPacket;
 
 // XXX XXX XXX HACK
 struct dummy {
@@ -73,13 +68,13 @@ struct dummy {
  */
 void print_payload(payload_t t);
 void print_packet_header(myPacketHeader *pkt);
-void print_ipv6Packet(ipv6Packet *pkt);
+void print_myPacket(myPacket *pkt);
 
 /** 
  * Create a ipv6packet with those values, mainly for testing and debugging
  * 
  */
-void make_ipv6Packet(ipv6Packet *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
+void make_myPacket(myPacket *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 
 /****************************************************************/
 /* accessing to the internal data of the structures more easily */
@@ -99,16 +94,16 @@ int payload_equals(payload_t x, payload_t y);
 /** 
  * Returns a pointer to our own header
  */
-myPacketHeader *getHeader(ipv6Packet *packet);
+myPacketHeader *getHeader(myPacket *packet);
 
 /*************************************************/
 /* Accessing to internal fields of the structure */
 /*************************************************/
-int get_size(ipv6Packet *packet, int size);
-int get_parts(ipv6Packet *packet);
-int get_ord_no(ipv6Packet *packet);
-int get_seq_no(ipv6Packet *packet);
-bool is_compressed(ipv6Packet *packet);
+int get_size(myPacket *packet, int size);
+int get_parts(myPacket *packet);
+int get_ord_no(myPacket *packet);
+int get_seq_no(myPacket *packet);
+bool is_compressed(myPacket *packet);
 
 #endif
 

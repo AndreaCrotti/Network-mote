@@ -258,7 +258,7 @@ void tunReceive(fdglue_handler_t* that) {
       LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
     }
 
-    ipv6Packet ipv6;
+    myPacket pkt;
     unsigned sendsize = 0;
     int no_chunks = needed_chunks(size);
     char chunks_left;
@@ -266,20 +266,20 @@ void tunReceive(fdglue_handler_t* that) {
     // generate all the subchunks and send them out
     do {
         //usleep(SERIAL_INTERVAL_US); // not needed
-        chunks_left = gen_packet(&payload, &ipv6, &sendsize, seqno, no_chunks);
+        chunks_left = gen_packet(&payload, &pkt, &sendsize, seqno, no_chunks);
         assert(sendsize);
-        LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)ipv6.header.packetHeader.ord_no, (unsigned)ipv6.header.packetHeader.seq_no);
+        LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)pkt.packetHeader.ord_no, (unsigned)pkt.packetHeader.seq_no);
         
         //LOG_DEBUG("Sending chunk with size %u\n", sendsize);
         /*unsigned counter = sendsize;
-        unsigned char *char_data = (unsigned char*)&ipv6;
+        unsigned char *char_data = (unsigned char*)&pkt;
         while(counter--){
             p rintf("%02X ", (unsigned)*char_data++);
         }
         p rintf("\n");*/
         
         payload_t to_send = {
-            .stream = (stream_t*)&ipv6,
+            .stream = (stream_t*)&pkt,
             .len = sendsize
         };
 
