@@ -11,24 +11,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #include <arpa/inet.h>  
-#include <net/route.h>
-#include <signal.h>
 #include <assert.h>
 
 #include "tunnel.h"
 #include "structs.h"
 
 #define TUN_DEV "/dev/net/tun"
-#define NEXT(x) ((x + 1) % MAX_QUEUED)
 
 // structure of a tun device
 typedef struct tundev {
@@ -36,7 +32,6 @@ typedef struct tundev {
     int fd;
     int client; // client we're serving
 } tundev;
-
 
 // The name of the interface 
 char ifname[IFNAMSIZ];
@@ -66,8 +61,6 @@ void tun_setup(int tun_flags) {
     }
 }
 
-// TODO: remove the need of *dev also, this should be tun_new and always \0
-// FIXME: should it ever connect to the same device twice?
 int tun_open(int client_no, char *dev) {
     struct ifreq ifr;
     int err;
@@ -134,7 +127,6 @@ void tun_write(int client_no, payload_t data){
     int fd = get_fd(client_no);
     
     // should not exit directly here maybe?
-    //TODO: Maybe send is better here
     if((nwrite = write(fd, data.stream, data.len)) < 0) {
         perror("Writing data");
         exit(1);

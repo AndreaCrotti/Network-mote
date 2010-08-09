@@ -30,7 +30,7 @@ void call_script(char *script_cmd, char *success, char *err, int is_fatal);
 
 void serialReceive(fdglue_handler_t* that);
 
-void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, char notun, int client_no);
+void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no);
 
 serialif_t * createSerialConnection(char const *dev, mcp_t **mcp);
 serialif_t *createSfConnection(char const* host, char const* port, mcp_t **mcp);

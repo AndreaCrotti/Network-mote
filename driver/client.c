@@ -24,8 +24,6 @@
 
 #define CLIENT_NO 0
 
-char notun = 0;
-
 /** 
  * Setting up the routing table, which need iproute2 to work!!
  * 
@@ -37,22 +35,20 @@ void setup_routes(char const* const tun_name) {
 }
 
 void start_client(char const *dev) {    
-    if (!notun) {
-        // on the server instead could create many
-        char tun_name[IFNAMSIZ];
-        tun_setup(TUNTAP_INTERFACE);
+    // on the server instead could create many
+    char tun_name[IFNAMSIZ];
+    tun_setup(TUNTAP_INTERFACE);
 
-        // a new device should be opened!
-        tun_name[0] = 0;    
-        // create the tap-device
+    // a new device should be opened!
+    tun_name[0] = 0;    
+    // create the tap-device
 
-        // it will exit abruptly if it doesn't open it correctly
-        tun_open(CLIENT_NO, tun_name);
+    // it will exit abruptly if it doesn't open it correctly
+    tun_open(CLIENT_NO, tun_name);
 
-        fflush(stdout);
+    fflush(stdout);
 
-        setup_routes(tun_name);
-    }
+    setup_routes(tun_name);
 
     // wrapper for select
     fdglue_t fdg;
@@ -65,22 +61,20 @@ void start_client(char const *dev) {
         sif = createFifoConnection(&mcp);
     }
 
-    initGlue(&fdg,sif,mcp,notun,CLIENT_NO);
+    initGlue(&fdg,sif,mcp,CLIENT_NO);
 
     main_loop(&fdg);
 }
 
 void usage(char* name) {
-    LOG_ERROR("%s [<device>] [notun]",name);
+    LOG_ERROR("%s [<device>]",name);
     exit(EX_USAGE);
 }
 
 int main(int argc, char *argv[]) {
-    notun = (0 == strcmp(argv[argc-1],"notun"));
-    
     char const* dev;
 
-    if (argc < 2+notun) {
+    if (argc < 2) {
         LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
         LOG_INFO("You may run for example:");
         LOG_INFO("mkfifo \"$MYFIFO\" && ./client < \"$MYFIFO\" | ./gateway - eth0 > \"$MYFIFO\"; [ -p \"$MYFIFO\" ] && rm \"$MYFIFO\"");

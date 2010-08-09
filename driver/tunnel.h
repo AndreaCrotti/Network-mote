@@ -3,9 +3,6 @@
 
 #include "util.h"
 
-#define MAX_QUEUED 10
-
-
 /*************************/
 /* Function declarations */
 /*************************/
