@@ -71,10 +71,9 @@ void print_packet_header(myPacketHeader *pkt);
 void print_myPacket(myPacket *pkt);
 
 /** 
- * Create a ipv6packet with those values, mainly for testing and debugging
- * 
+ * Create a packet 
  */
-void make_myPacket(myPacket *ip6_pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
+void make_myPacket(myPacket *pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 
 /****************************************************************/
 /* accessing to the internal data of the structures more easily */

@@ -19,11 +19,12 @@
 
 typedef long unsigned bitmask_t;
 
+/// structure used to keep the temporary packet constructed
 typedef struct {
     int seq_no;
     // bitmaks of chunks still missing
     bitmask_t missing_bitmask;
-    // That is the max size of the theoretically completed packet
+    // statically allocate to the max size of the frame
     stream_t chunks[MAX_FRAME_SIZE];
     int tot_size;
     bool is_compressed;
@@ -33,7 +34,9 @@ typedef struct {
 unsigned long started_pkts = 0;
 unsigned long finished_pkts = 0;
 
+/// array of packets that we are reconstructing
 static packet_t temp_packets[MAX_RECONSTRUCTABLE];
+/// callback called when we complete one packet
 static void (*send_back)(payload_t completed);
 
 /** 
@@ -50,19 +53,45 @@ packet_t *get_packet(int seq_no) {
     return NULL;
 }
 
+/** 
+ * Just used to avoid using the callback function
+ * 
+ * @param complete 
+ */
 void fake_reconstruct_done(payload_t complete) {
     (void) complete;
     LOG_INFO("packet completed, not doing anything");
 }
 
+/** 
+ * Check if the packet is completed
+ * 
+ * @param pkt pointer to the packet 
+ * 
+ * @return 1 if completed, 0 otherwise
+ */
 bool is_completed(packet_t *pkt) {
     return (pkt->missing_bitmask == 0);
 }
 
+/** 
+ * Check if two packets represents exactly the same data or not
+ * 
+ * @param pkt1 first packet
+ * @param pkt2 second packet
+ * @param size size of both
+ * 
+ * @return 1 if equal, 0 otherwise
+ */
 bool check_if_same_chunk(packet_t *pkt1, packet_t *pkt2, int size) {
     return memcmp((void *) pkt1, (void *) pkt2, size);
 }
 
+/** 
+ * Checks if the packet is completed and pass it to the callback function if it is
+ * 
+ * @param pkt packet to check
+ */
 void send_if_completed(packet_t *pkt) {
     // now we check if everything if the packet is completed and sends it back
     if (is_completed(pkt)) {
@@ -74,6 +103,8 @@ void send_if_completed(packet_t *pkt) {
             .len = pkt->tot_size,
             .stream = pkt->chunks
         };
+
+        // payload will be the original or the compressed if compression is enabled
 
 #if COMPRESSION_ENABLED
         static stream_t compr_data[MAX_FRAME_SIZE];
@@ -101,14 +132,14 @@ void send_if_completed(packet_t *pkt) {
  * @param pkt 
  */
 void init_temp_packet(packet_t* const pkt) {
-  *pkt = (packet_t){
-    .seq_no = -1,
-    .missing_bitmask = -1ul,
-    .tot_size = 0,
-    .is_compressed = true
-  };
+    *pkt = (packet_t){
+        .seq_no = -1,
+        .missing_bitmask = -1ul,
+        .tot_size = 0,
+        .is_compressed = true
+    };
 
-  memset((void*)(pkt->chunks), 0, MAX_FRAME_SIZE * sizeof(stream_t));
+    memset((void*)(pkt->chunks), 0, MAX_FRAME_SIZE * sizeof(stream_t));
 }
 
 /** 
@@ -121,23 +152,28 @@ void init_reconstruction(void (*callback)(payload_t completed)) {
     LOG_DEBUG("Initialising the reconstruction");
 
     send_back = callback;
+    // when not passing any callback we drop to the fake one
     if (!callback) {
         send_back = fake_reconstruct_done;
         LOG_WARNING("Installing useless callback for completed packets.\n");
     }
 
+    // initialising the array
     for (int i = 0; i < MAX_RECONSTRUCTABLE; i++) {
         init_temp_packet(temp_packets + i);
     }
 }
 
 /** 
- * Add a new chunk to the list of temp
+ * Main logic of the program.
+ * We first convert the payload to our own data structure
+ * Then we check the packet at the position has the same sequential number,
+ * if it does then we add the chunk to the packet, otherwise we
+ * initialize a new one
  * 
  * @param data 
  */
 void add_chunk(payload_t data) {
-    // TODO: add another check of the length of the data given in
     assert(data.len <= sizeof(myPacket));
     assert(data.len >= sizeof(myPacketHeader));
 
@@ -156,6 +192,7 @@ void add_chunk(payload_t data) {
         if (DEBUG)
             started_pkts++;
         
+        // payload can be adaptively compressed or not, so we need a flag in the packet
         pkt->is_compressed = is_compressed(original);
         // resetting to the initial configuration
         pkt->missing_bitmask = (1ul << get_parts(original)) - 1;
@@ -169,17 +206,18 @@ void add_chunk(payload_t data) {
 
     LOG_DEBUG("Adding chunk (seq_no: %d, ord_no: %d, parts: %d, missing bitmask: %lu)", seq_no, ord_no, get_parts(original), pkt->missing_bitmask);
 
-    // getting the real data of the packets
+    // getting the real data size of the packet
     int size = get_size(original, data.len);
     pkt->tot_size += size;
 
+    // finally copy on the chunks variable the size
     memcpy(pkt->chunks + (MAX_CARRIED * ord_no), original->payload, size);
     
     // remove the arrived packet from the bitmask
     bitmask_t new_bm = (pkt->missing_bitmask) & ~(1ul << ord_no);
 
     if (new_bm == pkt->missing_bitmask) {
-        LOG_WARNING("adding twice the same chunk");
+        LOG_WARNING("adding twice the same chunk, this could happen very very rarely");
         // the other one is at position POS(seq_no)
         if (check_if_same_chunk(pkt, &temp_packets[POS(seq_no)], sizeof(packet_t))) {
             // check if really the same one
@@ -191,6 +229,8 @@ void add_chunk(payload_t data) {
         pkt->missing_bitmask = new_bm;
         send_if_completed(pkt);
     }
+    
+    // finally free the memory we allocated
     free(original);
 }
 

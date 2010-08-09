@@ -82,10 +82,8 @@ int get_parts(myPacket *packet) {
 
 // not really needed now since we already get the right size
 int get_size(myPacket *packet, int size) {
-    // TODO check size
     int computed_size;
     if (is_last(packet)) {
-        // we need to invert from htons!!
         computed_size = size - sizeof(myPacketHeader);
     } else {
         computed_size = MAX_CARRIED;
