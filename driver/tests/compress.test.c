@@ -1,15 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <assert.h>
 #include <unistd.h>
 #include <string.h>
 
 #include "structs.h"
 #include "compress.h"
-#include "various.h"
 
 #define SIZE 12
 int size = 1 << SIZE;
+
+void get_random_msg(payload_t *data, int size) {
+    int fd = open("/dev/urandom", O_RDONLY);
+    int nread = read(fd, (void *) data->stream, size);
+    data->len = size;
+    assert(nread == size);
+}
 
 int main() {
     // Create payload for original, compressed and decompressed data

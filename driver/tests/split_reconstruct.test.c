@@ -7,14 +7,13 @@
 #include "reconstruct.h"
 #include "util.h"
 #include "structs.h"
-#include "various.h"
 
 // this is the exponent of the size
 #define MSG_SIZE 10
 #define NUM_MSGS 5
 
-int msg_size;
-int num_msgs;
+static int msg_size;
+static int num_msgs;
 
 /** 
  * Swap two messages at the given positions
@@ -30,6 +29,12 @@ void swap_msgs(int p1, int p2, payload_t *msgs) {
     msgs[p2] = tmp;
 }
 
+/** 
+ * Randomize adding the chunks
+ * 
+ * @param msgs 
+ * @param count 
+ */
 void add_random_order(payload_t *msgs, int count) {
     int pos;
     while (count) {
@@ -39,6 +44,13 @@ void add_random_order(payload_t *msgs, int count) {
         count--;
     }
     assert(count == 0);
+}
+
+void get_random_msg(payload_t *data, int size) {
+    int fd = open("/dev/urandom", O_RDONLY);
+    int nread = read(fd, (void *) data->stream, size);
+    data->len = size;
+    assert(nread == size);
 }
 
 /** 
@@ -68,7 +80,7 @@ void add_random_seqs(payload_t fixed, payload_t *result, int parts, int count) {
 
 int main(int argc, char *argv[]) {
     if ((argc != 3) && (argc != 1)) {
-        printf("usage: split_reconstruct [exp] [num msgs]\n");
+        printf("usage: ./%s [exp] [num msgs]\n", argv[0]);
     }
     if (argc == 3) {
         // now we split the data and try to reconstruct it

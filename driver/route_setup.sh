@@ -17,7 +17,6 @@ fi
 ip link set $TUN up
 ip addr add $ADDR dev $TUN
 
-# once we have an IP and a netmask we can use it as a real network interface
-# ifconfig $TUN $ADDR netmask 255.255.255.0 not needed anymore
+# delete the default and add a route via our tun device
 ip route del default
 ip route add default via $ADDR dev $TUN

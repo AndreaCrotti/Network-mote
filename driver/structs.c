@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
 #include "util.h"
 
 #include "structs.h"
@@ -18,11 +19,6 @@ void print_packet_header(myPacketHeader *pkt) {
     LOG_DEBUG("(seq = %d, ord = %d, parts = %d)", pkt->seq_no, pkt->ord_no, pkt->parts);
 }
 
-void print_myPacket(myPacket *pkt) {
-    print_packet_header(&(pkt->packetHeader));
-}
-
-// only used for testing out something
 void make_myPacket(myPacket *packet, int seq_no, int ord_no, int parts, stream_t *payload, int len) {
     packet->packetHeader.seq_no = seq_no;
     packet->packetHeader.ord_no = ord_no;
@@ -34,7 +30,7 @@ void make_myPacket(myPacket *packet, int seq_no, int ord_no, int parts, stream_t
 /****************************************/
 /* Functions to access to the structure */
 /****************************************/
-int payload_equals(payload_t x, payload_t y) {
+bool payload_equals(payload_t x, payload_t y) {
     if (x.len != y.len) {
         LOG_DEBUG("%d != %d", x.len, y.len);
         return 0;
@@ -43,11 +39,11 @@ int payload_equals(payload_t x, payload_t y) {
     for (unsigned i = 0; i < x.len; i++) {
         if (x.stream[i] != y.stream[i]) {
             LOG_DEBUG("%d != %d", x.stream[i], y.stream[i]);
-            return 0;
+            return false;
         }
     }
     // they are correct now
-    return 1;
+    return true;
 }
 
 void copy_payload(payload_t *src, payload_t *dst) {
@@ -80,12 +76,9 @@ int get_parts(myPacket *packet) {
    return get_header(packet)->parts;
 }
 
-// not really needed now since we already get the right size
 int get_size(myPacket *packet, int size) {
-    // TODO check size
     int computed_size;
     if (is_last(packet)) {
-        // we need to invert from htons!!
         computed_size = size - sizeof(myPacketHeader);
     } else {
         computed_size = MAX_CARRIED;
