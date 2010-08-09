@@ -65,6 +65,7 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
   if (payload.stream) {
     buf.len = sizeof(struct message_header_mine_t)+payload.len*sizeof(stream_t);
     buf.stream = malloc(buf.len);
+    LOG_WARN("malloc: %p",buf.stream);
     memset((void*)buf.stream,0,sizeof(struct message_header_mine_t));
     struct message_header_mine_t* mh = (struct message_header_mine_t*)(buf.stream);
     mh->destaddr = 0xFFFF;
@@ -80,9 +81,13 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
   }
   if (queue->size(queue) && !this->busy) {
     buf = queue->dequeue(queue);
+    if (!buf.stream)
+      LOG_WARN("Buffer is not alloc'd");
     // call the serial_source library for the dirty work
     int result = write_serial_packet(this->source,buf.stream,buf.len);
-    free((void*)(buf.stream));
+//    if (!buf.stream)
+    LOG_WARN("Freeing %p",buf.stream);
+      free((void*)(buf.stream));
     this->busy = 1;
     if (this->onBufferEmpty && queue->size(queue) <= SERIAL_SEND_BUFFER_MIN) {
       this->onBufferEmpty();
