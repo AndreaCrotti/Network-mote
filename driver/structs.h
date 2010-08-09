@@ -63,15 +63,21 @@ struct dummy {
 /*********************************************/
 
 /** 
- * Check if the two payloads are equal, of course the length must be correct
+ * Print the given payload
  * 
+ * @param t payload to print
  */
 void print_payload(payload_t t);
-void print_packet_header(myPacketHeader *pkt);
-void print_myPacket(myPacket *pkt);
 
 /** 
- * Create a packet 
+ * Print seq, ord, parts from the given packet
+ * 
+ * @param pkt 
+ */
+void print_packet_header(myPacketHeader *pkt);
+
+/** 
+ * function to create a packet, mainly for testing purposes, not really used
  */
 void make_myPacket(myPacket *pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 
@@ -81,14 +87,20 @@ void make_myPacket(myPacket *pkt, int seq_no, int ord_no, int parts, stream_t *p
 
 /**
  * Copy a payload structure, size of destiantion must be greater or equal
+ *
+ * @param src source payload
+ * @param dst destination payload
  */
 void copy_payload(payload_t *src, payload_t *dst);
 
 /** 
  * Check if the two payloads are equal, of course the length must be correct
- * 
+ * Checking first the length and then the content
+ *
+ * @param x first payload
+ * @param y second payload
  */
-int payload_equals(payload_t x, payload_t y);
+bool payload_equals(payload_t x, payload_t y);
 
 /** 
  * Returns a pointer to our own header
@@ -98,6 +110,7 @@ myPacketHeader *getHeader(myPacket *packet);
 /*************************************************/
 /* Accessing to internal fields of the structure */
 /*************************************************/
+// returns packet->header.size
 int get_size(myPacket *packet, int size);
 int get_parts(myPacket *packet);
 int get_ord_no(myPacket *packet);
