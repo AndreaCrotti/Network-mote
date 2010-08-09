@@ -47,10 +47,9 @@ MotNet
   Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
 
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
-
+  
 * Architecture
   
-
 * Coding style
 
 * Files

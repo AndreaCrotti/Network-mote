@@ -74,7 +74,7 @@ void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     // wrapper for select
     fdglue_t fdg;
 
-    initGlue(&fdg,sif,mcp,0,CLIENT_NO);
+    initGlue(&fdg,sif,mcp,CLIENT_NO);
 
     main_loop(&fdg);
 }

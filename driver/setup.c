@@ -36,7 +36,7 @@ void _close_everything(int param) {
     exit(EXIT_SUCCESS);
 }
 
-void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, char notun, int client_no) {
+void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
     tunActive = NULL;
     
     fdglue(g);
@@ -57,8 +57,7 @@ void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, char notun, int client_n
     };
 
     g->setHandler(g, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND,NULL);
-    if (!notun)
-      g->setHandler(g, get_fd(client_no), FDGHT_READ, hand_thi, FDGHR_APPEND, &tunActive);
+    g->setHandler(g, get_fd(client_no), FDGHT_READ, hand_thi, FDGHR_APPEND, &tunActive);
 
     // give the serial interface a chance to tell us when we are too fast for it
     sif->onBufferFull = serialBufferFull;
@@ -246,7 +245,6 @@ void tunReceive(fdglue_handler_t* that) {
     }
             
 #endif
-
     {
       unsigned sum = 0;
       if (DEBUG) {

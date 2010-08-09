@@ -1,8 +1,6 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
-// measures in bytes
-#define SIZE_IPV6_HEADER 40
 // For the usage of additional headers MAX_CARRIED has to be smaller
 #define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(myPacketHeader))
 #define TOT_PACKET_SIZE(payload_len) (sizeof(myPacketHeader) + payload_len)
@@ -55,7 +53,7 @@ typedef struct myPacket {
     stream_t payload[MAX_CARRIED];
 } __attribute__((__packed__)) myPacket;
 
-// XXX XXX XXX HACK
+// dummy message type used to communicate with the serial forwarder, NOT USED ANYWHERE
 struct dummy {
   char bla[102];
 };
