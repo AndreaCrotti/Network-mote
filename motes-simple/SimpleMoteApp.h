@@ -52,6 +52,6 @@ typedef nx_struct myPacketHeader {
     nx_boolean is_compressed;
     // how many chunks in total
     nx_uint8_t parts;
-} __attribute__((__packed__)) myPacketHeader;
+} myPacketHeader;
 
 #endif
