@@ -248,9 +248,9 @@ implementation{
      * @see tos.interfaces.Receive.receive
      */
     event message_t* RadioReceive.receive(message_t* m, void* payload, uint8_t len){
-        myPacketHeader *myph = (myPaycketHeader*) m;
+        myPacketHeader *myph = (myPacketHeader*) m;
         
-        am_addr_t source = m->sender;
+        am_addr_t source = myph->sender;
 
         // Add this message to the queue of seen messages
         addToQueue(source, myph->seq_no, myph->ord_no);
