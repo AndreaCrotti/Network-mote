@@ -120,20 +120,20 @@ implementation{
      * A task for sending radio messages and the used variables.
      */
     am_addr_t sR_dest;
-    message_t* sR_m;
+    message_t sR_m;
     uint8_t sR_len;
     task void sendRadio(){
-        call RadioSend.send(sR_dest, sR_m, sR_len);
+        call RadioSend.send(sR_dest, &sR_m, sR_len);
     }
 
     /** 
      * A task for sending serial  messages and the used variables.
      */
     am_addr_t sS_dest;
-    message_t* sS_m;
+    message_t sS_m;
     uint8_t sS_len;
     task void sendSerial(){
-        call SerialSend.send(sS_dest, sS_m, sS_len);
+        call SerialSend.send(sS_dest, &sS_m, sS_len);
     }
 
     /**
@@ -209,7 +209,7 @@ implementation{
         post sendSerialAck();
 
         // broadcast the message over the radio
-        sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
+        sR_dest = AM_BROADCAST_ADDR; sR_m = *m; sR_len = len;
         post sendRadio();
 
         return m;
@@ -248,7 +248,7 @@ implementation{
      * @see tos.interfaces.Receive.receive
      */
     event message_t* RadioReceive.receive(message_t* m, void* payload, uint8_t len){
-        myPacketHeader *myph = (myPacketHeader*) m;
+        myPacketHeader *myph = (myPacketHeader*) payload;
         
         am_addr_t source = myph->sender;
 
@@ -258,7 +258,7 @@ implementation{
         // Test if the message is for us
         if(myph->destination == TOS_NODE_ID){
             // Forward it to the serial
-            sS_dest = AM_BROADCAST_ADDR; sS_m = m; sS_len = len;
+            sS_dest = AM_BROADCAST_ADDR; sS_m = *m; sS_len = len;
             post sendSerial();
         }else{
             // Test, whether the message should be broadcasted over the radio
@@ -267,7 +267,7 @@ implementation{
                 addToQueue(source, myph->seq_no, myph->ord_no); 
 
                 // Forward it!
-                sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
+                sR_dest = AM_BROADCAST_ADDR; sR_m = *m; sR_len = len;
                 post sendRadio();
             }
         }
