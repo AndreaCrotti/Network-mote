@@ -1,5 +1,4 @@
 // see http://www.zlib.net/manual.html for more info
-// TODO: check again for possible memory leaks (one still there apparently)
 
 #include <stdio.h>
 #include <string.h>
@@ -14,6 +13,7 @@
 #define COMPRESS 0
 #define DECOMPRESS 1
 
+// static streams used for compression
 static z_stream strm_compress;
 static z_stream strm_decompress;
 
@@ -43,6 +43,10 @@ void close_compression(void) {
 
 /** 
  * Setup the stream for compression and decompression
+ * 
+ * @param strm The stream to set up.
+ * @param data The stream's input.
+ * @param result Address, where the result will be written.
  */
 void _setup_zstream(z_stream *strm, const payload_t *data, payload_t *result) {
     // setup the correct values in the stream
@@ -56,6 +60,15 @@ void print_gained(streamlen_t before, streamlen_t after) {
     LOG_INFO("Compressed data is %.5f%% of original size.", ((float) after / before) * 100);
 }
 
+/** 
+ * Performs compression or decompression on a data stream.
+ * 
+ * @param mode Either COMPRESS or DECOMPRESS.
+ * @param data The stream's input.
+ * @param result Address, where the result will be written.
+ * 
+ * @return Z_OK
+ */
 int _zlib_manage(int mode, const payload_t data, payload_t *result) {
     int ret;
     z_stream *strm;

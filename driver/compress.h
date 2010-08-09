@@ -21,11 +21,22 @@ int payload_compress(const payload_t data, payload_t *result);
  */
 int payload_decompress(const payload_t data, payload_t *result);
 
-// some statistics
+/** 
+ * Prints some statistics.
+ * 
+ * @param before Payload size before compression
+ * @param after Payload size after compression
+ */
 void print_gained(streamlen_t before, streamlen_t after);
 
+/** 
+ * Initializes the compression module. 
+ */
 void init_compression(void);
 
+/** 
+ * Finalizes the compression module.
+ */
 void close_compression(void);
 
 #endif /* COMPRESS_H */
