@@ -142,8 +142,6 @@ implementation{
     event void LowSend.sendDone(message_t* msg, error_t error){
         message_t* q_msg;
 
-        //call Leds.led1Toggle();
-
         // Remove the message from the queue
         atomic{
             q_msg = call Queue.dequeue();

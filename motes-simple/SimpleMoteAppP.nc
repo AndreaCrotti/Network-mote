@@ -205,12 +205,12 @@ implementation{
      */
     event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len){
 
+        // Send an acknowledgement to the connected PC
+        post sendSerialAck();
+
         // broadcast the message over the radio
         sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
         post sendRadio();
-
-        // Send an acknowledgement to the connected PC
-        post sendSerialAck();
 
         return m;
     }
@@ -252,9 +252,6 @@ implementation{
         
         am_addr_t source = myph->sender;
 
-        // Add this message to the queue of seen messages
-        addToQueue(source, myph->seq_no, myph->ord_no);
-        
         // Test if the message is for us
         if(myph->destination == TOS_NODE_ID){
             // Forward it to the serial
@@ -263,6 +260,9 @@ implementation{
         }else{
             // Test, whether the message should be broadcasted over the radio
             if(!inQueue(source, myph->seq_no, myph->ord_no)){
+                // Add this message to the queue of seen messages
+                addToQueue(source, myph->seq_no, myph->ord_no); 
+
                 // Forward it!
                 sR_dest = AM_BROADCAST_ADDR; sR_m = m; sR_len = len;
                 post sendRadio();
