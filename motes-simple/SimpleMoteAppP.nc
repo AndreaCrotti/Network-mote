@@ -252,9 +252,6 @@ implementation{
         
         am_addr_t source = myph->sender;
 
-        call Leds.set(myph->destination);
-        return m;
-
         // Test if the message is for us
         if(myph->destination == TOS_NODE_ID){
             // Forward it to the serial
