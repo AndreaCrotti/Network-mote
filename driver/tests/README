@@ -1,1 +1,4 @@
 test directory
+
+Any file that you add here with "test" in the name will be automatically compiled.
+Moreover with "make tests" you can execute all the tests automatically
