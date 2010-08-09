@@ -8,10 +8,16 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <assert.h>
+#include <arpa/inet.h>
 
 #include "chunker.h"
 #include "structs.h"
 #include "motecomm.h"
+
+// Hardcoded sender and destination addresses for the created packets
+uint16_t sender_address;
+uint16_t destination_address;
+
 
 /** 
  * Computes the needed number of chunks given a payload size.
@@ -34,6 +40,9 @@ int gen_packet(payload_t* const payload, myPacket* const packet, unsigned* sends
         .seq_no = 0xFF,
         .ord_no = 0xFF
     };
+
+    pkt.sender = htons(sender_address);
+    pkt.destination = htons(destination_address);
     
     // initialized if it's a new one
     if (pkt.seq_no != seq_no) {

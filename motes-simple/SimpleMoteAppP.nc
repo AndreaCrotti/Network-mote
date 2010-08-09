@@ -248,14 +248,15 @@ implementation{
      * @see tos.interfaces.Receive.receive
      */
     event message_t* RadioReceive.receive(message_t* m, void* payload, uint8_t len){
-        am_addr_t source = call AMPacket.source(m);
-        myPacketHeader *myph = (myPacketHeader*) m;
+        myPacketHeader *myph = (myPaycketHeader*) m;
         
+        am_addr_t source = m->sender;
+
         // Add this message to the queue of seen messages
         addToQueue(source, myph->seq_no, myph->ord_no);
         
         // Test if the message is for us
-        if(myph->sender == TOS_NODE_ID){
+        if(myph->destination == TOS_NODE_ID){
             // Forward it to the serial
             sS_dest = AM_BROADCAST_ADDR; sS_m = m; sS_len = len;
             post sendSerial();

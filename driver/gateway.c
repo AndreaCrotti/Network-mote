@@ -1,4 +1,4 @@
-// TODO: try to put the headers on diet
+
 // Includes
 #include <unistd.h>
 #include <fcntl.h>
@@ -44,6 +44,9 @@
 #define CLIENT_NO 0
 #define TRUE 1
 
+// Hardcoded sender and destination addresses for the created packets
+extern uint16_t sender_address;
+extern uint16_t destination_address;
 
 /** 
  * Call an external script to setup the iptables rules
@@ -88,6 +91,9 @@ int main(int argc, char *argv[]) {
     if (argc != 3) {
         usage(argv[0]);
     }
+
+    sender_address = 254;
+    destination_address = 1;
 
     char *dev = argv[1];
     char const *eth = argv[2];

@@ -1,6 +1,10 @@
 #ifndef _CLIENT_H
 #define _CLIENT_H
 
+// Hardcode the sender and destination addresses for the created packets
+#define SENDER_ADDRESS 1
+#define DEST_ADDRESS 254
+
 /** 
  * Starts the client program.
  * 

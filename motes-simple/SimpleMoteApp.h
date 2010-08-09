@@ -42,7 +42,7 @@ typedef uint8_t boolean;
 /*  TODO: if possible use the same structure */
 typedef struct myPacketHeader {
     am_addr_t sender;
-    am_addr_t receiver;
+    am_addr_t destination;
     seq_no_t seq_no;
     uint8_t ord_no;
     // tells if the payload is compressed or not

@@ -24,6 +24,11 @@
 
 #define CLIENT_NO 0
 
+
+// Hardcoded sender and destination addresses for the created packets
+extern uint16_t sender_address;
+extern uint16_t destination_address;
+
 /** 
  * Setting up the routing table, which need iproute2 to work!!
  * 
@@ -73,6 +78,9 @@ void usage(char* name) {
 
 int main(int argc, char *argv[]) {
     char const* dev;
+
+    sender_address = 1;
+    destination_address = 254;
 
     if (argc < 2) {
         LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
