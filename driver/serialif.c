@@ -125,8 +125,8 @@ void _serialif_t_read(serialif_t* this, payload_t* const payload) {
     } else {
       // this is an acknowledgement, so invoke the send method
       usleep(SERIAL_FORCE_ACK_SLEEP_US);
-      this->send(this,(payload_t){.stream = NULL, .len = 0});
     }
+    this->send(this,(payload_t){.stream = NULL, .len = 0});
   } else {
     payload->len = 0;
     payload->stream = NULL;
