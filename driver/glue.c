@@ -58,7 +58,7 @@ void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const typ
     }
 }
 
-void _fdglue_t_listen(fdglue_t* this, unsigned timeout) {
+void _fdglue_t_listen(fdglue_t* this, unsigned timeout, unsigned us) {
     assert(this);
     static fd_set rd, wr, er;
     static fd_set* fdmap[FDGHT_SIZE];
@@ -74,7 +74,7 @@ void _fdglue_t_listen(fdglue_t* this, unsigned timeout) {
             FD_SET(it->fd,fdmap[it->type]);
         }
     }
-    struct timeval tv = {.tv_sec = timeout, .tv_usec = 0};
+    struct timeval tv = {.tv_sec = timeout, .tv_usec = us};
     if (-1 != select(this->nfds+1, &rd, &wr, &er, &tv)) {
         for (it = this->handlers; it; it = it->next) {
             if (it->active && FD_ISSET(it->fd,fdmap[it->type])) {

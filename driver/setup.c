@@ -77,7 +77,7 @@ void main_loop(fdglue_t *fdg) {
         // note: 5 minutes is just an arbitrary sleep interval
         // if we wait for 5 minutes and did not receive a single packet,
         // this loop will just reiterate (printing stats and so on)
-        fdg->listen(fdg, 5 * 60);
+        fdg->listen(fdg, 0,40000);
     }
 }
 

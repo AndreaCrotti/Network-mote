@@ -83,11 +83,17 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
     buf = queue->dequeue(queue);
     if (!buf.stream)
       LOG_WARN("Buffer is not alloc'd");
+    LOG_DEBUG("send dump:"); {
+      for (unsigned i = 0; i < buf.len; i++) {
+        printf("%02X ",buf.stream[i]);
+      }
+      printf("\n");
+    }
     // call the serial_source library for the dirty work
     int result = write_serial_packet(this->source,buf.stream,buf.len);
 //    if (!buf.stream)
     LOG_WARN("Freeing %p",buf.stream);
-      free((void*)(buf.stream));
+    free((void*)(buf.stream));
     this->busy = 1;
     if (this->onBufferEmpty && queue->size(queue) <= SERIAL_SEND_BUFFER_MIN) {
       this->onBufferEmpty();
