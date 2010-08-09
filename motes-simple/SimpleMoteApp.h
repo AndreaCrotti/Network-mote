@@ -35,6 +35,9 @@ enum {
     PACKET_QUEUE_SIZE = 16
 };
 
+typedef nx_uint8_t nx_seq_no_t;
+typedef nx_uint8_t nx_boolean;
+
 typedef uint8_t seq_no_t;
 typedef uint8_t boolean;
 
@@ -43,12 +46,12 @@ typedef uint8_t boolean;
 typedef nx_struct myPacketHeader {
     nx_am_addr_t sender;
     nx_am_addr_t destination;
-    seq_no_t seq_no;
-    uint8_t ord_no;
+    nx_seq_no_t seq_no;
+    nx_uint8_t ord_no;
     // tells if the payload is compressed or not
-    boolean is_compressed;
+    nx_boolean is_compressed;
     // how many chunks in total
-    uint8_t parts;
+    nx_uint8_t parts;
 } __attribute__((__packed__)) myPacketHeader;
 
 #endif
