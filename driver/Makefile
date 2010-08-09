@@ -17,7 +17,7 @@ WARN = -Wall -Wextra
 DEBUG = -ggdb -O0 -pg -fno-omit-frame-pointer
 FLAGS = $(WARN) $(INCLUDE) $(CFLAGS) $(DEBUG) $(STD)
 
-HEADERS = util.h motecomm.sizes.h config.h hostname.h
+HEADERS = util.h motecomm.sizes.h hostname.h queue.h
 TARGETS := gateway gateway-sf client
 MAINS := $(addsuffix %.c,$(TARGETS))
 CODEFILES := $(filter-out %.test.c,$(wildcard *.c))
