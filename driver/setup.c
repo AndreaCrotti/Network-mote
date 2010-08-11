@@ -18,6 +18,8 @@
 
 char* tunActive;
 
+serialif_t* sifUsed;
+
 void serialBufferFull(void) {
   *tunActive = 0;
 }
@@ -62,6 +64,8 @@ void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
     // give the serial interface a chance to tell us when we are too fast for it
     sif->onBufferFull = serialBufferFull;
     sif->onBufferEmpty = serialBufferEmpty;
+
+    sifUsed = sif;
 }
 
 void main_loop(fdglue_t *fdg) {
@@ -71,13 +75,16 @@ void main_loop(fdglue_t *fdg) {
 
     unsigned lcount = 0;
     (void)lcount;
+    assert(sifUsed);
     for (;;) {
         LOG_INFO("listening %d ...",lcount++);
         print_statistics();
-        // note: 5 minutes is just an arbitrary sleep interval
+        // NOTE: this is just an arbitrary sleep interval
         // if we wait for 5 minutes and did not receive a single packet,
         // this loop will just reiterate (printing stats and so on)
-        fdg->listen(fdg, 0,40000);
+        fdg->listen(fdg, 1,0);
+        // serialif::send will check itself, wheter it should process its queue
+        sifUsed->send(sifUsed,(payload_t){.stream = NULL, .len = 0});
     }
 }
 

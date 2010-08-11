@@ -17,6 +17,10 @@
 #define SERIAL_FORCE_ACK_SLEEP_US 500
 #endif
 
+#ifndef SERIAL_AUTOACK_US
+#define SERIAL_AUTOACK_US 50000
+#endif
+
 /****** copied from serialsource.c ******/
 /****** DO NOT MODIFY! ******/
 #define BUFSIZE 256

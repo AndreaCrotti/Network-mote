@@ -4,6 +4,7 @@
 #include <serialsource.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
 // the following implementation is only suited for the pc side, but must be different on the mote side
 #if INCLUDE_SERIAL_IMPLEMENTATION
@@ -79,7 +80,16 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
   if (this->onBufferFull && queue->size(queue) >= SERIAL_SEND_BUFFER_MAX) {
     this->onBufferFull();
   }
-  if (queue->size(queue) && !this->busy) {
+  struct timeval oldTx = this->lastTx;
+  struct timeval newTx;
+  gettimeofday(&newTx,NULL);
+  // seconds difference
+  unsigned long timeDelta = newTx.tv_sec - oldTx.tv_sec;
+  timeDelta *= 1000000ul;
+  // and add the micro seconds difference
+  timeDelta += newTx.tv_usec - oldTx.tv_usec;
+  if (queue->size(queue) && (timeDelta>=SERIAL_AUTOACK_US)) {
+    this->lastTx = newTx;
     buf = queue->dequeue(queue);
     if (!buf.stream)
       LOG_WARN("Buffer is not alloc'd");
@@ -92,9 +102,8 @@ int _serialif_t_send(serialif_t* this, payload_t const payload) {
     // call the serial_source library for the dirty work
     int result = write_serial_packet(this->source,buf.stream,buf.len);
 //    if (!buf.stream)
-    LOG_WARN("Freeing %p",buf.stream);
+    //LOG_WARN("Freeing %p",buf.stream);
     free((void*)(buf.stream));
-    this->busy = 1;
     if (this->onBufferEmpty && queue->size(queue) <= SERIAL_SEND_BUFFER_MIN) {
       this->onBufferEmpty();
     }
@@ -123,7 +132,7 @@ void _serialif_t_read(serialif_t* this, payload_t* const payload) {
   }
   payload->len = buf.len - 8;
   if (buf.stream) {
-    this->busy = 0;
+    memset(&(this->lastTx),0,sizeof(this->lastTx));
     if (payload->len) {
       payload->stream = (void*)(malloc(buf.len-8));
       memcpy((void*)(payload->stream),(void*)(buf.stream+8),buf.len - 8);
