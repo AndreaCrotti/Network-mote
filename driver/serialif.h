@@ -5,20 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifndef SERIAL_SEND_BUFFER_MAX
-#define SERIAL_SEND_BUFFER_MAX 40
-#endif
-
-#ifndef SERIAL_SEND_BUFFER_MIN
-#define SERIAL_SEND_BUFFER_MIN 8
-#endif
-
 #ifndef SERIAL_FORCE_ACK_SLEEP_US
 #define SERIAL_FORCE_ACK_SLEEP_US 500
-#endif
-
-#ifndef SERIAL_AUTOACK_US
-#define SERIAL_AUTOACK_US 50000
 #endif
 
 /****** copied from serialsource.c ******/

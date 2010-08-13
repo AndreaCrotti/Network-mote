@@ -48,8 +48,6 @@ serialif_t* serialif(serialif_t* this, char const* const dev, char* const platfo
   assert(dev);
   assert(platform);
   SETDTOR(CTOR(this)) _serialif_t_dtor;
-  this->on_buffer_full = NULL;
-  this->on_buffer_empty = NULL;
   this->send = _serialif_t_send;
   this->read = _serialif_t_read;
   this->ditch = _serialif_t_ditch;
@@ -76,8 +74,6 @@ serialif_t* serialforwardif(serialif_t* this, char const* const host, char* cons
   assert(host);
   assert(port);
   SETDTOR(CTOR(this)) _serialforwardif_t_dtor;
-  this->on_buffer_full = NULL;
-  this->on_buffer_empty = NULL;
   this->send = _serialforwardif_t_send;
   this->read = _serialforwardif_t_read;
   this->ditch = _serialforwardif_t_ditch;
@@ -102,8 +98,6 @@ void _serialfakeif_t_open(serialif_t* this, char const* dev, char* const platfor
 // serialforwardif_t constructor
 serialif_t* serialfakeif(serialif_t* this) {
   SETDTOR(CTOR(this)) _serialfakeif_t_dtor;
-  this->on_buffer_full = NULL;
-  this->on_buffer_empty = NULL;
   this->send = _serialfakeif_t_send;
   this->read = _serialfakeif_t_read;
   this->ditch = _serialfakeif_t_ditch;

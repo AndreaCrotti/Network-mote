@@ -61,10 +61,6 @@ void init_glue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
     g->set_handler(g, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND,NULL);
     g->set_handler(g, get_fd(client_no), FDGHT_READ, hand_thi, FDGHR_APPEND, &tun_active);
 
-    // give the serial interface a chance to tell us when we are too fast for it
-    sif->on_buffer_full = serial_buffer_full;
-    sif->on_buffer_empty = serial_buffer_empty;
-
     sif_used = sif;
 }
 

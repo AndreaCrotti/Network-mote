@@ -4,7 +4,7 @@
 // interval between two transmissions in micro seconds
 // this value was roughly determined by testing smaller values may work
 // this value may depend on the topology.
-#define SERIAL_INTERVAL_US 40000
+#define SERIAL_INTERVAL_US 200000
 
 struct Tun_handler_info {
     int client_no;

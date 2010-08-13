@@ -252,23 +252,23 @@ implementation{
         
         am_addr_t source = myph->sender;
 
-        // Test if the message is for us
-        if(myph->destination == TOS_NODE_ID){
-            // Forward it to the serial
-            sS_dest = AM_BROADCAST_ADDR; sS_m = *m; sS_len = len;
-            post sendSerial();
-        }else{
-            // Test, whether the message should be broadcasted over the radio
-            if(!inQueue(source, myph->seq_no, myph->ord_no)){
-                // Add this message to the queue of seen messages
-                addToQueue(source, myph->seq_no, myph->ord_no); 
-
+        // Test, whether this message is a duplicate
+        if(!inQueue(source, myph->seq_no, myph->ord_no)){
+            // Add this message to the queue of seen messages
+            addToQueue(source, myph->seq_no, myph->ord_no); 
+                    
+            // Test if the message is for us
+            if(myph->destination == TOS_NODE_ID){
+                // Forward it to the serial
+                sS_dest = AM_BROADCAST_ADDR; sS_m = *m; sS_len = len;
+                post sendSerial();
+            }else{
                 // Forward it!
                 sR_dest = AM_BROADCAST_ADDR; sR_m = *m; sR_len = len;
                 post sendRadio();
             }
         }
-            
+        
         return m;
     }
 }

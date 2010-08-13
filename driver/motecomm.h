@@ -85,10 +85,6 @@ forward(mcp_t)* open_mcp_connection(char const* const dev, char* const platform,
 class (serialif_t,
   serial_source source;
   serial_source_msg msg;
-  // will be called (if set) when the buffer is full
-  void (*on_buffer_full)(void);
-  // will be called (if set) when the buffer is ready to accept data
-  void (*on_buffer_empty)(void);
   // send a datastream over the serial
   int (*send)(serialif_t* this, payload_t const payload);
   // initiate a read operation (will block if READ_NON_BLOCKING if 0)
