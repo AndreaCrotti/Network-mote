@@ -206,7 +206,7 @@ implementation{
     event message_t* SerialReceive.receive(message_t* m, void* payload, uint8_t len){
 
         // Send an acknowledgement to the connected PC
-        post sendSerialAck();
+        //post sendSerialAck();
 
         // broadcast the message over the radio
         sR_dest = AM_BROADCAST_ADDR; sR_m = *m; sR_len = len;
