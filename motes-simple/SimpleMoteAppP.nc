@@ -1,3 +1,13 @@
+/**
+ * @file   SimpleMoteAppP.nc
+ * @author Marius Grysla, Oscar Dustman, Andrea Crotti
+ * @date   Fri Aug 13 18:33:36 2010
+ * 
+ * @brief  Implementation of the MOTENET mote program.
+ * 
+ */
+
+
 #include "SimpleMoteApp.h"
 
 module SimpleMoteAppP{
