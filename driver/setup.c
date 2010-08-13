@@ -82,9 +82,7 @@ void main_loop(fdglue_t *fdg) {
         // NOTE: this is just an arbitrary sleep interval
         // if we wait for 5 minutes and did not receive a single packet,
         // this loop will just reiterate (printing stats and so on)
-        fdg->listen(fdg, 0, 50000);
-        // serialif::send will check itself, wheter it should process its queue
-        sifUsed->send(sifUsed,(payload_t){.stream = NULL, .len = 0});
+        fdg->listen(fdg, 60, 0);        
     }
 }
 
