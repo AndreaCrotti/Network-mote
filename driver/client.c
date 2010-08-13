@@ -61,12 +61,12 @@ void start_client(char const *dev) {
     mcp_t *mcp;
     serialif_t *sif;
     if (dev) {
-        sif = createSerialConnection(dev, &mcp);
+        sif = create_serial_connection(dev, &mcp);
     } else {
-        sif = createFifoConnection(&mcp);
+        sif = create_fifo_connection(&mcp);
     }
 
-    initGlue(&fdg,sif,mcp,CLIENT_NO);
+    init_glue(&fdg,sif,mcp,CLIENT_NO);
 
     main_loop(&fdg);
 }

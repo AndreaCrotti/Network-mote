@@ -49,7 +49,7 @@ typedef struct fdglue_handlerlist_t {
 class (fdglue_t,
   struct fdglue_handlerlist_t* handlers;
   int nfds;
-  void (*setHandler)(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action, char** const active);
+  void (*set_handler)(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action, char** const active);
   void (*listen)(fdglue_t* this, unsigned timeout, unsigned us);
 );
 

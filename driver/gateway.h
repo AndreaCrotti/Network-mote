@@ -5,6 +5,6 @@
 extern uint16_t sender_address;
 extern uint16_t destination_address;
 
-void startGateway(char const *dev);
+void start_gateway(char const *dev);
 
 #endif /* _GATEWAY_H_ */

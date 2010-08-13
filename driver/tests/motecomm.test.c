@@ -20,20 +20,20 @@ int main(int argc, char** args) {
   }
   return 0;
   assert(argc >= 3);
-  mcp_t* mcp = openMcpConnection(args[1],args[2],NULL);
+  mcp_t* mcp = open_mcp_connection(args[1],args[2],NULL);
   if (!mcp) {
     printf("There was an error opening the connection to %s over device %s.",args[2],args[1]);
     return 1; 
   }
   assert(mcp);
-  assert(mcp->getComm);
-  assert(mcp->getComm(mcp));
-  assert(mcp->getComm(mcp)->read);
+  assert(mcp->get_comm);
+  assert(mcp->get_comm(mcp));
+  assert(mcp->get_comm(mcp)->read);
   mccmp(NULL,mcp);
   laep(NULL,mcp);
   ifp(NULL,mcp);
   while (1) {
-    mcp->getComm(mcp)->read(mcp->getComm(mcp));
+    mcp->get_comm(mcp)->read(mcp->get_comm(mcp));
     printf("there was a message\n");
   }
   return 0;

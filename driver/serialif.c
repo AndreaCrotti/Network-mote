@@ -8,7 +8,7 @@
 // the following implementation is only suited for the pc side, but must be different on the mote side
 #if INCLUDE_SERIAL_IMPLEMENTATION
 
-void _serialif_t_openMessage(serial_source_msg problem);
+void _serialif_t_open_message(serial_source_msg problem);
 
 /**
  * @return The used file descriptor
@@ -33,16 +33,16 @@ void _serialif_t_ditch(serialif_t* this, payload_t* const payload) {
 }
 
 // allow asynchronous checking of the result of the serial_source library
-serial_source_msg* _serialif_t_openMessage_target = NULL;
+serial_source_msg* _serialif_t_open_message_target = NULL;
 
 /**
  * This handler is required by the serial_source library.
  *
  * @param problem Will be set to the status of the serial open instruction
  */
-void _serialif_t_openMessage(serial_source_msg problem) {
-  if (_serialif_t_openMessage_target) {
-    *_serialif_t_openMessage_target = problem;
+void _serialif_t_open_message(serial_source_msg problem) {
+  if (_serialif_t_open_message_target) {
+    *_serialif_t_open_message_target = problem;
   }
 }
 
@@ -124,9 +124,9 @@ void _serialif_t_dtor(serialif_t* this) {
  */
 void _serialif_t_open(serialif_t* this, char const* dev, char* const platform, serial_source_msg* ssm) {
   serial_source_msg _ssm = 128;
-  _serialif_t_openMessage_target = &_ssm;
-  this->source = open_serial_source(dev,platform_baud_rate(platform),READ_NON_BLOCKING,_serialif_t_openMessage);
-  _serialif_t_openMessage_target = NULL;
+  _serialif_t_open_message_target = &_ssm;
+  this->source = open_serial_source(dev,platform_baud_rate(platform),READ_NON_BLOCKING,_serialif_t_open_message);
+  _serialif_t_open_message_target = NULL;
   this->msg = _ssm;
   if (ssm) {
     *ssm = _ssm;

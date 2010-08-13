@@ -2,9 +2,9 @@
 #define STRUCTS_H
 
 // For the usage of additional headers MAX_CARRIED has to be smaller
-#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(myPacketHeader))
-#define TOT_PACKET_SIZE(payload_len) (sizeof(myPacketHeader) + payload_len)
-#define PAYLOAD_LEN (MAX_CARRIED - sizeof(myPacket))
+#define MAX_CARRIED (TOSH_DATA_LENGTH - sizeof(my_packet_header))
+#define TOT_PACKET_SIZE(payload_len) (sizeof(my_packet_header) + payload_len)
+#define PAYLOAD_LEN (MAX_CARRIED - sizeof(my_packet))
 
 #define TUNTAP_INTERFACE IFF_TUN
 
@@ -37,7 +37,7 @@ typedef uint8_t seq_no_t;
 typedef uint16_t am_addr_t;
 
 // also the internal struct should be packed
-typedef struct myPacketHeader {
+typedef struct my_packet_header {
     am_addr_t sender;
     am_addr_t destination;
     seq_no_t seq_no;
@@ -46,12 +46,12 @@ typedef struct myPacketHeader {
     bool is_compressed;
     // how many chunks in total
     uint8_t parts;
-} __attribute__((__packed__)) myPacketHeader;
+} __attribute__((__packed__)) my_packet_header;
 
-typedef struct myPacket {
-    myPacketHeader packetHeader;
+typedef struct my_packet {
+    my_packet_header packet_header;
     stream_t payload[MAX_CARRIED];
-} __attribute__((__packed__)) myPacket;
+} __attribute__((__packed__)) my_packet;
 
 // dummy message type used to communicate with the serial forwarder, NOT USED ANYWHERE
 struct dummy {
@@ -74,12 +74,12 @@ void print_payload(payload_t t);
  * 
  * @param pkt 
  */
-void print_packet_header(myPacketHeader *pkt);
+void print_packet_header(my_packet_header *pkt);
 
 /** 
  * function to create a packet, mainly for testing purposes, not really used
  */
-void make_myPacket(myPacket *pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
+void make_my_packet(my_packet *pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 
 /****************************************************************/
 /* accessing to the internal data of the structures more easily */
@@ -105,17 +105,17 @@ bool payload_equals(payload_t x, payload_t y);
 /** 
  * Returns a pointer to our own header
  */
-myPacketHeader *getHeader(myPacket *packet);
+my_packet_header *get_header(my_packet *packet);
 
 /*************************************************/
 /* Accessing to internal fields of the structure */
 /*************************************************/
 // returns packet->header.size
-int get_size(myPacket *packet, int size);
-int get_parts(myPacket *packet);
-int get_ord_no(myPacket *packet);
-int get_seq_no(myPacket *packet);
-bool is_compressed(myPacket *packet);
+int get_size(my_packet *packet, int size);
+int get_parts(my_packet *packet);
+int get_ord_no(my_packet *packet);
+int get_seq_no(my_packet *packet);
+bool is_compressed(my_packet *packet);
 
 #endif
 
