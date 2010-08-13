@@ -16,6 +16,7 @@
  */
 void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action, char** const active) {
     assert(this);
+    // change/remove an item the list
     if (action != FDGHR_APPEND) {
         fdglue_handlerlist_t dummy;
         dummy.fd = -1;
@@ -42,12 +43,15 @@ void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const typ
         assert(it);
         this->handlers = dummy.next;
     } else {
+        // put a new item into the list
         fdglue_handlerlist_t* p;
         assert(DYNAMIC_MEMORY);
+        // item for the new element
         p = malloc(sizeof(fdglue_handlerlist_t));
         p->fd = fd;
         p->type = type;
         p->hnd = hnd;
+        // allow easy external access to this item (to toggle it without removing it)
         if (active)
           *active = &(p->active);
         p->active = 1;
@@ -58,6 +62,13 @@ void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const typ
     }
 }
 
+/**
+ * Main function to start listening on all file descriptors.
+ * 
+ * @param this The object this function is to called with.
+ * @param timeout Amount of seconds until we will return even if no fd is writable/readable
+ * @param us Amount of micro-seconds (added to the seconds)
+ */
 void _fdglue_t_listen(fdglue_t* this, unsigned timeout, unsigned us) {
     assert(this);
     static fd_set rd, wr, er;
@@ -84,6 +95,9 @@ void _fdglue_t_listen(fdglue_t* this, unsigned timeout, unsigned us) {
     }
 }
 
+/**
+ *  Create a new fdglue object.
+ */
 fdglue_t* fdglue(fdglue_t* this) {
     CTOR(this);
     this->handlers = NULL;

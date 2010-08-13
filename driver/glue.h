@@ -1,3 +1,8 @@
+/**
+ *  Gentle wrapper for the select system call to "glue together" several file descriptors
+ *  @author Oscar Dustmann
+ *  @date 2010-09-06
+ */
 #ifndef GLUE_H
 #define GLUE_H
 
