@@ -1,10 +1,13 @@
 /**
- * This file carries configuration variables for the SimpleMoteApp program.
- *
  * @file SimpleMoteApp.h
  * @author Marius Grysla
  * @date Fr 23. Juli 10:00:23 CEST 2010
+ *
+ * @brief This file carries configuration variables and structs needed in the
+ *        SimpleMoteApp program.
+ *
  **/
+
 #ifndef SIMPLEMOTEAPP_H
 #define SIMPLEMOTEAPP_H
 
