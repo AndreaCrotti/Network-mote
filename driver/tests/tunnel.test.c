@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     // tunnel for client 0 created correctly
     if (tun_open(client, tun_name)) {
         for (int i = 0; i < 100; i++) {
-            //addToWriteQueue(client, buff, 10);
+            //add_to_write_queue(client, buff, 10);
             tun_write(client, (payload_t) {.stream = (stream_t*)buff, .len = 10});
         }
     } else {

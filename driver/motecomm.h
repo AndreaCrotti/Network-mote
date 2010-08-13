@@ -73,7 +73,7 @@ forward(mcp_t);
 forward(serialif_t);
 
 // wrapper build up a default mcp connection, you can do it on your own if you want to - in tos, you have to
-forward(mcp_t)* openMcpConnection(char const* const dev, char* const platform, forward(serialif_t)** sif);
+forward(mcp_t)* open_mcp_connection(char const* const dev, char* const platform, forward(serialif_t)** sif);
 
 /****************************************************************
  *  serialif_t                                                  *
@@ -86,9 +86,9 @@ class (serialif_t,
   serial_source source;
   serial_source_msg msg;
   // will be called (if set) when the buffer is full
-  void (*onBufferFull)(void);
+  void (*on_buffer_full)(void);
   // will be called (if set) when the buffer is ready to accept data
-  void (*onBufferEmpty)(void);
+  void (*on_buffer_empty)(void);
   // send a datastream over the serial
   int (*send)(serialif_t* this, payload_t const payload);
   // initiate a read operation (will block if READ_NON_BLOCKING if 0)
@@ -133,7 +133,7 @@ class (motecomm_t,
   // initiate reading (handlers will be called if appropriate)
   void (*read)(motecomm_t* this);
   // initialise a handler to be called - motecomm only offers one possible handler
-  void (*setHandler)(motecomm_t* this, motecomm_handler_t const handler);
+  void (*set_handler)(motecomm_t* this, motecomm_handler_t const handler);
 );
 
 /**
@@ -179,24 +179,24 @@ class (mcp_t,
   // install a handler for a sub protocol, previously set handlers for the same protocol
   // will be overridden - NULL is a valid handler (deactivates triggering).
   // handlers will be called with a payload, where the mcp header was removed.
-  void (*setHandler)(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd);
+  void (*set_handler)(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd);
   // send a packet of the indicated sub protocol (the header of the sub protocol is of course
   // expected to have already added to the payload) - only the mcp header will be added
   void (*send)(mcp_t* this, mcp_type_t const type, payload_t const payload);
   // getter for the internally used motecomm_t object
-  motecomm_t* (*getComm)(mcp_t* this);
+  motecomm_t* (*get_comm)(mcp_t* this);
 );
 
 /**
  *  Create a new mcp_t object.
  *
- *  @param uniqComm The motecomm_t object to use.
- *                  Note: there can be only one uniqComm in the whole system.
+ *  @param uniq_comm The motecomm_t object to use.
+ *                  Note: there can be only one uniq_comm in the whole system.
  *                  Future fixes may change that.
  *                  The first time an mcp is created you must not supply NULL, however
  *                  succeeding calls may either pass NULL or the original object.
  */
-mcp_t* mcp(mcp_t* this, motecomm_t* const uniqComm);
+mcp_t* mcp(mcp_t* this, motecomm_t* const uniq_comm);
 
 /****************************************************************
  *  mccmp_t                                                     *
@@ -232,7 +232,7 @@ class (mccmp_t,
   // initiate sending a mccmp packet. It is your obligation to provide a meaningful payload, if appropriate.
   void (*send)(mccmp_t* this, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload);
   // install a handler for a specific message type (e.g. an echo reply)
-  void (*setHandler)(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd);
+  void (*set_handler)(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd);
 );
 
 /**
@@ -277,7 +277,7 @@ class (laep_t,
   void (*request)(laep_t* this);
   // install a handler for a message type
   // you SHOULD install your handler to handle requests, as this is not implemented by laep_t
-  void (*setHandler)(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd);
+  void (*set_handler)(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd);
 );
 
 /**
@@ -310,7 +310,7 @@ class (ifp_t,
   // send the payload (adding an ifp header)
   void (*send)(ifp_t* this, payload_t const payload);
   // set a handler for incoming ip forward request (e.g. you could redirect it to tun)
-  void (*setHandler)(ifp_t* this, ifp_handler_t const hnd);
+  void (*set_handler)(ifp_t* this, ifp_handler_t const hnd);
 );
 
 /**

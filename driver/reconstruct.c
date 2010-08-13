@@ -174,11 +174,11 @@ void init_reconstruction(void (*callback)(payload_t completed)) {
  * @param data 
  */
 void add_chunk(payload_t data) {
-    assert(data.len <= sizeof(myPacket));
-    assert(data.len >= sizeof(myPacketHeader));
+    assert(data.len <= sizeof(my_packet));
+    assert(data.len >= sizeof(my_packet_header));
 
-    myPacket *original = malloc(sizeof(myPacket));
-    memcpy(original, data.stream, sizeof(myPacket));
+    my_packet *original = malloc(sizeof(my_packet));
+    memcpy(original, data.stream, sizeof(my_packet));
 
     int seq_no = get_seq_no(original);
     int ord_no = get_ord_no(original);

@@ -6,16 +6,16 @@
 // this value may depend on the topology.
 #define SERIAL_INTERVAL_US 40000
 
-struct TunHandlerInfo {
+struct Tun_handler_info {
     int client_no;
     motecomm_t* mcomm;
 };
 
 void main_loop(fdglue_t *fdg);
 
-void laSet(laep_handler_t* this, la_t const address);
+void la_set(laep_handler_t* this, la_t const address);
 
-void tunReceive(fdglue_handler_t* that);
+void tun_receive(fdglue_handler_t* that);
 
 /** 
  * Call a shell script and check its result
@@ -27,13 +27,13 @@ void tunReceive(fdglue_handler_t* that);
  */
 void call_script(char *script_cmd, char *success, char *err, int is_fatal);
 
-void serialReceive(fdglue_handler_t* that);
+void serial_receive(fdglue_handler_t* that);
 
-void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no);
+void init_glue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no);
 
-serialif_t * createSerialConnection(char const *dev, mcp_t **mcp);
-serialif_t *createSfConnection(char const* host, char const* port, mcp_t **mcp);
-serialif_t* createFifoConnection(mcp_t** _mcp);
+serialif_t * create_serial_connection(char const *dev, mcp_t **mcp);
+serialif_t *create_sf_connection(char const* host, char const* port, mcp_t **mcp);
+serialif_t* create_fifo_connection(mcp_t** _mcp);
 
 /** 
  * Processing data from the serial interface
@@ -41,4 +41,4 @@ serialif_t* createFifoConnection(mcp_t** _mcp);
  * @param that 
  * @param payload 
  */
-void serialProcess(struct motecomm_handler_t *that, payload_t const payload);
+void serial_process(struct motecomm_handler_t *that, payload_t const payload);

@@ -60,7 +60,7 @@ void setup_iptables(char const *dev, char const *eth) {
     call_script(script_cmd, "setup iptables rules", "setting up routing", 1);
 }
 
-void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
+void start_gateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
     tun_setup(TUNTAP_INTERFACE);
@@ -77,7 +77,7 @@ void startGateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     // wrapper for select
     fdglue_t fdg;
 
-    initGlue(&fdg,sif,mcp,CLIENT_NO);
+    init_glue(&fdg,sif,mcp,CLIENT_NO);
 
     main_loop(&fdg);
 }
@@ -109,9 +109,9 @@ int main(int argc, char *argv[]) {
       LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
       LOG_INFO("You may run for example:");
       LOG_INFO("mkfifo \"$MYFIFO\" && ./client < \"$MYFIFO\" | ./gateway - eth0 > \"$MYFIFO\"; [ -p \"$MYFIFO\" ] && rm \"$MYFIFO\"");
-      sif = createFifoConnection(&mcp);
+      sif = create_fifo_connection(&mcp);
     } else {
-      sif = createSerialConnection(dev, &mcp);
+      sif = create_serial_connection(dev, &mcp);
     }
 #elif SERIAL_STYLE == 1
     if (fake) {
@@ -128,11 +128,11 @@ int main(int argc, char *argv[]) {
       exit(1);
     }
     *port++ = 0;
-    sif = createSfConnection(dev, port, &mcp);
+    sif = create_sf_connection(dev, port, &mcp);
 #else
 #error "unsupported serial style"
 #endif
 
-    startGateway(sif,mcp, eth);
+    start_gateway(sif,mcp, eth);
     return 0;
 }
