@@ -16,16 +16,16 @@
 #include "setup.h"
 #include "compress.h"
 
-char* tunActive;
+char* tun_active;
 
-serialif_t* sifUsed;
+serialif_t* sif_used;
 
-void serialBufferFull(void) {
-  *tunActive = 0;
+void serial_buffer_full(void) {
+  *tun_active = 0;
 }
 
-void serialBufferEmpty(void) {
-  *tunActive = 1;
+void serial_buffer_empty(void) {
+  *tun_active = 1;
 }
 
 void _close_everything(int param) {
@@ -38,34 +38,30 @@ void _close_everything(int param) {
     exit(EXIT_SUCCESS);
 }
 
-void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
-    tunActive = NULL;
+void init_glue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
+    tun_active = NULL;
     
     fdglue(g);
 
     // structures for the handlers, it's an event driven program
     // so we need to setup handlers
-    struct TunHandlerInfo* thi = malloc(sizeof(struct TunHandlerInfo));
+    struct Tun_handler_info* thi = malloc(sizeof(struct Tun_handler_info));
     thi->client_no = client_no;
-    thi->mcomm = mcp->getComm(mcp);
+    thi->mcomm = mcp->get_comm(mcp);
 
     fdglue_handler_t hand_sif = {
         .p = mcp,
-        .handle = serialReceive
+        .handle = serial_receive
     };
     fdglue_handler_t hand_thi = {
         .p = thi,
-        .handle = tunReceive
+        .handle = tun_receive
     };
 
-    g->setHandler(g, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND,NULL);
-    g->setHandler(g, get_fd(client_no), FDGHT_READ, hand_thi, FDGHR_APPEND, &tunActive);
+    g->set_handler(g, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND,NULL);
+    g->set_handler(g, get_fd(client_no), FDGHT_READ, hand_thi, FDGHR_APPEND, &tun_active);
 
-    // give the serial interface a chance to tell us when we are too fast for it
-    sif->onBufferFull = serialBufferFull;
-    sif->onBufferEmpty = serialBufferEmpty;
-
-    sifUsed = sif;
+    sif_used = sif;
 }
 
 void main_loop(fdglue_t *fdg) {
@@ -75,7 +71,7 @@ void main_loop(fdglue_t *fdg) {
 
     unsigned lcount = 0;
     (void)lcount;
-    assert(sifUsed);
+    assert(sif_used);
     for (;;) {
         LOG_INFO("listening %d ...",lcount++);
         print_statistics();
@@ -87,13 +83,13 @@ void main_loop(fdglue_t *fdg) {
 }
 
 // a wrapper for mcp::receive that will be understood by the fdglue module
-void serialReceive(fdglue_handler_t* that) {
+void serial_receive(fdglue_handler_t* that) {
     mcp_t* this = (mcp_t*)(that->p);
-    this->getComm(this)->read(this->getComm(this));
+    this->get_comm(this)->read(this->get_comm(this));
 }
 
 // function to overwrite the handler and process data from serial 
-void serialProcess(struct motecomm_handler_t *that, payload_t const payload) {
+void serial_process(struct motecomm_handler_t *that, payload_t const payload) {
     (void)that;
     //LOG_DEBUG("hey I got something from the mote! p is %p",that->p);
     add_chunk(payload);
@@ -114,7 +110,7 @@ void call_script(char *script_cmd, char *success, char *err_msg, int is_fatal) {
     }
 }
 
-void reconstructDone(payload_t complete) {
+void reconstruct_done(payload_t complete) {
   LOG_DEBUG("reconstruct done\tsize: %u",complete.len);
   //for (unsigned i = 0; i < complete.len; i++) {
   //  LOG_DEBUG("%02X ",(unsigned)complete.stream[i]);
@@ -130,23 +126,23 @@ void reconstructDone(payload_t complete) {
   tun_write(/*FIXME*/ 0 /*FIXME*/,complete);
 }
 
-serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
+serialif_t *create_serial_connection(char const *dev, mcp_t **mcp) {
     char mote[] = "telosb";
     serialif_t *sif = NULL;
 
-    *mcp = openMcpConnection(dev, mote, &sif);
+    *mcp = open_mcp_connection(dev, mote, &sif);
     // at the moment we're not using these things
     /* ifp(0, mcp); */
     /* laep(0, mcp); */
-    /* _laep.setHandler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = laSet, .p = NULL}); */
+    /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
     // XXX HACK:
-    motecomm_t* mc = (*mcp)->getComm(*mcp);
-    mc->setHandler(mc,(motecomm_handler_t) {
+    motecomm_t* mc = (*mcp)->get_comm(*mcp);
+    mc->set_handler(mc,(motecomm_handler_t) {
       .p = 0,
-      .receive = serialProcess
+      .receive = serial_process
     });
 
-    init_reconstruction(reconstructDone);
+    init_reconstruction(reconstruct_done);
 
     if (*mcp) {
         LOG_INFO("Connection to %s over device %s opened.", mote, dev);
@@ -157,7 +153,7 @@ serialif_t *createSerialConnection(char const *dev, mcp_t **mcp) {
     return sif;
 }
 
-serialif_t *createSfConnection(char const* host, char const* port, mcp_t **_mcp) {
+serialif_t *create_sf_connection(char const* host, char const* port, mcp_t **_mcp) {
     char _port[strlen(port)+1];
     strcpy(_port,port);
     serialif_t* sif = serialforwardif(NULL,host,_port);
@@ -168,13 +164,13 @@ serialif_t *createSfConnection(char const* host, char const* port, mcp_t **_mcp)
     // at the moment we're not using these things
     /* ifp(0, mcp); */
     /* laep(0, mcp); */
-    /* _laep.setHandler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = laSet, .p = NULL}); */
-    mc->setHandler(mc,(motecomm_handler_t) {
+    /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
+    mc->set_handler(mc,(motecomm_handler_t) {
       .p = 0,
-      .receive = serialProcess
+      .receive = serial_process
     });
 
-    init_reconstruction(reconstructDone);
+    init_reconstruction(reconstruct_done);
 
     if (*_mcp) {
         LOG_INFO("Connection to %s over port %s opened.", host, _port);
@@ -186,7 +182,7 @@ serialif_t *createSfConnection(char const* host, char const* port, mcp_t **_mcp)
 }
 
 // a fake - or dummy - connection to an application running on the same machine
-serialif_t* createFifoConnection(mcp_t** _mcp) {
+serialif_t* create_fifo_connection(mcp_t** _mcp) {
   serialif_t* sif = serialfakeif(NULL);
   assert(sif);
   motecomm_t* mc = motecomm(NULL,sif);
@@ -194,13 +190,13 @@ serialif_t* createFifoConnection(mcp_t** _mcp) {
   // at the moment we're not using these things
   /* ifp(0, mcp); */
   /* laep(0, mcp); */
-  /* _laep.setHandler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = laSet, .p = NULL}); */
-  mc->setHandler(mc,(motecomm_handler_t) {
+  /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
+  mc->set_handler(mc,(motecomm_handler_t) {
     .p = 0,
-    .receive = serialProcess
+    .receive = serial_process
   });
 
-  init_reconstruction(reconstructDone);
+  init_reconstruction(reconstruct_done);
 
   if (*_mcp) {
         LOG_INFO("Fake connection over stdin/stdout opened.");
@@ -212,8 +208,8 @@ serialif_t* createFifoConnection(mcp_t** _mcp) {
 }
 
 // receiving data from the tunnel device
-void tunReceive(fdglue_handler_t* that) {
-    struct TunHandlerInfo* this = (struct TunHandlerInfo*)(that->p);
+void tun_receive(fdglue_handler_t* that) {
+    struct Tun_handler_info* this = (struct Tun_handler_info*)(that->p);
     // allocated only once and always reused!!
     static stream_t buf[MAX_FRAME_SIZE];
     memset(buf, 0, MAX_FRAME_SIZE);
@@ -261,7 +257,7 @@ void tunReceive(fdglue_handler_t* that) {
       LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
     }
 
-    myPacket pkt;
+    my_packet pkt;
     unsigned sendsize = 0;
     int no_chunks = needed_chunks(size);
     char chunks_left;
@@ -271,7 +267,7 @@ void tunReceive(fdglue_handler_t* that) {
         usleep(SERIAL_INTERVAL_US);
         chunks_left = gen_packet(&payload, &pkt, &sendsize, seqno, no_chunks);
         assert(sendsize);
-        LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)pkt.packetHeader.ord_no, (unsigned)pkt.packetHeader.seq_no);
+        LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)pkt.packet_header.ord_no, (unsigned)pkt.packet_header.seq_no);
         
         //LOG_DEBUG("Sending chunk with size %u\n", sendsize);
         /*unsigned counter = sendsize;
@@ -292,9 +288,9 @@ void tunReceive(fdglue_handler_t* that) {
     } while (chunks_left); 
 }
 
-la_t localAddress = DEFAULT_LOCAL_ADDRESS;
+la_t local_address = DEFAULT_LOCAL_ADDRESS;
 
-void laSet(laep_handler_t* this, la_t const address) {
+void la_set(laep_handler_t* this, la_t const address) {
     (void)this;
-    localAddress = address;
+    local_address = address;
 }

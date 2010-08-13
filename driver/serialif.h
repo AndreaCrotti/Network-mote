@@ -17,7 +17,7 @@ struct serial_source_t {
 #ifndef LOSE32
   int fd;
 #else
-  HANDLE hComm;
+  HANDLE h_comm;
 #endif
   bool non_blocking;
   void (*message)(serial_source_msg problem);

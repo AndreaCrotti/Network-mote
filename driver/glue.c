@@ -14,7 +14,7 @@
  * @param hnd The handler you want to install. (Ignored if you remove an entry)
  * @param action What you want to do? Replace, remove or append?
  */
-void _fdglue_t_setHandler(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action, char** const active) {
+void _fdglue_t_set_handler(fdglue_t* this, int fd, fdglue_handle_type_t const type, fdglue_handler_t const hnd, fdglue_handler_replace_t const action, char** const active) {
     assert(this);
     // change/remove an item the list
     if (action != FDGHR_APPEND) {
@@ -102,7 +102,7 @@ fdglue_t* fdglue(fdglue_t* this) {
     CTOR(this);
     this->handlers = NULL;
     this->nfds = -1;
-    this->setHandler = _fdglue_t_setHandler;
+    this->set_handler = _fdglue_t_set_handler;
     this->listen = _fdglue_t_listen;
     return this;
 }

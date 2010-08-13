@@ -8,7 +8,7 @@
  * Sets up a default mcp connection with all rudimentary objects needed for it (including motecomm_t)
  * If you pass a NULL sif, and your achitecture allows it, the serialif_t will be created automatically
  */
-mcp_t* openMcpConnection(char const* const dev, char* const platform, serialif_t** sif) {
+mcp_t* open_mcp_connection(char const* const dev, char* const platform, serialif_t** sif) {
   serialif_t* _sif;
 #if !DYNAMIC_MEMORY
   { assert(sif); }
@@ -152,7 +152,7 @@ void _motecomm_t_read(motecomm_t* this) {
  * Register a function pointer to a function (embedded in the struct) to be called
  * if there is a packet (you have to call this->read).
  */
-void _motecomm_t_setHandler(motecomm_t* this, motecomm_handler_t const handler) {
+void _motecomm_t_set_handler(motecomm_t* this, motecomm_handler_t const handler) {
   assert(this);
   this->motecomm_handler = handler;
 }
@@ -164,7 +164,7 @@ motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf) {
   this->serialif = *interf; // compile time fixed size, so we can copy directly - members are copied transparently
   this->send = _motecomm_t_send;
   this->read = _motecomm_t_read;
-  this->setHandler = _motecomm_t_setHandler;
+  this->set_handler = _motecomm_t_set_handler;
   return this;
 }
 
@@ -185,27 +185,27 @@ void _mcp_t_receive(motecomm_handler_t* that, payload_t const payload) {
   }
   {
     mcp_header_t h;
-    payload_t const nullPayload = {.stream = NULL, .len = 0};
+    payload_t const null_payload = {.stream = NULL, .len = 0};
     h.stream = payload.stream;
     if (h.header->version != MCP_VERSION) {
       if (this->mccmp)
-        this->mccmp->send(this->mccmp,MCCMP_UNSUPPORTED,h.header->ident,MCP_HD_VERSION_OFFSET,nullPayload);
+        this->mccmp->send(this->mccmp,MCCMP_UNSUPPORTED,h.header->ident,MCP_HD_VERSION_OFFSET,null_payload);
       return;
     }
     if (h.header->header != MCP_HEADER_BYTES) {
       if (this->mccmp)
-        this->mccmp->send(this->mccmp,MCCMP_PARAMETER_PROBLEM,h.header->ident,MCP_HD_HEADER_OFFSET,nullPayload);
+        this->mccmp->send(this->mccmp,MCCMP_PARAMETER_PROBLEM,h.header->ident,MCP_HD_HEADER_OFFSET,null_payload);
       return;
     }
     if (h.header->port != 0) {
       if (this->mccmp)
-        this->mccmp->send(this->mccmp,MCCMP_UNSUPPORTED,h.header->ident,MCP_HD_PORT_OFFSET,nullPayload);
+        this->mccmp->send(this->mccmp,MCCMP_UNSUPPORTED,h.header->ident,MCP_HD_PORT_OFFSET,null_payload);
       // TODO: implement additional ports
       return;
     }
     if ((unsigned)h.header->payload+h.header->header > payload.len) {
       if (this->mccmp)
-        this->mccmp->send(this->mccmp,MCCMP_PARAMETER_PROBLEM,h.header->ident,MCP_HD_PAYLOAD_OFFSET,nullPayload);
+        this->mccmp->send(this->mccmp,MCCMP_PARAMETER_PROBLEM,h.header->ident,MCP_HD_PAYLOAD_OFFSET,null_payload);
       return;
     }
     assert(h.header->type < MCP_TYPE_SIZE);
@@ -219,14 +219,14 @@ void _mcp_t_receive(motecomm_handler_t* that, payload_t const payload) {
 }
 
 // public:
-void _mcp_t_setHandler(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd) {
+void _mcp_t_set_handler(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd) {
   assert((unsigned)type < MCP_TYPE_SIZE);
   this->handler[type] = hnd;
 }
 
 void _mcp_t_send(struct mcp_t* this, mcp_type_t const type, payload_t const payload) {
-  stream_t const dummyPayload = 0;
-  stream_t const* stream = &dummyPayload;
+  stream_t const dummy_payload = 0;
+  stream_t const* stream = &dummy_payload;
   assert(this);
   if (payload.stream) {
     stream = payload.stream;
@@ -253,7 +253,7 @@ void _mcp_t_send(struct mcp_t* this, mcp_type_t const type, payload_t const payl
   //free(ns);
 }
 
-motecomm_t* _mcp_t_getComm(mcp_t* this) {
+motecomm_t* _mcp_t_get_comm(mcp_t* this) {
   return *(this->comm);
 }
 
@@ -261,27 +261,27 @@ void _mcp_t_dtor(mcp_t* this) {
   assert(this);
   this->motecomm_handler.p = NULL;
   this->motecomm_handler.receive = NULL;
-  (*(this->comm))->setHandler(*(this->comm),this->motecomm_handler);
+  (*(this->comm))->set_handler(*(this->comm),this->motecomm_handler);
 }
 
-mcp_t* mcp(mcp_t* this, motecomm_t* const uniqComm) {
+mcp_t* mcp(mcp_t* this, motecomm_t* const uniq_comm) {
   SETDTOR(CTOR(this)) _mcp_t_dtor;
   {
-    static motecomm_t* persistentComm = NULL;
-    if (!persistentComm && uniqComm)
-      persistentComm = uniqComm;
-    assert(uniqComm == persistentComm && "Cannot use different comm objects.");
-    assert(persistentComm && "Uninitialised motecomm_t.");
-    assert(persistentComm);
-    this->comm = &persistentComm;
+    static motecomm_t* persistent_comm = NULL;
+    if (!persistent_comm && uniq_comm)
+      persistent_comm = uniq_comm;
+    assert(uniq_comm == persistent_comm && "Cannot use different comm objects.");
+    assert(persistent_comm && "Uninitialised motecomm_t.");
+    assert(persistent_comm);
+    this->comm = &persistent_comm;
     this->mccmp = NULL;
     memset((void*)(this->handler),0,sizeof(mcp_handler_t*)*MCP_TYPE_SIZE);
-    this->setHandler = _mcp_t_setHandler;
+    this->set_handler = _mcp_t_set_handler;
     this->send = _mcp_t_send;
-    this->getComm = _mcp_t_getComm;
+    this->get_comm = _mcp_t_get_comm;
     this->motecomm_handler.p = (void*)this;
     this->motecomm_handler.receive = _mcp_t_receive;
-    persistentComm->setHandler(persistentComm,this->motecomm_handler);
+    persistent_comm->set_handler(persistent_comm,this->motecomm_handler);
   }
   return this;
 }
@@ -318,7 +318,7 @@ void _mccmp_t_receive(mcp_handler_t* that, payload_t const payload) {
   }
 }
 
-void _mccmp_t_echoRequest(mccmp_problem_handler_t* that, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload) {
+void _mccmp_t_echo_request(mccmp_problem_handler_t* that, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload) {
   (void)offset;
   assert(that);
   assert(that->p);
@@ -329,7 +329,7 @@ void _mccmp_t_echoRequest(mccmp_problem_handler_t* that, mccmp_problem_t const p
   }
 }
 
-void _mccmp_t_ifyRequest(mccmp_problem_handler_t* that, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload) {
+void _mccmp_t_ify_request(mccmp_problem_handler_t* that, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload) {
   (void)offset;
   (void)payload;
   assert(that);
@@ -343,8 +343,8 @@ void _mccmp_t_ifyRequest(mccmp_problem_handler_t* that, mccmp_problem_t const pr
 
 // public:
 void _mccmp_t_send(mccmp_t* this, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload) {
-  stream_t const dummyPayload = 0;
-  stream_t const* stream = &dummyPayload;
+  stream_t const dummy_payload = 0;
+  stream_t const* stream = &dummy_payload;
   assert(this);
   if (payload.stream) {
     stream = payload.stream;
@@ -365,7 +365,7 @@ void _mccmp_t_send(mccmp_t* this, mccmp_problem_t const problem, unsigned char c
   //free(ns);
 }
 
-void _mccmp_t_setHandler(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd) {
+void _mccmp_t_set_handler(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd) {
   assert((unsigned)problem < MCCMP_PROBLEM_HANDLER_SIZE);
   this->handler[problem] = hnd;
 }
@@ -374,21 +374,21 @@ void _mccmp_t_dtor(mccmp_t* this) {
   assert(this);
   this->parent.p = NULL;
   this->parent.receive = NULL;
-  this->mcp->setHandler(this->mcp,MCP_MCCMP,this->parent);
+  this->mcp->set_handler(this->mcp,MCP_MCCMP,this->parent);
 }
 
 mccmp_t* mccmp(mccmp_t* this, mcp_t* const _mcp) {
   SETDTOR(CTOR(this)) _mccmp_t_dtor;
   this->mcp = _mcp;
   this->send = _mccmp_t_send;
-  this->setHandler = _mccmp_t_setHandler;
+  this->set_handler = _mccmp_t_set_handler;
   this->parent.p = (void*)this;
   this->parent.receive = _mccmp_t_receive;
-  this->mcp->setHandler(this->mcp,MCP_MCCMP,this->parent);
+  this->mcp->set_handler(this->mcp,MCP_MCCMP,this->parent);
   this->mcp->mccmp = this;
   memset((void*)(this->handler),0,sizeof(mccmp_problem_handler_t)*MCCMP_PROBLEM_HANDLER_SIZE);
-  this->setHandler(this,MCCMP_ECHO_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = _mccmp_t_echoRequest});
-  this->setHandler(this,MCCMP_IFY_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = _mccmp_t_ifyRequest});
+  this->set_handler(this,MCCMP_ECHO_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = _mccmp_t_echo_request});
+  this->set_handler(this,MCCMP_IFY_REQUEST,(mccmp_problem_handler_t const){.p = (void*)this, .handle = _mccmp_t_ify_request});
   return this;
 }
 
@@ -412,7 +412,7 @@ void _laep_t_request(laep_t* this) {
   }
   //free((void*)(payload.stream));
 }
-void _laep_t_setHandler(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd) {
+void _laep_t_set_handler(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd) {
   assert(msg < LAEP_HANDLER_SIZE);
   this->handler[msg] = hnd;
 }
@@ -458,10 +458,10 @@ laep_t* laep(laep_t* this, mcp_t* const _mcp) {
   CTOR(this);
   this->mcp = _mcp;
   this->request = _laep_t_request;
-  this->setHandler = _laep_t_setHandler;
+  this->set_handler = _laep_t_set_handler;
   this->parent.p = (void*)this;
   this->parent.receive = _laep_t_receive;
-  this->mcp->setHandler(this->mcp,MCP_IFP,this->parent);
+  this->mcp->set_handler(this->mcp,MCP_IFP,this->parent);
   memset((void*)(this->handler),0,sizeof(laep_handler_t)*LAEP_HANDLER_SIZE);
   return this;
 }
@@ -505,7 +505,7 @@ void _ifp_t_send(ifp_t* this, payload_t const payload) {
   //free((void*)(pl.stream));
 }
 
-void _ifp_t_setHandler(ifp_t* this, ifp_handler_t const hnd) {
+void _ifp_t_set_handler(ifp_t* this, ifp_handler_t const hnd) {
   assert(this);
   this->handler = hnd;
 }
@@ -519,7 +519,7 @@ ifp_t* ifp(ifp_t* this, mcp_t* const _mcp) {
   this->parent.p = (void*)this;
   this->parent.receive = _ifp_t_receive;
   this->send = _ifp_t_send;
-  this->setHandler = _ifp_t_setHandler;
+  this->set_handler = _ifp_t_set_handler;
   memset((void*)&(this->handler),0,sizeof(ifp_handler_t)*1);
   return this;
 }
