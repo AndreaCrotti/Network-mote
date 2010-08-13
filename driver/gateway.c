@@ -21,9 +21,9 @@
 #endif
 
 #if SERIAL_STYLE == 0
-#define USAGE "./%s <usbdevice> <externalInterface>"
+#define USAGE "%s <usbdevice> <externalInterface>"
 #elif SERIAL_STYLE == 1
-#define USAGE "./%s <host:port> <externalInterface>"
+#define USAGE "%s <host:port> <externalInterface>"
 #else
 #define USAGE ""
 #endif

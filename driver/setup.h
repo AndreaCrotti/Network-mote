@@ -4,7 +4,6 @@
 // interval between two transmissions in micro seconds
 // this value was roughly determined by testing smaller values may work
 // this value may depend on the topology.
-// => FIXME
 #define SERIAL_INTERVAL_US 40000
 
 struct TunHandlerInfo {

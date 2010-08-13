@@ -82,7 +82,7 @@ void main_loop(fdglue_t *fdg) {
         // NOTE: this is just an arbitrary sleep interval
         // if we wait for 5 minutes and did not receive a single packet,
         // this loop will just reiterate (printing stats and so on)
-        fdg->listen(fdg, 1,0);
+        fdg->listen(fdg, 0, 50000);
         // serialif::send will check itself, wheter it should process its queue
         sifUsed->send(sifUsed,(payload_t){.stream = NULL, .len = 0});
     }
@@ -270,7 +270,7 @@ void tunReceive(fdglue_handler_t* that) {
 
     // generate all the subchunks and send them out
     do {
-        //usleep(SERIAL_INTERVAL_US); // not needed
+        usleep(SERIAL_INTERVAL_US);
         chunks_left = gen_packet(&payload, &pkt, &sendsize, seqno, no_chunks);
         assert(sendsize);
         LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)pkt.packetHeader.ord_no, (unsigned)pkt.packetHeader.seq_no);

@@ -85,7 +85,6 @@ forward(mcp_t)* openMcpConnection(char const* const dev, char* const platform, f
 class (serialif_t,
   serial_source source;
   serial_source_msg msg;
-  struct timeval lastTx;
   // will be called (if set) when the buffer is full
   void (*onBufferFull)(void);
   // will be called (if set) when the buffer is ready to accept data
