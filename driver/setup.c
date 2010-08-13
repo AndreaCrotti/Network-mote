@@ -16,17 +16,10 @@
 #include "setup.h"
 #include "compress.h"
 
-char* tunActive;
+char* tun_active;
 
 serialif_t* sifUsed;
 
-void serialBufferFull(void) {
-  *tunActive = 0;
-}
-
-void serialBufferEmpty(void) {
-  *tunActive = 1;
-}
 
 void _close_everything(int param) {
     LOG_DEBUG("closing all open file descriptors");
@@ -39,7 +32,7 @@ void _close_everything(int param) {
 }
 
 void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
-    tunActive = NULL;
+    tun_active = NULL;
     
     fdglue(g);
 
@@ -59,11 +52,7 @@ void initGlue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
     };
 
     g->setHandler(g, sif->fd(sif), FDGHT_READ, hand_sif, FDGHR_APPEND,NULL);
-    g->setHandler(g, get_fd(client_no), FDGHT_READ, hand_thi, FDGHR_APPEND, &tunActive);
-
-    // give the serial interface a chance to tell us when we are too fast for it
-    sif->onBufferFull = serialBufferFull;
-    sif->onBufferEmpty = serialBufferEmpty;
+    g->setHandler(g, get_fd(client_no), FDGHT_READ, hand_thi, FDGHR_APPEND, &tun_active);
 
     sifUsed = sif;
 }

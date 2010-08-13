@@ -42,7 +42,6 @@ typedef uint8_t seq_no_t;
 typedef uint8_t boolean;
 
 // WARNING must be the same as the one in structs.h
-/*  TODO: if possible use the same structure */
 typedef nx_struct myPacketHeader {
     nx_am_addr_t sender;
     nx_am_addr_t destination;

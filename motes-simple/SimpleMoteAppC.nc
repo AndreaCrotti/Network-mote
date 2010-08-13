@@ -1,3 +1,17 @@
+/**
+ * @file   SimpleMoteAppC.nc
+ * @author Marius Grysla, Oscar Dustman, Andrea Crotti
+ * @date   Fri Aug 13 18:31:27 2010
+ * 
+ * @brief  The configuration file for the MOTENET mote program.
+ *
+ * SimpleMoteApp broadcasts packets it gets from the serial port to the network.
+ * Every mote has a list of recently seen packets that assures, that no duplicates are 
+ * broadcasted.
+ * If a packet has the current node as destination it is forwarded to the PC/Gateway.
+ * 
+ */
+
 #include "SimpleMoteApp.h"
 
 configuration SimpleMoteAppC{
