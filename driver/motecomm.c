@@ -112,17 +112,33 @@ serialif_t* serialfakeif(serialif_t* this) {
 }
 #endif
 
+// XXX:XXX:XXX: THE FOLLOWING 
+// XXX:XXX:XXX: CODE IS NOT 
+// XXX:XXX:XXX: USED AT THE
+// XXX:XXX:XXX: MOMENT, BUY MAY
+// XXX:XXX:XXX: BE USED IN
+// XXX:XXX:XXX: THE FUTURE
+
 /**** motecomm_t ****/
 
 // public:
+/**
+ * Send a packet without adding an extra header
+ * 
+ * @param payload The packet (actual stream and length)
+ */
 void _motecomm_t_send(motecomm_t* this, payload_t const payload) {
   assert(this);
   this->serialif.send(&(this->serialif),payload);
 }
 
+/**
+ * Start waiting for a packet from the serial.
+ * Make sure there actually is one, or you may get stuck here.
+ * Note that this function will not return anything but will call your handler instead.
+ */
 void _motecomm_t_read(motecomm_t* this) {
   payload_t payload = {.stream = NULL, .len = 0}; 
-
   assert(this);
   assert(this->motecomm_handler.receive);
   this->serialif.read(&(this->serialif), &payload);
@@ -132,11 +148,16 @@ void _motecomm_t_read(motecomm_t* this) {
   this->serialif.ditch(&(this->serialif),&payload);
 }
 
+/**
+ * Register a function pointer to a function (embedded in the struct) to be called
+ * if there is a packet (you have to call this->read).
+ */
 void _motecomm_t_setHandler(motecomm_t* this, motecomm_handler_t const handler) {
   assert(this);
   this->motecomm_handler = handler;
 }
 
+/// constructor for the motecomm class
 motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf) {
   CTOR(this);
   assert(interf && interf->send);
