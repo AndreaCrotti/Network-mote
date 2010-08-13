@@ -1,8 +1,10 @@
 """
 Some nice menu creation facilitites
+TODO: use cmdloop instead it should be nicer
 """
 import rlcompleter
 import readline
+import cmd
 from collections import namedtuple
 
 class MenuMaker(object):

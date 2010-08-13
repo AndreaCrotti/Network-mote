@@ -326,6 +326,7 @@ class Simulation(object):
 
 
     def manipulate_topology(self):
+        # only way to have a print inside of a lambda call
         print_out = lambda: sys.stdout.write(str(self.topology))
         def add_nodes():
             try:

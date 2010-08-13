@@ -28,10 +28,9 @@ MotNet
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
 
 * Architecture
-  
 
 * Coding style
-
+  
 * Files
   This is the tree of files in our application
   - driver
@@ -72,3 +71,4 @@ MotNet
     + SimpleMoteAppC.nc
       configuration file
 
+      
