@@ -60,6 +60,8 @@ void setup_iptables(char const *dev, char const *eth) {
     call_script(script_cmd, "setup iptables rules", "setting up routing", 1);
 }
 
+/// start the gateway using the serial interface 'sif' and the mcp_t object 'mcp'
+/// with the network interface 'eth' (that is for going OUT, not for the serialforwarder!)
 void start_gateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
@@ -82,11 +84,17 @@ void start_gateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     main_loop(&fdg);
 }
 
+/**
+ * Tell the user how to use the client.
+ *
+ * @param name The program name used by the user.
+ */
 void usage(char* name) {
     LOG_ERROR(USAGE, name);
     exit(EX_USAGE);
 }
 
+/// http://www.geekherocomic.com/2008/08/18/int-mainvoid/
 int main(int argc, char *argv[]) {
     if (argc != 3) {
         usage(argv[0]);
