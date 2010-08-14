@@ -72,23 +72,30 @@ void _fdglue_t_set_handler(fdglue_t* this, int fd, fdglue_handle_type_t const ty
 void _fdglue_t_listen(fdglue_t* this, unsigned timeout, unsigned us) {
     assert(this);
     static fd_set rd, wr, er;
+    // fdmap tells us the 'struct fd_set' object depending on wether we want
+    // to read/write/error
     static fd_set* fdmap[FDGHT_SIZE];
     fdmap[FDGHT_READ] = &rd;
     fdmap[FDGHT_WRITE] = &wr;
     fdmap[FDGHT_ERROR] = &er;
+    // make sure every object is 'empty'
     FD_ZERO(&rd);
     FD_ZERO(&wr);
     FD_ZERO(&er);
     struct fdglue_handlerlist_t* it;
     for (it = this->handlers; it; it = it->next) {
+        // it->active can be pointed to from outside the class to temporarily deactivate a certain descriptor
         if (it->active) {
+            // add all fds we are supposed to listen to to the appropriate object
             FD_SET(it->fd,fdmap[it->type]);
         }
     }
     struct timeval tv = {.tv_sec = timeout, .tv_usec = us};
+    // more magic
     if (-1 != select(this->nfds+1, &rd, &wr, &er, &tv)) {
         for (it = this->handlers; it; it = it->next) {
             if (it->active && FD_ISSET(it->fd,fdmap[it->type])) {
+                // there was something on that file descriptor, so call the handler
                 it->hnd.handle(&(it->hnd));
             }
         }
