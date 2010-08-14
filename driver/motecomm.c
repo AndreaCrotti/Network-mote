@@ -112,13 +112,6 @@ serialif_t* serialfakeif(serialif_t* this) {
 }
 #endif
 
-// XXX:XXX:XXX: THE FOLLOWING 
-// XXX:XXX:XXX: CODE IS NOT 
-// XXX:XXX:XXX: USED AT THE
-// XXX:XXX:XXX: MOMENT, BUY MAY
-// XXX:XXX:XXX: BE USED IN
-// XXX:XXX:XXX: THE FUTURE
-
 /**** motecomm_t ****/
 
 // public:
@@ -169,6 +162,13 @@ motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf) {
 }
 
 
+// XXX:XXX:XXX: THE FOLLOWING 
+// XXX:XXX:XXX: CODE IS NOT 
+// XXX:XXX:XXX: USED AT THE
+// XXX:XXX:XXX: MOMENT, BUY MAY
+// XXX:XXX:XXX: BE USED IN
+// XXX:XXX:XXX: THE FUTURE
+
 /**** mcp_t ****/
 
 // private:
@@ -183,7 +183,7 @@ void _mcp_t_receive(motecomm_handler_t* that, payload_t const payload) {
   if (payload.len < MCP_HEADER_BYTES) {
     return;
   }
-  {
+  { // check header
     mcp_header_t h;
     payload_t const null_payload = {.stream = NULL, .len = 0};
     h.stream = payload.stream;
@@ -218,12 +218,24 @@ void _mcp_t_receive(motecomm_handler_t* that, payload_t const payload) {
   }
 }
 
-// public:
+// public: but do not call directly; use mcp_t::{set_gandler,send,...}
+/**
+ * Set the appropriate handler for 'type'
+ *
+ * @param type The handler type (this correpsonds to the type field of the header)
+ * @param hnd The handler to install.
+ */
 void _mcp_t_set_handler(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd) {
   assert((unsigned)type < MCP_TYPE_SIZE);
   this->handler[type] = hnd;
 }
 
+/**
+ * Initiate transmission on the mcp layer.
+ *
+ * @param type What kind of packet are we sending.
+ * @param payload Contains both the actual stream and its length.
+ */
 void _mcp_t_send(struct mcp_t* this, mcp_type_t const type, payload_t const payload) {
   stream_t const dummy_payload = 0;
   stream_t const* stream = &dummy_payload;
@@ -253,10 +265,16 @@ void _mcp_t_send(struct mcp_t* this, mcp_type_t const type, payload_t const payl
   //free(ns);
 }
 
+/**
+ * Getter for the motecomm_t object.
+ */
 motecomm_t* _mcp_t_get_comm(mcp_t* this) {
   return *(this->comm);
 }
 
+/**
+ * Destructor for mcp_t objects. Never call this function explictly, always invoke DTOR(myMcpObject);
+ */
 void _mcp_t_dtor(mcp_t* this) {
   assert(this);
   this->motecomm_handler.p = NULL;
@@ -264,6 +282,9 @@ void _mcp_t_dtor(mcp_t* this) {
   (*(this->comm))->set_handler(*(this->comm),this->motecomm_handler);
 }
 
+/**
+ * Constructor for mcp_t objects. You may pass the memory where to put the object, or let it malloc by the ctor.
+ */
 mcp_t* mcp(mcp_t* this, motecomm_t* const uniq_comm) {
   SETDTOR(CTOR(this)) _mcp_t_dtor;
   {
@@ -289,7 +310,12 @@ mcp_t* mcp(mcp_t* this, motecomm_t* const uniq_comm) {
 
 /**** mccmp_t ****/
 
-// private:
+// private: 
+/**
+ * Process a received mccmp packet. Will be registered as mcp handler. Do not call explictly.
+ *
+ * @param payload Contains both the stream and the length of the mccmp packet.
+ */
 void _mccmp_t_receive(mcp_handler_t* that, payload_t const payload) {
   mccmp_t* this = (mccmp_t*)(that->p);
   assert(payload.stream);
@@ -318,6 +344,14 @@ void _mccmp_t_receive(mcp_handler_t* that, payload_t const payload) {
   }
 }
 
+/**
+ * Implements the default-handler for echo requests. Do not call explictly.
+ *
+ * @param problem Corresponds to the header field.
+ * @param ident Corresponds to the header field.
+ * @param offset Corresponds to the header field. Will be ignored.
+ * @param payload The payload of the request (will be sent back, without looking into it)
+ */
 void _mccmp_t_echo_request(mccmp_problem_handler_t* that, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload) {
   (void)offset;
   assert(that);
@@ -329,6 +363,14 @@ void _mccmp_t_echo_request(mccmp_problem_handler_t* that, mccmp_problem_t const 
   }
 }
 
+/**
+ * Implements the default-handler for an identify request. Do not call explictly.
+ *
+ * @param problem Corresponds to the header field.
+ * @param ident Corresponds to the header field.
+ * @param offset Corresponds to the header field. Will be ignored.
+ * @param payload The payload of the request. Will be ignored.
+ */
 void _mccmp_t_ify_request(mccmp_problem_handler_t* that, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload) {
   (void)offset;
   (void)payload;
@@ -342,6 +384,14 @@ void _mccmp_t_ify_request(mccmp_problem_handler_t* that, mccmp_problem_t const p
 }
 
 // public:
+/**
+ * Send an mccmp packet. Do not call explicitly, but call mccmp_t::send
+ *
+ * @param problem Corresponds to the header field.
+ * @param ident Corresponds to the header field.
+ * @param offset Corresponds to the header field.
+ * @param payload Your mccmp packet payload.
+ */
 void _mccmp_t_send(mccmp_t* this, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload) {
   stream_t const dummy_payload = 0;
   stream_t const* stream = &dummy_payload;
@@ -352,7 +402,6 @@ void _mccmp_t_send(mccmp_t* this, mccmp_problem_t const problem, unsigned char c
   {
     mccmp_header_t h;
     static stream_t ns[MCCMP_HEADER_BYTES+MAX_PAYLOAD_SIZE(MCCMP)];
-    //stream_t* ns = malloc(MCCMP_HEADER_BYTES+payload.len);
     memcpy(ns+MCCMP_HEADER_BYTES,stream,payload.len);
     h.stream = ns;
     h.header->version = MCCMP_VERSION;
@@ -362,14 +411,22 @@ void _mccmp_t_send(mccmp_t* this, mccmp_problem_t const problem, unsigned char c
     h.header->offset = offset;
     this->mcp->send(this->mcp,MCP_MCCMP,(payload_t){.stream = ns, .len = MCCMP_HEADER_BYTES+payload.len});
   }
-  //free(ns);
 }
 
+/**
+ * Register a custom handler for a specific mccmp type.
+ *
+ * @param problem Corresponds to the header field.
+ * @param hnd You handler (encapsulated in a struct).
+ */
 void _mccmp_t_set_handler(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd) {
   assert((unsigned)problem < MCCMP_PROBLEM_HANDLER_SIZE);
   this->handler[problem] = hnd;
 }
 
+/**
+ * Destructor for mccmp_t objects. Do not call explicitly, do DTOR(myMccmpObject) - watch out, because your object may still be in use by mcp.
+ */
 void _mccmp_t_dtor(mccmp_t* this) {
   assert(this);
   this->parent.p = NULL;
@@ -377,6 +434,9 @@ void _mccmp_t_dtor(mccmp_t* this) {
   this->mcp->set_handler(this->mcp,MCP_MCCMP,this->parent);
 }
 
+/**
+ * Constructor for mccmp_t objects.
+ */
 mccmp_t* mccmp(mccmp_t* this, mcp_t* const _mcp) {
   SETDTOR(CTOR(this)) _mccmp_t_dtor;
   this->mcp = _mcp;
@@ -394,10 +454,12 @@ mccmp_t* mccmp(mccmp_t* this, mcp_t* const _mcp) {
 
 /**** leap_t ****/
 
+/**
+ * Initiate an address request.
+ */
 void _laep_t_request(laep_t* this) {
   payload_t payload;
   static stream_t stream[LAEP_HEADER_BYTES+MAX_PAYLOAD_SIZE(LAEP)];
-  //payload.stream = malloc(LAEP_HEADER_BYTES*sizeof(stream_t));
   payload.stream = stream;
   payload.len = LAEP_HEADER_BYTES;
   {
@@ -410,12 +472,23 @@ void _laep_t_request(laep_t* this) {
     h.header->payload = 0;
     this->mcp->send(this->mcp,MCP_LAEP,payload);
   }
-  //free((void*)(payload.stream));
 }
+/**
+ * Set a handler for answering requests and handling answers.
+ *
+ * @param msg Kind of message.
+ * @param hnd Your handler.
+ */
 void _laep_t_set_handler(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd) {
   assert(msg < LAEP_HANDLER_SIZE);
   this->handler[msg] = hnd;
 }
+/**
+ * Start receiving a message and call handlers if appropriate. Do not call explicitly.
+ * Called by mcp.
+ * 
+ * @param payload Both stream and length of the packet.
+ */
 void _laep_t_receive(mcp_handler_t* that, payload_t const payload) {
   laep_t* this = (laep_t*)(that->p);
   assert(payload.stream);
@@ -454,6 +527,9 @@ void _laep_t_receive(mcp_handler_t* that, payload_t const payload) {
   }
 }
 
+/**
+ * Create a laep_t object.
+ */
 laep_t* laep(laep_t* this, mcp_t* const _mcp) {
   CTOR(this);
   this->mcp = _mcp;
@@ -468,6 +544,11 @@ laep_t* laep(laep_t* this, mcp_t* const _mcp) {
 
 /**** ifp_t ****/
 
+/**
+ * Process an ifp packet.
+ *
+ * @param payload Packet coming from the lower layer.
+ */
 void _ifp_t_receive(mcp_handler_t* that, payload_t const payload) {
   ifp_t* this = (ifp_t*)(that->p);
   assert(payload.stream);
@@ -491,6 +572,11 @@ void _ifp_t_receive(mcp_handler_t* that, payload_t const payload) {
   }
 }
 
+/**
+ * Send an ip-forward packet (tell the other client to forward your packet).
+ *
+ * @param payload Both stream and length to be sent.
+ */
 void _ifp_t_send(ifp_t* this, payload_t const payload) {
   static stream_t stream[IFP_HEADER_BYTES+MAX_PAYLOAD_SIZE(IFP)];
   payload_t pl = {.len = IFP_HEADER_BYTES+payload.len, .stream = stream};
@@ -505,12 +591,19 @@ void _ifp_t_send(ifp_t* this, payload_t const payload) {
   //free((void*)(pl.stream));
 }
 
+/**
+ * Install a handler to deal with incoming forward requests.
+ *
+ * @param hnd Your handler wrapped in a struct.
+ */
 void _ifp_t_set_handler(ifp_t* this, ifp_handler_t const hnd) {
   assert(this);
   this->handler = hnd;
 }
 
-
+/**
+ * Create an ifp_t objects.
+ */
 ifp_t* ifp(ifp_t* this, mcp_t* const _mcp) {
   CTOR(this);
   assert(this);
