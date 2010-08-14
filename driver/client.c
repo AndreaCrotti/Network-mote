@@ -32,6 +32,7 @@ extern uint16_t destination_address;
 /** 
  * Setting up the routing table, which need iproute2 to work!!
  * 
+ * @param tun_name The human-readable name of the tun device, e.g. tun0
  */
 void setup_routes(char const* const tun_name) {
     char script_cmd[80] = "bash route_setup.sh ";
@@ -39,6 +40,7 @@ void setup_routes(char const* const tun_name) {
     call_script(script_cmd, "tunnel succesfully set up", "routing setting up", 1);
 }
 
+/// start the client for the usb device 'dev'
 void start_client(char const *dev) {    
     // on the server instead could create many
     char tun_name[IFNAMSIZ];
@@ -71,11 +73,17 @@ void start_client(char const *dev) {
     main_loop(&fdg);
 }
 
+/**
+ * Tell the user how to use the client.
+ *
+ * @param name The program name used by the user.
+ */
 void usage(char* name) {
     LOG_ERROR("%s [<device>]",name);
     exit(EX_USAGE);
 }
 
+/// seriously? you are reading what main is about? go away!
 int main(int argc, char *argv[]) {
     char const* dev;
 
