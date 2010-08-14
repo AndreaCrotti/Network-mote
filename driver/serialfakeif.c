@@ -1,3 +1,10 @@
+/**
+ * Fake serial implementation for simulation/debugging purposes.
+ * XXX Currently not supported by the main application.
+ *
+ * @date september 2010
+ * @author Oscar Dustmann
+ */
 #include "serialfakeif.h"
 #include "motecomm.h"
 #include <unistd.h>
@@ -6,8 +13,11 @@
 
 #include "util.h"
 
+
 typedef struct {
+  // to which fd does the data go
   int out;
+  // from which fd is the data to be read
   int in;
 } serialfake_fd_t;
 
