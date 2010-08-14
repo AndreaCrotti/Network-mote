@@ -181,7 +181,7 @@ serialif_t *create_sf_connection(char const* host, char const* port, mcp_t **_mc
     return sif;
 }
 
-// a fake - or dummy - connection to an application running on the same machine
+/// a fake - or dummy - connection to an application running on the same machine
 serialif_t* create_fifo_connection(mcp_t** _mcp) {
   serialif_t* sif = serialfakeif(NULL);
   assert(sif);
@@ -290,6 +290,7 @@ void tun_receive(fdglue_handler_t* that) {
 
 la_t local_address = DEFAULT_LOCAL_ADDRESS;
 
+/// set local address - currently not used
 void la_set(laep_handler_t* this, la_t const address) {
     (void)this;
     local_address = address;
