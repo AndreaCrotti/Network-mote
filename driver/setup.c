@@ -16,6 +16,8 @@
 #include "setup.h"
 #include "compress.h"
 
+#define CLIENT_NO 0
+
 char* tun_active;
 
 serialif_t* sif_used;
@@ -112,18 +114,14 @@ void call_script(char *script_cmd, char *success, char *err_msg, int is_fatal) {
 
 void reconstruct_done(payload_t complete) {
     LOG_DEBUG("reconstruct done\tsize: %u",complete.len);
-    //for (unsigned i = 0; i < complete.len; i++) {
-    //  LOG_DEBUG("%02X ",(unsigned)complete.stream[i]);
-    //}
-    /* debug start */ {
-        unsigned sum = 0;
-        for (stream_t* p = (stream_t*)complete.stream; p - (stream_t*)complete.stream < (signed)complete.len; p++) {
-            sum += *p;
-        }
-        static unsigned recv_count = 0;
-        LOG_NOTE(" => Checksum of RECV %u packet is %08X", recv_count++, sum);
-    } /* debug end */
-    tun_write(/*FIXME*/ 0 /*FIXME*/,complete);
+    unsigned sum = 0;
+    for (stream_t* p = (stream_t*)complete.stream; p - (stream_t*)complete.stream < (signed)complete.len; p++) {
+        sum += *p;
+    }
+    static unsigned recv_count = 0;
+    LOG_NOTE(" => Checksum of RECV %u packet is %08X", recv_count++, sum);
+
+    tun_write(CLIENT_NO, complete);
 }
 
 serialif_t *create_serial_connection(char const *dev, mcp_t **mcp) {
@@ -131,10 +129,6 @@ serialif_t *create_serial_connection(char const *dev, mcp_t **mcp) {
     serialif_t *sif = NULL;
 
     *mcp = open_mcp_connection(dev, mote, &sif);
-    // at the moment we're not using these things
-    /* ifp(0, mcp); */
-    /* laep(0, mcp); */
-    /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
     // XXX HACK:
     motecomm_t* mc = (*mcp)->get_comm(*mcp);
     mc->set_handler(mc,(motecomm_handler_t) {
@@ -161,10 +155,6 @@ serialif_t *create_sf_connection(char const* host, char const* port, mcp_t **_mc
 
     motecomm_t* mc = motecomm(NULL,sif);
     *_mcp = mcp(NULL, mc);
-    // at the moment we're not using these things
-    /* ifp(0, mcp); */
-    /* laep(0, mcp); */
-    /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
     mc->set_handler(mc,(motecomm_handler_t) {
             .p = 0,
                 .receive = serial_process
@@ -187,10 +177,7 @@ serialif_t* create_fifo_connection(mcp_t** _mcp) {
     assert(sif);
     motecomm_t* mc = motecomm(NULL,sif);
     *_mcp = mcp(NULL, mc);
-    // at the moment we're not using these things
-    /* ifp(0, mcp); */
-    /* laep(0, mcp); */
-    /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
+
     mc->set_handler(mc,(motecomm_handler_t) {
             .p = 0,
                 .receive = serial_process
@@ -252,7 +239,7 @@ void tun_receive(fdglue_handler_t* that) {
             for (stream_t* p = buf; p - buf < size; p++) {
                 sum += *p;
             }
-        } /* debug end */
+        }
         static unsigned sent_count = 0;
         LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
     }
@@ -269,14 +256,6 @@ void tun_receive(fdglue_handler_t* that) {
         assert(sendsize);
         LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)pkt.packet_header.ord_no, (unsigned)pkt.packet_header.seq_no);
         
-        //LOG_DEBUG("Sending chunk with size %u\n", sendsize);
-        /*unsigned counter = sendsize;
-          unsigned char *char_data = (unsigned char*)&pkt;
-          while(counter--){
-          p rintf("%02X ", (unsigned)*char_data++);
-          }
-          p rintf("\n");*/
-        
         payload_t to_send = {
             .stream = (stream_t*)&pkt,
             .len = sendsize
@@ -285,13 +264,5 @@ void tun_receive(fdglue_handler_t* that) {
         this->mcomm->send(this->mcomm, to_send);
         sendsize = 0;
 
-    } while (chunks_left); 
-}
-
-la_t local_address = DEFAULT_LOCAL_ADDRESS;
-
-/// set local address - currently not used
-void la_set(laep_handler_t* this, la_t const address) {
-    (void)this;
-    local_address = address;
+    } while (chunks_left);
 }

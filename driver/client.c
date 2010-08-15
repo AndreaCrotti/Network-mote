@@ -24,7 +24,6 @@
 
 #define CLIENT_NO 0
 
-
 // Hardcoded sender and destination addresses for the created packets
 extern uint16_t sender_address;
 extern uint16_t destination_address;
