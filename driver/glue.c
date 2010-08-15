@@ -26,15 +26,15 @@ void _fdglue_t_set_handler(fdglue_t* this, int fd, fdglue_handle_type_t const ty
         for (it = dummy.next; it; it = it->next) {
             if (it->fd == fd && it->type == type) {
                 switch (action) {
-                    case FDGHR_REPLACE:
-                        it->hnd = hnd;
-                        break;
-                    case FDGHR_REMOVE:
-                        last->next = it->next;
-                        free(it);
-                        it = last;
-                        break;
-                    default: {}
+                case FDGHR_REPLACE:
+                    it->hnd = hnd;
+                    break;
+                case FDGHR_REMOVE:
+                    last->next = it->next;
+                    free(it);
+                    it = last;
+                    break;
+                default: {}
                 }
             }
             last = it;
@@ -53,7 +53,7 @@ void _fdglue_t_set_handler(fdglue_t* this, int fd, fdglue_handle_type_t const ty
         p->hnd = hnd;
         // allow easy external access to this item (to toggle it without removing it)
         if (active)
-          *active = &(p->active);
+            *active = &(p->active);
         p->active = 1;
         p->next = this->handlers;
         this->handlers = p;

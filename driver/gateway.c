@@ -114,26 +114,26 @@ int main(int argc, char *argv[]) {
     serialif_t *sif;
 #if SERIAL_STYLE == 0
     if (fake) {
-      LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
-      LOG_INFO("You may run for example:");
-      LOG_INFO("mkfifo \"$MYFIFO\" && ./client < \"$MYFIFO\" | ./gateway - eth0 > \"$MYFIFO\"; [ -p \"$MYFIFO\" ] && rm \"$MYFIFO\"");
-      sif = create_fifo_connection(&mcp);
+        LOG_WARN("Running in stdin/stdout mode. Expecting two different FIFOs (or pipes) to read/write.");
+        LOG_INFO("You may run for example:");
+        LOG_INFO("mkfifo \"$MYFIFO\" && ./client < \"$MYFIFO\" | ./gateway - eth0 > \"$MYFIFO\"; [ -p \"$MYFIFO\" ] && rm \"$MYFIFO\"");
+        sif = create_fifo_connection(&mcp);
     } else {
-      sif = create_serial_connection(dev, &mcp);
+        sif = create_serial_connection(dev, &mcp);
     }
 #elif SERIAL_STYLE == 1
     if (fake) {
-      LOG_ERROR("Fake connection ('-') is not supported with the serial forwarding gateway ('%s').",argv[0]);
-      exit(1);
+        LOG_ERROR("Fake connection ('-') is not supported with the serial forwarding gateway ('%s').",argv[0]);
+        exit(1);
     }
     // split host:port into the variables host and port
     char* port = dev;
     while (*port && *port != ':') {
-      port++;
+        port++;
     }
     if (*port != ':') {
-      LOG_ERROR("You did not supply a port!");
-      exit(1);
+        LOG_ERROR("You did not supply a port!");
+        exit(1);
     }
     *port++ = 0;
     sif = create_sf_connection(dev, port, &mcp);

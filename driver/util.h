@@ -101,12 +101,12 @@
 
 #include "structs.h"
 
-#define class(NAME_T,body) \
-  typedef struct NAME_T NAME_T;\
-  struct NAME_T {\
-    class_t _class;\
-    body\
-  }
+#define class(NAME_T,body)                      \
+    typedef struct NAME_T NAME_T;               \
+    struct NAME_T {                             \
+        class_t _class;                         \
+        body                                    \
+    }
 
 
 /// used to forward declare a type (specifically a class) you will define later
@@ -126,8 +126,8 @@ typedef void (*dtor_t)(void*);
 /// internal data used to specify classes, this holds meta information and could
 /// even be extended to hold a vtable in order to support real polymorphism
 typedef struct {
-  char ctorAllocd;
-  void (*dtor)(void* this);
+    char ctorAllocd;
+    void (*dtor)(void* this);
 } class_t;
 
 /**

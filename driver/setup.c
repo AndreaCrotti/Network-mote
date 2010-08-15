@@ -21,11 +21,11 @@ char* tun_active;
 serialif_t* sif_used;
 
 void serial_buffer_full(void) {
-  *tun_active = 0;
+    *tun_active = 0;
 }
 
 void serial_buffer_empty(void) {
-  *tun_active = 1;
+    *tun_active = 1;
 }
 
 void _close_everything(int param) {
@@ -111,19 +111,19 @@ void call_script(char *script_cmd, char *success, char *err_msg, int is_fatal) {
 }
 
 void reconstruct_done(payload_t complete) {
-  LOG_DEBUG("reconstruct done\tsize: %u",complete.len);
-  //for (unsigned i = 0; i < complete.len; i++) {
-  //  LOG_DEBUG("%02X ",(unsigned)complete.stream[i]);
-  //}
-  /* debug start */ {
-    unsigned sum = 0;
-    for (stream_t* p = (stream_t*)complete.stream; p - (stream_t*)complete.stream < (signed)complete.len; p++) {
-      sum += *p;
-    }
-    static unsigned recv_count = 0;
-    LOG_NOTE(" => Checksum of RECV %u packet is %08X", recv_count++, sum);
-  } /* debug end */
-  tun_write(/*FIXME*/ 0 /*FIXME*/,complete);
+    LOG_DEBUG("reconstruct done\tsize: %u",complete.len);
+    //for (unsigned i = 0; i < complete.len; i++) {
+    //  LOG_DEBUG("%02X ",(unsigned)complete.stream[i]);
+    //}
+    /* debug start */ {
+        unsigned sum = 0;
+        for (stream_t* p = (stream_t*)complete.stream; p - (stream_t*)complete.stream < (signed)complete.len; p++) {
+            sum += *p;
+        }
+        static unsigned recv_count = 0;
+        LOG_NOTE(" => Checksum of RECV %u packet is %08X", recv_count++, sum);
+    } /* debug end */
+    tun_write(/*FIXME*/ 0 /*FIXME*/,complete);
 }
 
 serialif_t *create_serial_connection(char const *dev, mcp_t **mcp) {
@@ -138,9 +138,9 @@ serialif_t *create_serial_connection(char const *dev, mcp_t **mcp) {
     // XXX HACK:
     motecomm_t* mc = (*mcp)->get_comm(*mcp);
     mc->set_handler(mc,(motecomm_handler_t) {
-      .p = 0,
-      .receive = serial_process
-    });
+            .p = 0,
+                .receive = serial_process
+                });
 
     init_reconstruction(reconstruct_done);
 
@@ -166,9 +166,9 @@ serialif_t *create_sf_connection(char const* host, char const* port, mcp_t **_mc
     /* laep(0, mcp); */
     /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
     mc->set_handler(mc,(motecomm_handler_t) {
-      .p = 0,
-      .receive = serial_process
-    });
+            .p = 0,
+                .receive = serial_process
+                });
 
     init_reconstruction(reconstruct_done);
 
@@ -183,28 +183,28 @@ serialif_t *create_sf_connection(char const* host, char const* port, mcp_t **_mc
 
 /// a fake - or dummy - connection to an application running on the same machine
 serialif_t* create_fifo_connection(mcp_t** _mcp) {
-  serialif_t* sif = serialfakeif(NULL);
-  assert(sif);
-  motecomm_t* mc = motecomm(NULL,sif);
-  *_mcp = mcp(NULL, mc);
-  // at the moment we're not using these things
-  /* ifp(0, mcp); */
-  /* laep(0, mcp); */
-  /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
-  mc->set_handler(mc,(motecomm_handler_t) {
-    .p = 0,
-    .receive = serial_process
-  });
+    serialif_t* sif = serialfakeif(NULL);
+    assert(sif);
+    motecomm_t* mc = motecomm(NULL,sif);
+    *_mcp = mcp(NULL, mc);
+    // at the moment we're not using these things
+    /* ifp(0, mcp); */
+    /* laep(0, mcp); */
+    /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
+    mc->set_handler(mc,(motecomm_handler_t) {
+            .p = 0,
+                .receive = serial_process
+                });
 
-  init_reconstruction(reconstruct_done);
+    init_reconstruction(reconstruct_done);
 
-  if (*_mcp) {
+    if (*_mcp) {
         LOG_INFO("Fake connection over stdin/stdout opened.");
-  } else {
+    } else {
         LOG_ERROR("There was an error opening the fake connection over stdin/stdout.");
         exit(1);
-  }
-  return sif;
+    }
+    return sif;
 }
 
 // receiving data from the tunnel device
@@ -247,14 +247,14 @@ void tun_receive(fdglue_handler_t* that) {
             
 #endif
     {
-      unsigned sum = 0;
-      if (DEBUG) {
-        for (stream_t* p = buf; p - buf < size; p++) {
-          sum += *p;
-        }
-      } /* debug end */
-      static unsigned sent_count = 0;
-      LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
+        unsigned sum = 0;
+        if (DEBUG) {
+            for (stream_t* p = buf; p - buf < size; p++) {
+                sum += *p;
+            }
+        } /* debug end */
+        static unsigned sent_count = 0;
+        LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
     }
 
     my_packet pkt;
@@ -271,11 +271,11 @@ void tun_receive(fdglue_handler_t* that) {
         
         //LOG_DEBUG("Sending chunk with size %u\n", sendsize);
         /*unsigned counter = sendsize;
-        unsigned char *char_data = (unsigned char*)&pkt;
-        while(counter--){
-            p rintf("%02X ", (unsigned)*char_data++);
-        }
-        p rintf("\n");*/
+          unsigned char *char_data = (unsigned char*)&pkt;
+          while(counter--){
+          p rintf("%02X ", (unsigned)*char_data++);
+          }
+          p rintf("\n");*/
         
         payload_t to_send = {
             .stream = (stream_t*)&pkt,
