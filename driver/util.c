@@ -5,6 +5,7 @@
 #define NULL 0
 #endif
 
+/// constructor for classes
 class_t* _class_t_ctor(void** obj, unsigned typesz) {
     class_t* result = NULL;
     assert(obj);

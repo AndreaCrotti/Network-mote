@@ -16,16 +16,18 @@
 #include "setup.h"
 #include "compress.h"
 
+#define CLIENT_NO 0
+
 char* tun_active;
 
 serialif_t* sif_used;
 
 void serial_buffer_full(void) {
-  *tun_active = 0;
+    *tun_active = 0;
 }
 
 void serial_buffer_empty(void) {
-  *tun_active = 1;
+    *tun_active = 1;
 }
 
 void _close_everything(int param) {
@@ -65,6 +67,7 @@ void init_glue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
 }
 
 void main_loop(fdglue_t *fdg) {
+    // when receiving SIGINT calling the _close_everything function
     signal(SIGINT, _close_everything);
     LOG_DEBUG("Initialize the compression module");
     init_compression();
@@ -111,19 +114,15 @@ void call_script(char *script_cmd, char *success, char *err_msg, int is_fatal) {
 }
 
 void reconstruct_done(payload_t complete) {
-  LOG_DEBUG("reconstruct done\tsize: %u",complete.len);
-  //for (unsigned i = 0; i < complete.len; i++) {
-  //  LOG_DEBUG("%02X ",(unsigned)complete.stream[i]);
-  //}
-  /* debug start */ {
+    LOG_DEBUG("reconstruct done\tsize: %u",complete.len);
     unsigned sum = 0;
     for (stream_t* p = (stream_t*)complete.stream; p - (stream_t*)complete.stream < (signed)complete.len; p++) {
-      sum += *p;
+        sum += *p;
     }
     static unsigned recv_count = 0;
     LOG_NOTE(" => Checksum of RECV %u packet is %08X", recv_count++, sum);
-  } /* debug end */
-  tun_write(/*FIXME*/ 0 /*FIXME*/,complete);
+
+    tun_write(CLIENT_NO, complete);
 }
 
 serialif_t *create_serial_connection(char const *dev, mcp_t **mcp) {
@@ -131,16 +130,12 @@ serialif_t *create_serial_connection(char const *dev, mcp_t **mcp) {
     serialif_t *sif = NULL;
 
     *mcp = open_mcp_connection(dev, mote, &sif);
-    // at the moment we're not using these things
-    /* ifp(0, mcp); */
-    /* laep(0, mcp); */
-    /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
     // XXX HACK:
     motecomm_t* mc = (*mcp)->get_comm(*mcp);
     mc->set_handler(mc,(motecomm_handler_t) {
-      .p = 0,
-      .receive = serial_process
-    });
+            .p = 0,
+                .receive = serial_process
+                });
 
     init_reconstruction(reconstruct_done);
 
@@ -161,14 +156,10 @@ serialif_t *create_sf_connection(char const* host, char const* port, mcp_t **_mc
 
     motecomm_t* mc = motecomm(NULL,sif);
     *_mcp = mcp(NULL, mc);
-    // at the moment we're not using these things
-    /* ifp(0, mcp); */
-    /* laep(0, mcp); */
-    /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
     mc->set_handler(mc,(motecomm_handler_t) {
-      .p = 0,
-      .receive = serial_process
-    });
+            .p = 0,
+                .receive = serial_process
+                });
 
     init_reconstruction(reconstruct_done);
 
@@ -181,30 +172,27 @@ serialif_t *create_sf_connection(char const* host, char const* port, mcp_t **_mc
     return sif;
 }
 
-// a fake - or dummy - connection to an application running on the same machine
+/// a fake - or dummy - connection to an application running on the same machine
 serialif_t* create_fifo_connection(mcp_t** _mcp) {
-  serialif_t* sif = serialfakeif(NULL);
-  assert(sif);
-  motecomm_t* mc = motecomm(NULL,sif);
-  *_mcp = mcp(NULL, mc);
-  // at the moment we're not using these things
-  /* ifp(0, mcp); */
-  /* laep(0, mcp); */
-  /* _laep.set_handler(laep(0, mcp), LAEP_REPLY,(laep_handler_t) {.handle = la_set, .p = NULL}); */
-  mc->set_handler(mc,(motecomm_handler_t) {
-    .p = 0,
-    .receive = serial_process
-  });
+    serialif_t* sif = serialfakeif(NULL);
+    assert(sif);
+    motecomm_t* mc = motecomm(NULL,sif);
+    *_mcp = mcp(NULL, mc);
 
-  init_reconstruction(reconstruct_done);
+    mc->set_handler(mc,(motecomm_handler_t) {
+            .p = 0,
+                .receive = serial_process
+                });
 
-  if (*_mcp) {
+    init_reconstruction(reconstruct_done);
+
+    if (*_mcp) {
         LOG_INFO("Fake connection over stdin/stdout opened.");
-  } else {
+    } else {
         LOG_ERROR("There was an error opening the fake connection over stdin/stdout.");
         exit(1);
-  }
-  return sif;
+    }
+    return sif;
 }
 
 // receiving data from the tunnel device
@@ -247,14 +235,14 @@ void tun_receive(fdglue_handler_t* that) {
             
 #endif
     {
-      unsigned sum = 0;
-      if (DEBUG) {
-        for (stream_t* p = buf; p - buf < size; p++) {
-          sum += *p;
+        unsigned sum = 0;
+        if (DEBUG) {
+            for (stream_t* p = buf; p - buf < size; p++) {
+                sum += *p;
+            }
         }
-      } /* debug end */
-      static unsigned sent_count = 0;
-      LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
+        static unsigned sent_count = 0;
+        LOG_NOTE("<= Checksum of SENT packet %u is %08X",sent_count++,sum);
     }
 
     my_packet pkt;
@@ -269,14 +257,6 @@ void tun_receive(fdglue_handler_t* that) {
         assert(sendsize);
         LOG_DEBUG("Sending ord_no: %u (seq_no: %u)",(unsigned)pkt.packet_header.ord_no, (unsigned)pkt.packet_header.seq_no);
         
-        //LOG_DEBUG("Sending chunk with size %u\n", sendsize);
-        /*unsigned counter = sendsize;
-        unsigned char *char_data = (unsigned char*)&pkt;
-        while(counter--){
-            p rintf("%02X ", (unsigned)*char_data++);
-        }
-        p rintf("\n");*/
-        
         payload_t to_send = {
             .stream = (stream_t*)&pkt,
             .len = sendsize
@@ -285,12 +265,5 @@ void tun_receive(fdglue_handler_t* that) {
         this->mcomm->send(this->mcomm, to_send);
         sendsize = 0;
 
-    } while (chunks_left); 
-}
-
-la_t local_address = DEFAULT_LOCAL_ADDRESS;
-
-void la_set(laep_handler_t* this, la_t const address) {
-    (void)this;
-    local_address = address;
+    } while (chunks_left);
 }

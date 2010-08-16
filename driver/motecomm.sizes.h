@@ -31,21 +31,21 @@
 
 // header type for mcp
 typedef union {
-  stream_t const* stream;
-  // actual header struct
-  struct {
+    stream_t const* stream;
+    // actual header struct
+    struct {
 #if NX_SWAP_NIBBLES
-    unsigned header  :MCP_HD_HEADER;
-    unsigned version :MCP_HD_VERSION;
+        unsigned header  :MCP_HD_HEADER;
+        unsigned version :MCP_HD_VERSION;
 #else
-    unsigned version :MCP_HD_VERSION;
-    unsigned header  :MCP_HD_HEADER;
+        unsigned version :MCP_HD_VERSION;
+        unsigned header  :MCP_HD_HEADER;
 #endif
-    unsigned ident   :MCP_HD_IDENT;
-    unsigned type    :MCP_HD_TYPE;
-    unsigned port    :MCP_HD_PORT;
-    unsigned payload :MCP_HD_PAYLOAD;
-  }__attribute__((__packed__))* header;
+        unsigned ident   :MCP_HD_IDENT;
+        unsigned type    :MCP_HD_TYPE;
+        unsigned port    :MCP_HD_PORT;
+        unsigned payload :MCP_HD_PAYLOAD;
+    }__attribute__((__packed__))* header;
 } mcp_header_t;
 
 /** MCCMP **/
@@ -63,20 +63,20 @@ typedef union {
 #define MCCMP_HEADER_BYTES HD_BYTES_FROM_BITS(MCCMP_HEADER_BITS)
 
 typedef union {
-  stream_t const* stream;
-  struct {
+    stream_t const* stream;
+    struct {
 #if NX_SWAP_NIBBLES
-    unsigned header  :MCCMP_HD_HEADER;
-    unsigned version :MCCMP_HD_VERSION;
+        unsigned header  :MCCMP_HD_HEADER;
+        unsigned version :MCCMP_HD_VERSION;
 #else
-    unsigned version :MCCMP_HD_VERSION;
-    unsigned header  :MCCMP_HD_HEADER;
+        unsigned version :MCCMP_HD_VERSION;
+        unsigned header  :MCCMP_HD_HEADER;
 #endif
-    unsigned ident   :MCCMP_HD_IDENT;
-    unsigned problem :MCCMP_HD_PROBLEM;
-    unsigned offset  :MCCMP_HD_OFFSET;
-    unsigned payload :MCCMP_HD_PAYLOAD;
-  } __attribute__((__packed__))* header;
+        unsigned ident   :MCCMP_HD_IDENT;
+        unsigned problem :MCCMP_HD_PROBLEM;
+        unsigned offset  :MCCMP_HD_OFFSET;
+        unsigned payload :MCCMP_HD_PAYLOAD;
+    } __attribute__((__packed__))* header;
 } mccmp_header_t;
 
 
@@ -94,21 +94,21 @@ typedef union {
 #define LAEP_HEADER_BYTES HD_BYTES_FROM_BITS(LAEP_HEADER_BITS)
 
 typedef union {
-  stream_t const* stream;
-  struct {
+    stream_t const* stream;
+    struct {
 #if NX_SWAP_NIBBLES
-    unsigned header  :LAEP_HD_HEADER;
-    unsigned version :LAEP_HD_VERSION;
-    unsigned type    :LAEP_HD_TYPE;
-    unsigned ipv     :LAEP_HD_IPV;
+        unsigned header  :LAEP_HD_HEADER;
+        unsigned version :LAEP_HD_VERSION;
+        unsigned type    :LAEP_HD_TYPE;
+        unsigned ipv     :LAEP_HD_IPV;
 #else
-    unsigned version :LAEP_HD_VERSION;
-    unsigned header  :LAEP_HD_HEADER;
-    unsigned ipv     :LAEP_HD_IPV;
-    unsigned type    :LAEP_HD_TYPE;
+        unsigned version :LAEP_HD_VERSION;
+        unsigned header  :LAEP_HD_HEADER;
+        unsigned ipv     :LAEP_HD_IPV;
+        unsigned type    :LAEP_HD_TYPE;
 #endif
-    unsigned payload :LAEP_HD_PAYLOAD;
-  } __attribute__((__packed__))* header;
+        unsigned payload :LAEP_HD_PAYLOAD;
+    } __attribute__((__packed__))* header;
 } laep_header_t;
 
 /** IFP **/
@@ -123,17 +123,17 @@ typedef union {
 #define IFP_HEADER_BYTES HD_BYTES_FROM_BITS(IFP_HEADER_BITS)
 
 typedef union {
-  stream_t const* stream;
-  struct {
+    stream_t const* stream;
+    struct {
 #if NX_SWAP_NIBBLES
-    unsigned header  :IFP_HD_HEADER;
-    unsigned version :IFP_HD_VERSION;
+        unsigned header  :IFP_HD_HEADER;
+        unsigned version :IFP_HD_VERSION;
 #else
-    unsigned version :IFP_HD_VERSION;
-    unsigned header  :IFP_HD_HEADER;
+        unsigned version :IFP_HD_VERSION;
+        unsigned header  :IFP_HD_HEADER;
 #endif
-    unsigned payload :IFP_HD_PAYLOAD;
-  } __attribute__((__packed__))* header;
+        unsigned payload :IFP_HD_PAYLOAD;
+    } __attribute__((__packed__))* header;
 } ifp_header_t;
 
 #endif

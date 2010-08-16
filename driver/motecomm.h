@@ -82,19 +82,19 @@ forward(mcp_t)* open_mcp_connection(char const* const dev, char* const platform,
 // most basic class to interact with the serial port. this class will behave
 // differently depending on where it is used: the mote or the pc.
 // it uses the functions offered by the serial_source lib.
-class (serialif_t,
-  serial_source source;
-  serial_source_msg msg;
-  // send a datastream over the serial
-  int (*send)(serialif_t* this, payload_t const payload);
-  // initiate a read operation (will block if READ_NON_BLOCKING if 0)
-  // gives you a stream administrated by this class: DO NOT FREE IT YOURSELF
-  void (*read)(serialif_t* this, payload_t* const payload);
-  // dispatch of the memory allocated by serialif_t::read
-  void (*ditch)(serialif_t* this, payload_t* const payload);
-  // return the used file descriptor (if any) -- deprecated
-  int (*fd)(serialif_t* this);
-);
+              class (serialif_t,
+                     serial_source source;
+                     serial_source_msg msg;
+                     // send a datastream over the serial
+                     int (*send)(serialif_t* this, payload_t const payload);
+                     // initiate a read operation (will block if READ_NON_BLOCKING if 0)
+                     // gives you a stream administrated by this class: DO NOT FREE IT YOURSELF
+                     void (*read)(serialif_t* this, payload_t* const payload);
+                     // dispatch of the memory allocated by serialif_t::read
+                     void (*ditch)(serialif_t* this, payload_t* const payload);
+                     // return the used file descriptor (if any) -- deprecated
+                     int (*fd)(serialif_t* this);
+                  );
 
 /**
  *  Create a new serialif_t object.
@@ -102,10 +102,10 @@ class (serialif_t,
  *  @param dev Name of the local usb Device: e.g. "/dev/ttyUSB0"
  *  @param platform Name of the architecture we want to talk to: e.g. "telosb"
  */
-serialif_t* serialif(serialif_t* this, char const* const dev, char* const platform, serial_source_msg* ssm);
+              serialif_t* serialif(serialif_t* this, char const* const dev, char* const platform, serial_source_msg* ssm);
 #ifndef _TOS_MOTECOMM
-serialif_t* serialforwardif(serialif_t* this, char const* const host, char* const port);
-serialif_t* serialfakeif(serialif_t* this);
+              serialif_t* serialforwardif(serialif_t* this, char const* const host, char* const port);
+              serialif_t* serialfakeif(serialif_t* this);
 #endif
 
 /****************************************************************
@@ -113,24 +113,24 @@ serialif_t* serialfakeif(serialif_t* this);
  ****************************************************************/
 
 // handler interface for the motecomm. You can put a pointer to your object in p.
-typedef struct motecomm_handler_t {
-  void* p;
-  // will be called when a message is received and valid - do not free the payload yourself
-  void (*receive)(struct motecomm_handler_t* this, payload_t const payload);
-} motecomm_handler_t;
+              typedef struct motecomm_handler_t {
+                  void* p;
+                  // will be called when a message is received and valid - do not free the payload yourself
+                  void (*receive)(struct motecomm_handler_t* this, payload_t const payload);
+              } motecomm_handler_t;
 
 // class to handle tinyos active messages
 // will add the message_t header to outgoing payload and strip the header to incoming
 class (motecomm_t,
-  serialif_t serialif;
-  motecomm_handler_t motecomm_handler;
-  // send out a payload to the mote
-  void (*send)(motecomm_t* this, payload_t const payload);
-  // initiate reading (handlers will be called if appropriate)
-  void (*read)(motecomm_t* this);
-  // initialise a handler to be called - motecomm only offers one possible handler
-  void (*set_handler)(motecomm_t* this, motecomm_handler_t const handler);
-);
+       serialif_t serialif;
+       motecomm_handler_t motecomm_handler;
+       // send out a payload to the mote
+       void (*send)(motecomm_t* this, payload_t const payload);
+       // initiate reading (handlers will be called if appropriate)
+       void (*read)(motecomm_t* this);
+       // initialise a handler to be called - motecomm only offers one possible handler
+       void (*set_handler)(motecomm_t* this, motecomm_handler_t const handler);
+    );
 
 /**
  *  Create a new motecomm_t object.
@@ -147,19 +147,19 @@ motecomm_t* motecomm(motecomm_t* this, serialif_t const* const interf);
 
 // mcp subprotocols (the next upper layer)
 typedef enum {
-  MCP_NONE = 0,
-  MCP_MCCMP = 1,
-  MCP_LAEP = 2,
-  MCP_IFP = 4
+    MCP_NONE = 0,
+    MCP_MCCMP = 1,
+    MCP_LAEP = 2,
+    MCP_IFP = 4
 } mcp_type_t;
 #define MCP_TYPE_SIZE 5
 
 // handler type for mcp
 // you may put a pointer to your own object in p
 typedef struct mcp_handler_t {
-  void* p;
-  // handler to be called if a matching packet is received
-  virtual void (*receive)(struct mcp_handler_t* this, payload_t payload);
+    void* p;
+    // handler to be called if a matching packet is received
+    virtual void (*receive)(struct mcp_handler_t* this, payload_t payload);
 } mcp_handler_t;
 
 forward(mccmp_t);
@@ -168,20 +168,20 @@ forward(mccmp_t);
 // here the first custom header is used. Can be configured to call any (none, all) possible
 // protocols of the next layer. The actual types is arbitrary. 
 class (mcp_t,
-  motecomm_t** comm;
-  motecomm_handler_t motecomm_handler;
-  forward(mccmp_t)* mccmp;
-  mcp_handler_t handler[MCP_TYPE_SIZE];
-  // install a handler for a sub protocol, previously set handlers for the same protocol
-  // will be overridden - NULL is a valid handler (deactivates triggering).
-  // handlers will be called with a payload, where the mcp header was removed.
-  void (*set_handler)(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd);
-  // send a packet of the indicated sub protocol (the header of the sub protocol is of course
-  // expected to have already added to the payload) - only the mcp header will be added
-  void (*send)(mcp_t* this, mcp_type_t const type, payload_t const payload);
-  // getter for the internally used motecomm_t object
-  motecomm_t* (*get_comm)(mcp_t* this);
-);
+       motecomm_t** comm;
+       motecomm_handler_t motecomm_handler;
+       forward(mccmp_t)* mccmp;
+       mcp_handler_t handler[MCP_TYPE_SIZE];
+       // install a handler for a sub protocol, previously set handlers for the same protocol
+       // will be overridden - NULL is a valid handler (deactivates triggering).
+       // handlers will be called with a payload, where the mcp header was removed.
+       void (*set_handler)(mcp_t* this, mcp_type_t const type, mcp_handler_t const hnd);
+       // send a packet of the indicated sub protocol (the header of the sub protocol is of course
+       // expected to have already added to the payload) - only the mcp header will be added
+       void (*send)(mcp_t* this, mcp_type_t const type, payload_t const payload);
+       // getter for the internally used motecomm_t object
+       motecomm_t* (*get_comm)(mcp_t* this);
+    );
 
 /**
  *  Create a new mcp_t object.
@@ -202,34 +202,34 @@ mcp_t* mcp(mcp_t* this, motecomm_t* const uniq_comm);
 
 // mccmp message type (what does the communication partner want to tell us?)
 typedef enum {
-  MCCMP_ECHO_REQUEST = 0,
-  MCCMP_ECHO_REPLY = 1,
-  MCCMP_IFY_REQUEST = 4,
-  MCCMP_IFY_REPLY_MOTE = 5,
-  MCCMP_IFY_REPLY_CLIENT = 6,
-  MCCMP_PARAMETER_PROBLEM = 12,
-  MCCMP_UNSUPPORTED = 13
+    MCCMP_ECHO_REQUEST = 0,
+    MCCMP_ECHO_REPLY = 1,
+    MCCMP_IFY_REQUEST = 4,
+    MCCMP_IFY_REPLY_MOTE = 5,
+    MCCMP_IFY_REPLY_CLIENT = 6,
+    MCCMP_PARAMETER_PROBLEM = 12,
+    MCCMP_UNSUPPORTED = 13
 } mccmp_problem_t;
 #define MCCMP_PROBLEM_HANDLER_SIZE 14
 
 // handler type for mccmp
 // you may put a pointer to your object in p
 typedef struct mccmp_problem_handler_t {
-  void* p;
-  // the handler will receive information about the message type (allowing to have one handler for different problems)
-  // and additional information of the mccmp packet. Of course, the mccmp header will be stripped.
-  void (*handle)(struct mccmp_problem_handler_t* this, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload);
+    void* p;
+    // the handler will receive information about the message type (allowing to have one handler for different problems)
+    // and additional information of the mccmp packet. Of course, the mccmp header will be stripped.
+    void (*handle)(struct mccmp_problem_handler_t* this, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload);
 } mccmp_problem_handler_t;
 
 class (mccmp_t,
-  mcp_handler_t parent;
-  mccmp_problem_handler_t handler[MCCMP_PROBLEM_HANDLER_SIZE];
-  mcp_t* mcp;
-  // initiate sending a mccmp packet. It is your obligation to provide a meaningful payload, if appropriate.
-  void (*send)(mccmp_t* this, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload);
-  // install a handler for a specific message type (e.g. an echo reply)
-  void (*set_handler)(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd);
-);
+       mcp_handler_t parent;
+       mccmp_problem_handler_t handler[MCCMP_PROBLEM_HANDLER_SIZE];
+       mcp_t* mcp;
+       // initiate sending a mccmp packet. It is your obligation to provide a meaningful payload, if appropriate.
+       void (*send)(mccmp_t* this, mccmp_problem_t const problem, unsigned char const ident, unsigned char const offset, payload_t const payload);
+       // install a handler for a specific message type (e.g. an echo reply)
+       void (*set_handler)(mccmp_t* this, mccmp_problem_t const problem, mccmp_problem_handler_t const hnd);
+    );
 
 /**
  *  Create a new mccmp_t object.
@@ -247,34 +247,34 @@ mccmp_t* mccmp(mccmp_t* this, mcp_t* const _mcp);
 
 // ipv6 address used in this protocoll
 typedef struct {
-  unsigned char byte[16];
+    unsigned char byte[16];
 } la_t;
 #define DEFAULT_LOCAL_ADDRESS {{0,0,0,0}}
 
 typedef enum {
-  LAEP_REPLY = 0,
-  LAEP_REQUEST = 1
+    LAEP_REPLY = 0,
+    LAEP_REQUEST = 1
 } laep_msg_t;
 #define LAEP_HANDLER_SIZE 2
 
 // handler for laep
 // you may put a pointer to your object in p
 typedef struct laep_handler_t {
-  void* p;
-  // the handler (which is called when a packet is received) will get the address of the sender)
-  void (*handle)(struct laep_handler_t* this, la_t const address);
+    void* p;
+    // the handler (which is called when a packet is received) will get the address of the sender)
+    void (*handle)(struct laep_handler_t* this, la_t const address);
 } laep_handler_t;
 
 class (laep_t,
-  mcp_handler_t parent;
-  mcp_t* mcp;
-  laep_handler_t handler[LAEP_HANDLER_SIZE];
-  // start a request for the address of the communication partner
-  void (*request)(laep_t* this);
-  // install a handler for a message type
-  // you SHOULD install your handler to handle requests, as this is not implemented by laep_t
-  void (*set_handler)(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd);
-);
+       mcp_handler_t parent;
+       mcp_t* mcp;
+       laep_handler_t handler[LAEP_HANDLER_SIZE];
+       // start a request for the address of the communication partner
+       void (*request)(laep_t* this);
+       // install a handler for a message type
+       // you SHOULD install your handler to handle requests, as this is not implemented by laep_t
+       void (*set_handler)(laep_t* this, laep_msg_t const msg, laep_handler_t const hnd);
+    );
 
 /**
  *  Create a new laep_t object.
@@ -292,22 +292,22 @@ laep_t* laep(laep_t* this, mcp_t* const _mcp);
 // handler type for ifp
 // you may put a pointer to your object in p
 typedef struct ifp_handler_t {
-  void* p;
-  void (*handle)(struct ifp_handler_t* this, payload_t const payload);
+    void* p;
+    void (*handle)(struct ifp_handler_t* this, payload_t const payload);
 } ifp_handler_t;
 
 // deprecated class [currently unused], instad of sending an mcp(ifp(PAY)) packet we simply send PAY
 // class to implement ifp
 // tell the communication partner to forward the payload
 class (ifp_t,
-  mcp_handler_t parent;
-  mcp_t* mcp;
-  ifp_handler_t handler;
-  // send the payload (adding an ifp header)
-  void (*send)(ifp_t* this, payload_t const payload);
-  // set a handler for incoming ip forward request (e.g. you could redirect it to tun)
-  void (*set_handler)(ifp_t* this, ifp_handler_t const hnd);
-);
+       mcp_handler_t parent;
+       mcp_t* mcp;
+       ifp_handler_t handler;
+       // send the payload (adding an ifp header)
+       void (*send)(ifp_t* this, payload_t const payload);
+       // set a handler for incoming ip forward request (e.g. you could redirect it to tun)
+       void (*set_handler)(ifp_t* this, ifp_handler_t const hnd);
+    );
 
 /**
  *  Create a new ifp_t object.

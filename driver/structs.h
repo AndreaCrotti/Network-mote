@@ -1,3 +1,7 @@
+/**
+ * Globally used structures and related defines.
+ * @authors Andrea Crotti, Marius Grysla, Oscar Dustmann
+ */
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
@@ -6,6 +10,11 @@
 #define TOT_PACKET_SIZE(payload_len) (sizeof(my_packet_header) + payload_len)
 #define PAYLOAD_LEN (MAX_CARRIED - sizeof(my_packet))
 
+/**
+ * Create either a tun (IFF_TUN) or a tap (IFF_TAP) interface.
+ * The frame size will be adjusted automatically.
+ * However, IFF_TAP is highly experimental and has not been persued for a while.
+ */
 #define TUNTAP_INTERFACE IFF_TUN
 
 #if TUNTAP_INTERFACE == IFF_TAP
@@ -19,6 +28,7 @@
 /// how many clients can the gateway manage
 #define MAX_CLIENTS 10
 
+// for lazy people
 #define COPY_STRUCT (DESTP, SOURCEP, TYPE) *(TYPE*)(DESTP) = *(TYPE*)(SOURCEP)
 
 #include <stdbool.h>
@@ -27,10 +37,13 @@
 typedef unsigned char stream_t;
 typedef unsigned int streamlen_t;
 
+/**
+ * Heavily used structure, carrying a pointer to a stream (aka payload) and its length.
+ */
 typedef struct {
     stream_t const* stream;
     streamlen_t len;
-    bool is_compressed;
+    bool is_compressed; //FIXME: I don't belong here!
 } payload_t;
 
 typedef uint8_t seq_no_t;
@@ -53,7 +66,7 @@ typedef struct my_packet {
     stream_t payload[MAX_CARRIED];
 } __attribute__((__packed__)) my_packet;
 
-// dummy message type used to communicate with the serial forwarder, NOT USED ANYWHERE
+// XXX dummy message type used to communicate with the serial forwarder, NOT USED ANYWHERE
 struct dummy {
   char bla[102];
 };

@@ -1,5 +1,5 @@
-#ifndef _CLIENT_H
-#define _CLIENT_H
+#ifndef CLIENT_H
+#define CLIENT_H
 
 // Hardcode the sender and destination addresses for the created packets
 #define SENDER_ADDRESS 1

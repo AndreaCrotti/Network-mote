@@ -1,3 +1,8 @@
+/**
+ * Serial implementation for the pc side.
+ * @date some day in mid 2010
+ * @author Oscar Dustmann
+ */
 #ifndef _SERIALIF_H
 #define _SERIALIF_H
 
@@ -8,6 +13,8 @@
 #ifndef SERIAL_FORCE_ACK_SLEEP_US
 #define SERIAL_FORCE_ACK_SLEEP_US 500
 #endif
+
+// note: the serialif_t type is defined in motecomm.h for historical and not so obvious reasons
 
 /****** copied from serialsource.c ******/
 /****** DO NOT MODIFY! ******/
