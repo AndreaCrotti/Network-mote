@@ -71,7 +71,12 @@ MotNet
       They are shared between the driver program and program that runs on the motes
 
   - motes-simple
+    Contains the mote program that was used in the presentation.
     + SimpleMoteAppC.nc
-      configuration file
+      The TinyOS configuration file.
 
-      
+    + SimpleMoteAppP.nc
+      Here the implementation is done.
+
+    + 
+
