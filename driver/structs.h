@@ -31,6 +31,9 @@
 // for lazy people
 #define COPY_STRUCT (DESTP, SOURCEP, TYPE) *(TYPE*)(DESTP) = *(TYPE*)(SOURCEP)
 
+/// in theory we can support more clients but at the moment we only use one
+#define DEFAULT_CLIENT_NO 0
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -43,7 +46,7 @@ typedef unsigned int streamlen_t;
 typedef struct {
     stream_t const* stream;
     streamlen_t len;
-    bool is_compressed; //FIXME: I don't belong here!
+    bool is_compressed;
 } payload_t;
 
 typedef uint8_t seq_no_t;

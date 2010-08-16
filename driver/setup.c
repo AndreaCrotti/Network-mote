@@ -16,8 +16,6 @@
 #include "setup.h"
 #include "compress.h"
 
-#define CLIENT_NO 0
-
 char* tun_active;
 
 serialif_t* sif_used;
@@ -122,7 +120,7 @@ void reconstruct_done(payload_t complete) {
     static unsigned recv_count = 0;
     LOG_NOTE(" => Checksum of RECV %u packet is %08X", recv_count++, sum);
 
-    tun_write(CLIENT_NO, complete);
+    tun_write(DEFAULT_CLIENT_NO, complete);
 }
 
 serialif_t *create_serial_connection(char const *dev, mcp_t **mcp) {

@@ -41,9 +41,6 @@
 #include "structs.h"
 #include "setup.h"
 
-#define CLIENT_NO 0
-#define TRUE 1
-
 // Hardcoded sender and destination addresses for the created packets
 extern uint16_t sender_address;
 extern uint16_t destination_address;
@@ -72,14 +69,14 @@ void start_gateway(serialif_t* sif, mcp_t* mcp, char const *eth) {
     // create the tap-device
     
     // it will exit abruptly if it doesn't open it correctly
-    tun_open(CLIENT_NO, tun_name);
+    tun_open(DEFAULT_CLIENT_NO, tun_name);
 
     setup_iptables(tun_name, eth);
 
     // wrapper for select
     fdglue_t fdg;
 
-    init_glue(&fdg,sif,mcp,CLIENT_NO);
+    init_glue(&fdg,sif,mcp,DEFAULT_CLIENT_NO);
 
     main_loop(&fdg);
 }
