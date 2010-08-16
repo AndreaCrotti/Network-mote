@@ -67,6 +67,7 @@ void init_glue(fdglue_t* g, serialif_t* sif, mcp_t* mcp, int client_no) {
 }
 
 void main_loop(fdglue_t *fdg) {
+    // when receiving SIGINT calling the _close_everything function
     signal(SIGINT, _close_everything);
     LOG_DEBUG("Initialize the compression module");
     init_compression();
