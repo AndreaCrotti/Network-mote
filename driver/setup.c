@@ -1,4 +1,3 @@
-// Standard libraries 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -8,7 +7,6 @@
 #include "motecomm.h"
 #include "chunker.h"
 
-// Functions for using a tunnel device
 #include "tunnel.h"
 #include "reconstruct.h"
 #include "motecomm.h"
