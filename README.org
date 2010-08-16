@@ -1,8 +1,9 @@
 #+AUTHOR: Andrea Crotti, Marius Grysla, Oscar Dustmann
+#+OPTIONS: toc:nil num:nil
 # TODO: change name of the project maybe?
 MotNet
 
-* Next Improvements
+* Next Improvements                                        :ARCHIVE:noexport:
 ** DONE add support for adaptative compression
    CLOSED: [2010-07-31 Sab 18:21]
    - CLOSING NOTE [2010-07-31 Sab 18:21]
@@ -26,42 +27,50 @@ MotNet
   
 * Files
   This is the tree of files in our application
-  - driver
+  - *driver*
     In this directory we have client and gateway program, written in C for linux systems with some bash scripts.
-    + reconstruct.c
+    + *reconstruct.c*
       this module in charge of reconstructing the chunks we get from from the network
 
-    + chunker.c
+    + *chunker.c*
       functions to split the message into many chunks
 
-    + client.c
+    + *client.c*
       start the client version of the program
 
-    + gateway.c
+    + *gateway.c*
       start the gateway
 
-    + tunnel.c
+    + *tunnel.c*
       manage the tunnel (open close write read)
 
-    + setup.c
+    + *setup.c*
       all the functions used both by the client and the gateway
 
-    + structs.c
+    + *structs.c*
       contain some useful functions to manage our own data structures
 
-    + motecomm.c
+    + *motecomm.c*
       low level communication between motes and driver program
 
-    + glue.c
+    + *glue.c*
 
-  - shared
-    In this directory we keep the data structures definition that we use both from the client/gateway program and the program installed on the motes
-    + structs.h
+    + *structs.h*
       This contains the basic data structures we use communicate with the motes.
-      They are shared between the driver program and program that runs on the motes
 
-  - motes-simple
-    + SimpleMoteAppC.nc
+  - *motes-simple*
+    + *SimpleMoteAppC.nc*
       configuration file
 
-      
+  - *talks*
+    - *slides.org*
+      org-mode source file of the presentation
+    - *slides.tex*
+      tex beamer generated file from slides.org
+    - *.svg*
+      images used
+    - *slides.pdf*
+      resulting slides
+
+
+
