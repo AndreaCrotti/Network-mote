@@ -49,7 +49,7 @@ struct serial_source_t {
 
 // local recreation of the message_t header
 // XXX this is some sort of hack, and we should probably just include message.h
-// but that struct is hardware dependant in tinyos, which makes it hard to include it.
+// but that struct is hardware dependent in tinyos, which makes it hard to include it.
 struct message_header_mine_t {
     uint8_t amid;
     uint16_t destaddr;

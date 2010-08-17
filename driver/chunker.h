@@ -32,6 +32,9 @@ int gen_packet(payload_t* const payload, my_packet* const packet, unsigned* send
  */
 unsigned needed_chunks(int data_size);
 
+// NOT USED!
+// Another implementation of gen_my_packet which instead takes an array of payloads already allocated
+// This could be useful to keep an history if we need to send back some chunks
 void gen_my_packets2(payload_t *const payload, payload_t *const result, int const seq_no, const unsigned parts);
 
 #endif
