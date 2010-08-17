@@ -68,5 +68,12 @@ MotNet
     + SimpleMoteAppP.nc
       Here the implementation is done.
 
-    + 
+    + SimpleMoteApp.h
+      Contains defines and data structs for the mote program
+
+    + SendQueueC.nc & SendQueueP.nc
+      Contain a generic queue module for outgoing outgoing messages.
+
+    + gen_network.py, listen.py, packet.py & simulation.py
+      Some Python scripts that can e used for testing with TOSSIM
 
