@@ -16,7 +16,9 @@ MOTNET PROJECT
   - setup the tinyos environment
     + setup TOSROOT and other useful variables, use [[http://www.5secondfuse.com/tinyos/.bash_tinyos][.bash\_tinyos]] to do it automatically
     + follow the [[http://docs.tinyos.net/index.php/BLIP_Tutorial][blip tutorial]] to compile the serialforwarder
-  - install the program on both motes with:
+  - install the program on both motes with, on compter A:
+    + *cd motes-simple && make telosb install /dev/ttyUSB0,0*
+  - On computer B:
     + *cd motes-simple && make telosb install /dev/ttyUSB0,1*
   - compile the driver with
     + *make force*
