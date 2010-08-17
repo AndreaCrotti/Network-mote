@@ -26,7 +26,7 @@ MOTNET PROJECT
   Now B should also have internet access, try to ping outside to check if it works.
 
 * Further documentation
-  In *driver* you can run *make doc* to generate the doxygen documentation of the code, which you will find in *doc_doxy*
+  In *driver* you can run *make doc* to generate the doxygen documentation of the code, which you will find in *doc\_doxy*
 
 * Files                                 
   This is the tree of files in our application
