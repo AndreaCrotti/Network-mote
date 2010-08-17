@@ -31,6 +31,9 @@
 // for lazy people
 #define COPY_STRUCT (DESTP, SOURCEP, TYPE) *(TYPE*)(DESTP) = *(TYPE*)(SOURCEP)
 
+/// in theory we can support more clients but at the moment we only use one
+#define DEFAULT_CLIENT_NO 0
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -43,7 +46,7 @@ typedef unsigned int streamlen_t;
 typedef struct {
     stream_t const* stream;
     streamlen_t len;
-    bool is_compressed; //FIXME: I don't belong here!
+    bool is_compressed;
 } payload_t;
 
 typedef uint8_t seq_no_t;
@@ -89,10 +92,6 @@ void print_payload(payload_t t);
  */
 void print_packet_header(my_packet_header *pkt);
 
-/** 
- * function to create a packet, mainly for testing purposes, not really used
- */
-void make_my_packet(my_packet *pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 
 /****************************************************************/
 /* accessing to the internal data of the structures more easily */
@@ -129,6 +128,14 @@ int get_parts(my_packet *packet);
 int get_ord_no(my_packet *packet);
 int get_seq_no(my_packet *packet);
 bool is_compressed(my_packet *packet);
+
+/**********/
+/* other  */
+/**********/
+/** 
+ * function to create a packet, mainly for testing purposes, not really used
+ */
+void make_my_packet(my_packet *pkt, int seq_no, int ord_no, int parts, stream_t *payload, int len);
 
 #endif
 

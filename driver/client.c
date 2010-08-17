@@ -22,8 +22,6 @@
 #include "structs.h"
 #include "setup.h"
 
-#define CLIENT_NO 0
-
 // Hardcoded sender and destination addresses for the created packets
 extern uint16_t sender_address;
 extern uint16_t destination_address;
@@ -50,7 +48,7 @@ void start_client(char const *dev) {
     // create the tap-device
 
     // it will exit abruptly if it doesn't open it correctly
-    tun_open(CLIENT_NO, tun_name);
+    tun_open(DEFAULT_CLIENT_NO, tun_name);
 
     fflush(stdout);
 
@@ -67,7 +65,7 @@ void start_client(char const *dev) {
         sif = create_fifo_connection(&mcp);
     }
 
-    init_glue(&fdg,sif,mcp,CLIENT_NO);
+    init_glue(&fdg,sif,mcp,DEFAULT_CLIENT_NO);
 
     main_loop(&fdg);
 }

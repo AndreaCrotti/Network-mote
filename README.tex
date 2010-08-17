@@ -1,4 +1,4 @@
-% Created 2010-08-07 Sab 15:27
+% Created 2010-08-17 Mar 18:32
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -18,134 +18,113 @@
 \tolerance=1000
 \providecommand{\alert}[1]{\textbf{#1}}
 
-\title{MotNet}
+\title{MOTNET PROJECT}
 \author{Andrea Crotti, Marius Grysla, Oscar Dustmann}
-\date{07 Agosto 2010}
+\date{17 Agosto 2010}
 
 \begin{document}
 
 \maketitle
 
-\setcounter{tocdepth}{3}
-\tableofcontents
-\vspace*{1cm}
 
-\section{Next Improvements}
+\section*{Goal}
 \label{sec-1}
-\subsection{\textbf{DONE} add support for adaptative compression}
-\label{sec-1_1}
-
-   \texttt{CLOSED:} \textit{2010-07-31 Sab 18:21}
-
-\begin{itemize}
-\item CLOSING NOTE \textit{2010-07-31 Sab 18:21}
-\end{itemize}
-\subsection{\textbf{DONE} add cleaning exit code on exit}
-\label{sec-1_2}
-
-   \texttt{CLOSED:} \textit{2010-08-02 Lun 11:21}
-
-\begin{itemize}
-\item CLOSING NOTE \textit{2010-08-02 Lun 11:21} \\
-Using signal and a generic closing function!
-\end{itemize}
-
-     
-\subsection{\textbf{TODO} add a simple handshaking protocol removing the ugly forced sleep}
-\label{sec-1_3}
-\subsection{\textbf{TODO} add support for an intermediate node that forwards everything}
-\label{sec-1_4}
-\subsection{\textbf{TODO} remove code duplication from client/gateway source files}
-\label{sec-1_5}
-\subsection{\textbf{TODO} (optional) some support for multiple clients}
-\label{sec-1_6}
-\subsection{\textbf{TODO} uniform code style (\_{} and doc)}
-\label{sec-1_7}
-\subsection{\textbf{TODO} do some real automated tests to compute real speed of the connection}
-\label{sec-1_8}
-\subsection{\textbf{TODO} remove all the (void)var things, if there is a variable use it ;)}
-\label{sec-1_9}
-\subsection{\textbf{TODO} drop privileges when not needed anymore}
-\label{sec-1_10}
-
-   ``setgid(),initgroups(), then setuid()'' should be more or less our system calls.
-   Drop to another less privileged user must be done correctly.
-   We also might fork the program keeping the tunnel manager always on
-\subsection{\textbf{TODO} testing with a pipe instead of using the real usb device}
-\label{sec-1_11}
-
-\begin{verbatim}
-pid_t pid;
-int mypipe[2];
-
-/* Create the pipe.  */
-if (pipe (mypipe))
-    {
-        fprintf (stderr, "Pipe failed.\n");
-        return EXIT_FAILURE;
-    }
-\end{verbatim}
-    If is enought to simulate a serial interface we can use  \href{http://www.kernel.org/doc/man-pages/online/pages/man7/pty.7.html}{pty usage}
-    Probably is enough to simulate a pty with a master/slave thing.
-
-    
-\subsection{\textbf{TODO} Finally fix the stupid tossim simulation to see how it works}
-\label{sec-1_12}
-\section{Goal}
-\label{sec-2}
 
   The goal of this project is to create a create a network between motes.
   Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
 
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
-\section{Architecture}
-\label{sec-3}
+\section*{How to use it}
+\label{sec-2}
+
+\begin{itemize}
+\item Attach the motes on two computers \emph{A}, \emph{B}, where \emph{A} has internet access while \emph{B} doesn't
+\item login as root (needed for tun device manipulation)
+\item check that the motes are connected (motelist)
+\item setup the tinyos environment
+
+\begin{itemize}
+\item setup TOSROOT and other useful variables, use \href{http://www.5secondfuse.com/tinyos/.bash_tinyos}{.bash\_tinyos} to do it automatically
+\item follow the \href{http://docs.tinyos.net/index.php/BLIP_Tutorial}{blip tutorial} to compile the serialforwarder
+\end{itemize}
+
+\item install the program on both motes with:
+
+\begin{itemize}
+\item \textbf{cd motes-simple \&\& make telosb install /dev/ttyUSB0,1}
+\end{itemize}
+
+\item compile the driver with
+
+\begin{itemize}
+\item \textbf{make force}
+\end{itemize}
+
+\item on \emph{A} run the gateway with \textbf{./gateway /dev/ttyUSB0 wlan0} (for example)
+\item on \emph{B} run the client with \textbf{make run}
+\end{itemize}
 
   
-\section{Coding style}
+  Now B should also have internet access, try to ping outside to check if it works.
+\section*{Further documentation}
+\label{sec-3}
+
+  In \textbf{driver} you can run \textbf{make doc} to generate the doxygen documentation of the code, which you will find in \textbf{doc$_{\mathrm{doxy}}$}
+\section*{Files}
 \label{sec-4}
-\section{Files}
-\label{sec-5}
 
   This is the tree of files in our application
 \begin{itemize}
-\item driver
+\item \textbf{driver}
     In this directory we have client and gateway program, written in C for linux systems with some bash scripts.
 
 \begin{itemize}
-\item reconstruct.c
+\item \textbf{reconstruct.c}
       this module in charge of reconstructing the chunks we get from from the network
-\item chunker.c
+\item \textbf{chunker.c}
       functions to split the message into many chunks
-\item client.c
+\item \textbf{client.c}
       start the client version of the program
-\item gateway.c
+\item \textbf{gateway.c}
       start the gateway
-\item tunnel.c
+\item \textbf{tunnel.c}
       manage the tunnel (open close write read)
-\item setup.c
+\item \textbf{setup.c}
       all the functions used both by the client and the gateway
-\item structs.c
+\item \textbf{structs.c}
       contain some useful functions to manage our own data structures
-\item motecomm.c
+\item \textbf{motecomm.c}
       low level communication between motes and driver program
-\item glue.c
+\item \textbf{glue.c}
+      Wrapper for the select system calls, glues several file descriptors together
+\item \textbf{serialforwardif.c}
+      Serial implementation using the serial forwarder for the pc side
+\item \textbf{util.c}
+      constructor for classes like objects
 \end{itemize}
 
-\item shared
-    In this directory we keep the data structures definition that we use both from the client/gateway program and the program installed on the motes
+\item \textbf{motes-simple}
 
 \begin{itemize}
-\item structs.h
-      This contains the basic data structures we use communicate with the motes.
-      They are shared between the driver program and program that runs on the motes
-\end{itemize}
-
-\item motes-simple
-
-\begin{itemize}
-\item SimpleMoteAppC.nc
+\item \textbf{SimpleMoteAppC.nc}
       configuration file
+\end{itemize}
+
+\item \textbf{motes}
+    Infrastructure for a more generic mote program supporting blip, not compatible with actual driver.
+\item \textbf{python}
+    Contains experimental python code creating structs, testing packets chunking and compression
+\item \textbf{talks}
+
+\begin{itemize}
+\item \textbf{slides.org}
+      org-mode source file of the presentation
+\item \textbf{slides.tex}
+      tex beamer generated file from slides.org
+\item \textbf{.svg}
+      images used
+\item \textbf{slides.pdf}
+      resulting slides
 \end{itemize}
 
 \end{itemize}
