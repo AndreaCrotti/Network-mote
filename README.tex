@@ -1,4 +1,4 @@
-% Created 2010-08-16 Lun 18:04
+% Created 2010-08-17 Mar 18:29
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -18,106 +18,108 @@
 \tolerance=1000
 \providecommand{\alert}[1]{\textbf{#1}}
 
-\title{MotNet}
+\title{MOTNET PROJECT}
 \author{Andrea Crotti, Marius Grysla, Oscar Dustmann}
-\date{16 Agosto 2010}
+\date{17 Agosto 2010}
 
 \begin{document}
 
 \maketitle
 
-\setcounter{tocdepth}{3}
-\tableofcontents
-\vspace*{1cm}
 
-\section{Next Improvements}
+\section*{Goal}
 \label{sec-1}
-\subsection{\textbf{DONE} add support for adaptative compression}
-\label{sec-1_1}
-
-   \texttt{CLOSED:} \textit{2010-07-31 Sab 18:21}
-
-\begin{itemize}
-\item CLOSING NOTE \textit{2010-07-31 Sab 18:21}
-\end{itemize}
-\subsection{\textbf{DONE} add cleaning exit code on exit}
-\label{sec-1_2}
-
-   \texttt{CLOSED:} \textit{2010-08-02 Lun 11:21}
-
-\begin{itemize}
-\item CLOSING NOTE \textit{2010-08-02 Lun 11:21} \\
-Using signal and a generic closing function!
-\end{itemize}
-
-     
-\subsection{\textbf{DONE} add support for an intermediate node that forwards everything}
-\label{sec-1_3}
-
-   \texttt{CLOSED:} \textit{2010-08-13 Ven 17:52}
-
-\begin{itemize}
-\item CLOSING NOTE \textit{2010-08-13 Ven 17:53} \\
-working depending on humidity and luck
-\end{itemize}
-\section{Goal}
-\label{sec-2}
 
   The goal of this project is to create a create a network between motes.
   Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
 
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
-\section{Architecture}
-\label{sec-3}
+\section*{How to use it}
+\label{sec-2}
+
+\begin{itemize}
+\item Attach the motes on two computers \emph{A}, \emph{B}, where \emph{A} has internet access while \emph{B} doesn't
+\item login as root (needed for tun device manipulation)
+\item check that the motes are connected (motelist)
+\item setup the tinyos environment
+
+\begin{itemize}
+\item setup TOSROOT and other useful variables, use \href{http://www.5secondfuse.com/tinyos/.bash_tinyos}{.bash\_tinyos} to do it automatically
+\item follow the \href{http://docs.tinyos.net/index.php/BLIP_Tutorial}{blip tutorial} to compile the serialforwarder
+\end{itemize}
+
+\item install the program on both motes with:
+
+\begin{itemize}
+\item \textbf{cd motes-simple \&\& make telosb install /dev/ttyUSB0,1}
+\end{itemize}
+
+\item compile the driver with
+
+\begin{itemize}
+\item \textbf{make force}
+\end{itemize}
+
+\item on \emph{A} run the gateway with \textbf{./gateway /dev/ttyUSB0 wlan0} (for example)
+\item on \emph{B} run the client with \textbf{make run}
+\end{itemize}
 
   
-\section{Files}
-\label{sec-4}
+  Now B should also have internet access, try to ping outside to check if it works.
+\section*{Files}
+\label{sec-3}
 
   This is the tree of files in our application
 \begin{itemize}
-\item driver
+\item \textbf{driver}
     In this directory we have client and gateway program, written in C for linux systems with some bash scripts.
 
 \begin{itemize}
-\item reconstruct.c
+\item \textbf{reconstruct.c}
       this module in charge of reconstructing the chunks we get from from the network
-\item chunker.c
+\item \textbf{chunker.c}
       functions to split the message into many chunks
-\item client.c
+\item \textbf{client.c}
       start the client version of the program
-\item gateway.c
+\item \textbf{gateway.c}
       start the gateway
-\item tunnel.c
+\item \textbf{tunnel.c}
       manage the tunnel (open close write read)
-\item setup.c
+\item \textbf{setup.c}
       all the functions used both by the client and the gateway
-\item structs.c
+\item \textbf{structs.c}
       contain some useful functions to manage our own data structures
-\item motecomm.c
+\item \textbf{motecomm.c}
       low level communication between motes and driver program
-\item glue.c
-\item structs.h
-      This contains the basic data structures we use communicate with the motes.
+\item \textbf{glue.c}
+      Wrapper for the select system calls, glues several file descriptors together
+\item \textbf{serialforwardif.c}
+      Serial implementation using the serial forwarder for the pc side
+\item \textbf{util.c}
+      constructor for classes like objects
 \end{itemize}
 
-\item motes-simple
+\item \textbf{motes-simple}
 
 \begin{itemize}
-\item SimpleMoteAppC.nc
+\item \textbf{SimpleMoteAppC.nc}
       configuration file
 \end{itemize}
 
-\item talks
+\item \textbf{motes}
+    Infrastructure for a more generic mote program supporting blip, not compatible with actual driver.
+\item \textbf{python}
+    Contains experimental python code creating structs, testing packets chunking and compression
+\item \textbf{talks}
 
 \begin{itemize}
-\item slides.org
+\item \textbf{slides.org}
       org-mode source file of the presentation
-\item slides.tex
+\item \textbf{slides.tex}
       tex beamer generated file from slides.org
-\item *.svg
+\item \textbf{.svg}
       images used
-\item slides.pdf
+\item \textbf{slides.pdf}
       resulting slides
 \end{itemize}
 
