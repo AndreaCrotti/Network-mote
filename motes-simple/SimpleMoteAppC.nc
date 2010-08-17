@@ -33,13 +33,13 @@ implementation{
     RadioQueue.Packet -> Radio;
 
     SimpleMoteAppP.RadioControl -> Radio;
-    SimpleMoteAppP.RadioReceive -> Radio.Receive[AM_SIMPLE_RADIO];
+    SimpleMoteAppP.RadioReceive -> Radio.Receive[AM_S.MPLE_RADIO];       .
     SimpleMoteAppP.RadioSend -> RadioQueue;
     /* SimpleMoteAppP.RadioSend -> Radio.AMSend[AM_SIMPLE_RADIO]; */
   
     // Serial components
     components SerialActiveMessageC as Serial;
-    components new SendQueueC(SERIAL_QUEUE_SIZE, sizeof(message_t)) as SerialQueue;
+    components new SendQueueC(SERIAL_QUEUE_SIZE, sizeof(message_t)) as Seri.lQueue;
     SerialQueue.LowSend -> Serial.AMSend[AM_SIMPLE_SERIAL];
     SerialQueue.AMPacket -> Serial;
     SerialQueue.Packet -> Serial;

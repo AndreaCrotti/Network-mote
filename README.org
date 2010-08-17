@@ -17,7 +17,8 @@ MOTNET PROJECT
     + setup TOSROOT and other useful variables, use [[http://www.5secondfuse.com/tinyos/.bash_tinyos][.bash\_tinyos]] to do it automatically
     + follow the [[http://docs.tinyos.net/index.php/BLIP_Tutorial][blip tutorial]] to compile the serialforwarder
   - install the program on both motes with:
-    + *cd motes-simple && make telosb install /dev/ttyUSB0,1*
+    + *cd motes-simple && make telosb install.$1 /dev/ttyUSB0,1*
+      where $1 is the preferred mote ID (254 for the gateway, 1 for the client)
   - compile the driver with
     + *make force*
   - on /A/ run the gateway with *./gateway /dev/ttyUSB0 wlan0* (for example)
@@ -62,25 +63,40 @@ MOTNET PROJECT
     + *serialforwardif.c*
       Serial implementation using the serial forwarder for the pc side
 
-	+ *util.c*
+    + *util.c*
       constructor for classes like objects
 
-  - motes-simple
+  - *motes-simple*
     Contains the mote program that was used in the presentation.
-    + SimpleMoteAppC.nc
+    + *SimpleMoteAppC.nc*
       The TinyOS configuration file.
 
-    + SimpleMoteAppP.nc
+    + *SimpleMoteAppP.nc*
       Here the implementation is done.
 
-    + SimpleMoteApp.h
+    + *SimpleMoteApp.h*
       Contains defines and data structs for the mote program
 
-    + SendQueueC.nc & SendQueueP.nc
+    + *SendQueueC.nc & SendQueueP.nc*
       Contain a generic queue module for outgoing outgoing messages.
 
-    + gen_network.py, listen.py, packet.py & simulation.py
+    + *gen_network.py, listen.py, packet.py & simulation.py*
       Some Python scripts that can e used for testing with TOSSIM
+
+  - *motes*
+    The structure for a mote program with support for 6lowpan packets.
+    Currently not in use, because of speed issues.
+    + *MoteNetAppC.nc*
+      The configuration
+
+    + *MoteNetAppP.nc*
+      Implementation of the mote program. Uses the handler stack.
+
+    + *MoteNetApp.h*
+      Structs and defines for the program.
+
+    + *SendQueueC.nc & SendQueueP.nc*
+      Contain a generic queue module for outgoing outgoing messages.
 
   - *python*
     Contains experimental python code creating structs, testing packets chunking and compression
