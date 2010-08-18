@@ -1,7 +1,7 @@
 #+AUTHOR: Andrea Crotti, Marius Grysla, Oscar Dustmann
 #+OPTIONS: toc:nil num:nil
 # TODO: change name of the project maybe?
-MOTNET PROJECT
+TOSNET PROJECT
 
 * Goal
   The goal of this project is to create a network between motes.
