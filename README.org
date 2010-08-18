@@ -4,8 +4,8 @@
 MOTNET PROJECT
 
 * Goal
-  The goal of this project is to create a create a network between motes.
-  Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
+  The goal of this project is to create a network between motes.
+  Supposing we have mote A attached to a computer with an internet connection and mote B is attached to a computer without internet connection.
 
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
 
@@ -13,7 +13,7 @@ MOTNET PROJECT
   - Attach the motes on two computers /A/, /B/, where /A/ has internet access while /B/ doesn't
   - login as root (needed for tun device manipulation)
   - check that the motes are connected (motelist)
-  - setup the tinyos environment
+  - setup the TinyOS environment
     + setup TOSROOT and other useful variables, use [[http://www.5secondfuse.com/tinyos/.bash_tinyos][.bash\_tinyos]] to do it automatically
     + follow the [[http://docs.tinyos.net/index.php/BLIP_Tutorial][blip tutorial]] to compile the serialforwarder
   - install the program on both motes with:
@@ -32,9 +32,9 @@ MOTNET PROJECT
 * Files                                 
   This is the tree of files in our application
   - *driver*
-    In this directory we have client and gateway program, written in C for linux systems with some bash scripts.
+    In this directory we have client and gateway program, written in C for Linux systems.
     + *reconstruct.c*
-      this module in charge of reconstructing the chunks we get from from the network
+      this module is in charge of reconstructing the chunks we get from from the network
 
     + *chunker.c*
       functions to split the message into many chunks
@@ -52,19 +52,22 @@ MOTNET PROJECT
       all the functions used both by the client and the gateway
 
     + *structs.c*
-      contain some useful functions to manage our own data structures
+      contains some useful functions to manage our own data structures
 
     + *motecomm.c*
-      low level communication between motes and driver program
+      low level communication between motes and the driver program
 
     + *glue.c*
-      Wrapper for the select system calls, glues several file descriptors together
+      Wrapper for the select system call, glues several file descriptors together
+
+    + *serialif.c*
+      Serial implementation for the pc side using the serial interface of blip
 
     + *serialforwardif.c*
-      Serial implementation using the serial forwarder for the pc side
+      Serial implementation using the serial forwarder for the pc side (not fully supported)
 
     + *util.c*
-      constructor for classes like objects
+      constructor/destructor for class-like types
 
   - *motes-simple*
     Contains the mote program that was used in the presentation.
@@ -75,13 +78,13 @@ MOTNET PROJECT
       Here the implementation is done.
 
     + *SimpleMoteApp.h*
-      Contains defines and data structs for the mote program
+      Contains defines and data structures for the mote program
 
     + *SendQueueC.nc & SendQueueP.nc*
       Contain a generic queue module for outgoing outgoing messages.
 
     + *gen_network.py, listen.py, packet.py & simulation.py*
-      Some Python scripts that can e used for testing with TOSSIM
+      Some Python scripts that can be used for testing with TOSSIM
 
   - *motes*
     The structure for a mote program with support for 6lowpan packets.
