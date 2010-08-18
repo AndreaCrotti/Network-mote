@@ -1,4 +1,4 @@
-% Created 2010-08-17 Mar 18:32
+% Created 2010-08-18 Mer 10:40
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -18,9 +18,9 @@
 \tolerance=1000
 \providecommand{\alert}[1]{\textbf{#1}}
 
-\title{MOTNET PROJECT}
+\title{TOSNET PROJECT}
 \author{Andrea Crotti, Marius Grysla, Oscar Dustmann}
-\date{17 Agosto 2010}
+\date{18 Agosto 2010}
 
 \begin{document}
 
@@ -30,8 +30,8 @@
 \section*{Goal}
 \label{sec-1}
 
-  The goal of this project is to create a create a network between motes.
-  Supposing we have mote A attached to a computer with an internet connection and mote b is attached to a computer without internet connection.
+  The goal of this project is to create a network between motes.
+  Supposing we have mote A attached to a computer with an internet connection and mote B is attached to a computer without internet connection.
 
   Then traversing a theoretically arbitrary network of motes we can let B connect to the internet through the network.
 \section*{How to use it}
@@ -41,7 +41,7 @@
 \item Attach the motes on two computers \emph{A}, \emph{B}, where \emph{A} has internet access while \emph{B} doesn't
 \item login as root (needed for tun device manipulation)
 \item check that the motes are connected (motelist)
-\item setup the tinyos environment
+\item setup the TinyOS environment
 
 \begin{itemize}
 \item setup TOSROOT and other useful variables, use \href{http://www.5secondfuse.com/tinyos/.bash_tinyos}{.bash\_tinyos} to do it automatically
@@ -51,7 +51,8 @@
 \item install the program on both motes with:
 
 \begin{itemize}
-\item \textbf{cd motes-simple \&\& make telosb install /dev/ttyUSB0,1}
+\item \textbf{cd motes-simple \&\& make telosb install.\$1 /dev/ttyUSB0,1}
+      where \$1 is the preferred mote ID (254 for the gateway, 1 for the client)
 \end{itemize}
 
 \item compile the driver with
@@ -69,18 +70,18 @@
 \section*{Further documentation}
 \label{sec-3}
 
-  In \textbf{driver} you can run \textbf{make doc} to generate the doxygen documentation of the code, which you will find in \textbf{doc$_{\mathrm{doxy}}$}
+  In \textbf{driver} you can run \textbf{make doc} to generate the doxygen documentation of the code, which you will find in \textbf{doc\_doxy}
 \section*{Files}
 \label{sec-4}
 
   This is the tree of files in our application
 \begin{itemize}
 \item \textbf{driver}
-    In this directory we have client and gateway program, written in C for linux systems with some bash scripts.
+    In this directory we have client and gateway program, written in C for Linux systems.
 
 \begin{itemize}
 \item \textbf{reconstruct.c}
-      this module in charge of reconstructing the chunks we get from from the network
+      this module is in charge of reconstructing the chunks we get from from the network
 \item \textbf{chunker.c}
       functions to split the message into many chunks
 \item \textbf{client.c}
@@ -92,26 +93,50 @@
 \item \textbf{setup.c}
       all the functions used both by the client and the gateway
 \item \textbf{structs.c}
-      contain some useful functions to manage our own data structures
+      contains some useful functions to manage our own data structures
 \item \textbf{motecomm.c}
-      low level communication between motes and driver program
+      low level communication between motes and the driver program
 \item \textbf{glue.c}
-      Wrapper for the select system calls, glues several file descriptors together
+      Wrapper for the select system call, glues several file descriptors together
+\item \textbf{serialif.c}
+      Serial implementation for the pc side using the serial interface of blip
 \item \textbf{serialforwardif.c}
-      Serial implementation using the serial forwarder for the pc side
+      Serial implementation using the serial forwarder for the pc side (not fully supported)
 \item \textbf{util.c}
-      constructor for classes like objects
+      constructor/destructor for class-like types
 \end{itemize}
 
 \item \textbf{motes-simple}
+    Contains the mote program that was used in the presentation.
 
 \begin{itemize}
 \item \textbf{SimpleMoteAppC.nc}
-      configuration file
+      The TinyOS configuration file.
+\item \textbf{SimpleMoteAppP.nc}
+      Here the implementation is done.
+\item \textbf{SimpleMoteApp.h}
+      Contains defines and data structures for the mote program
+\item \textbf{SendQueueC.nc \& SendQueueP.nc}
+      Contain a generic queue module for outgoing outgoing messages.
+\item \textbf{gen$_{\mathrm{network}}$.py, listen.py, packet.py \& simulation.py}
+      Some Python scripts that can be used for testing with TOSSIM
 \end{itemize}
 
 \item \textbf{motes}
-    Infrastructure for a more generic mote program supporting blip, not compatible with actual driver.
+    The structure for a mote program with support for 6lowpan packets.
+    Currently not in use, because of speed issues.
+
+\begin{itemize}
+\item \textbf{MoteNetAppC.nc}
+      The configuration
+\item \textbf{MoteNetAppP.nc}
+      Implementation of the mote program. Uses the handler stack.
+\item \textbf{MoteNetApp.h}
+      Structs and defines for the program.
+\item \textbf{SendQueueC.nc \& SendQueueP.nc}
+      Contain a generic queue module for outgoing outgoing messages.
+\end{itemize}
+
 \item \textbf{python}
     Contains experimental python code creating structs, testing packets chunking and compression
 \item \textbf{talks}

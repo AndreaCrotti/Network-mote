@@ -2,7 +2,7 @@
                             ==============
 
 Author: Andrea Crotti, Marius Grysla, Oscar Dustmann
-Date: 2010-08-18 10:28:11 CEST
+Date: 2010-08-18 10:42:37 CEST
 
 
 Goal 
@@ -93,7 +93,7 @@ Files
     + *SendQueueC.nc & SendQueueP.nc*
       Contain a generic queue module for outgoing outgoing messages.
 
-    + *gen_network.py, listen.py, packet.py & simulation.py*
+    + *gen\_network.py, listen.py, packet.py & simulation.py*
       Some Python scripts that can be used for testing with TOSSIM
 
   - *motes*

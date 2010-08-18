@@ -83,7 +83,7 @@ TOSNET PROJECT
     + *SendQueueC.nc & SendQueueP.nc*
       Contain a generic queue module for outgoing outgoing messages.
 
-    + *gen_network.py, listen.py, packet.py & simulation.py*
+    + *gen\_network.py, listen.py, packet.py & simulation.py*
       Some Python scripts that can be used for testing with TOSSIM
 
   - *motes*
