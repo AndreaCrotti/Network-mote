@@ -84,7 +84,7 @@ bool is_completed(packet_t *pkt) {
  * @return 1 if equal, 0 otherwise
  */
 bool check_if_same_chunk(packet_t *pkt1, packet_t *pkt2, int size) {
-    return memcmp((void *) pkt1, (void *) pkt2, size);
+    return memcmp(pkt1, pkt2, size);
 }
 
 /** 
